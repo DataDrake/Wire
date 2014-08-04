@@ -20,28 +20,33 @@ end
 
 class DB
 
-	class Resource
+	class Controller
 
-		def readAll( params )
-			items = @model.all
-			items.map do |item|
-				@model.inflate( item )
+		def self.readAll( context , request , response )
+			model = context[:resource][:db_model]
+			if( model != nil ) then
+				items = model.all
+				items.map do |item|
+					model.inflate( item )
+				end
+				items
+			else
+				"Undefined DB Model"
 			end
-			items
 		end
 
-		def read( request, response, params )
-			hash = @model.get( params[:id] )
-			@model.inflate( hash )
-		end
-
-	end
-
-	class App
-		include Wire::App
-
-		def resource
-			DB::Resource
+		def self.read( id , context , request , response )
+			model = context[:resource][:db_model]
+			if( model != nil ) then
+				hash = model.get( id )
+				if( hash != nil ) then
+					model.inflate( hash )
+				else
+					"Could Not Find record #{id}"
+				end
+			else
+				"Undefined DB Model"
+			end
 		end
 
 	end

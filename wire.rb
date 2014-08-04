@@ -4,6 +4,36 @@ require 'sinatra/base'
 
 $config = {}
 
+class Sinatra::Base
+	def prepare( appName , resourceName )
+		hash = {:failure => false}
+		app = $config[appName]
+		if( app != nil ) then
+			hash[:app] = app
+			resource = app[:resources][resourceName]
+			if( resource != nil ) then
+				hash[:resource] = resource
+				actions = resource[:actions]
+				hash[:actions] = actions
+			else
+				hash[:message] = "Resource Undefined"
+				hash[:failure] = true
+			end
+			type = app[:type]
+			if( type != nil ) then
+				hash[:controller] = type
+			else
+				hash[:message] = "Application type Not Specified"
+				hash[:failure] = true
+			end
+		else
+			hash[:message] = "App Undefined"
+			hash[:failure] = true
+		end
+		hash
+	end	
+end
+
 class Wire
 
 	module App
@@ -46,33 +76,6 @@ class Wire
 		def action( name )
 			puts "Enabling Action: #{name}"
 			$config[@currentURI][:resources][@currentResource][:actions] << name 
-			case name
-				when 'create'
-					
-				#	Web.instance.sinatra.put(@uri) do
-				#		$resources[request.path].create( request , response , params)
-				#	end
-				when 'read'
-                                #        Web.instance.sinatra.get(@uri) do 
-                                #                $resources[request.path].readAll( params )
-                                #        end
-				#	Web.instance.sinatra.get(@uri + "/:id") do
-				#		$resources[request.path].read( request, response, params )
-				#	end
-				when 'update'
-				#	@update.each do |uri, proc|
-				#		Web.instance.sinatra.post(@uri + uri) do 
-                                #                       $resources[request.path].instance_eval( &proc )
-                                #                end
-                                #        end
-				when 'delete'
-				#	@delete.each do |uri, proc|
-				#		Web.instance.sinatra.delete(@uri + uri) do 
-                                #                        $resources[request.path].instance_eval( &proc )
-                                #
-			        #	        end
-                                #	end
-			end
 		end
 
 		def resource_info( uri , config )
@@ -88,37 +91,78 @@ class Wire
 	class Closet
 		include Wire::App
 		include Wire::Resource
- 
+
 		def initialize
 			@sinatra = Sinatra.new
-			@sinatra.get("/:app/:resource") do | a , r |
-				if( $config[a] != nil ) then
-					if( $config[a][:resources][r] != nil ) then
-						if( $config[a][:resources][r][:actions].include?("read") ) then
-							"I can read all!"
-						else
-							"Not Allowed"
-						end
+
+			## Create One or More
+			@sinatra.put("/:app/:resource") do | a , r |
+				context = prepare( a , r )
+				if( !context[:failure] ) then
+					if( context[:actions].include?("create") ) then
+						context[:controller].create( context , request , response )
 					else
-						"Resource Undefined"
+						"Operation not allowed"
 					end
+
 				else
-					"App Undefined"
+					context[:message]
 				end
 			end
-			@sinatra.get("/:app/:resource/:id") do | a , r , i |
-				if( $config[a] != nil ) then
-					if( $config[a][:resources][r] != nil ) then
-						if( $config[a][:resources][r][:actions].include?("read") ) then
-							"I can read item #{i}!"
-						else
-							"Not Allowed"
-						end
+
+			## Read all
+			@sinatra.get("/:app/:resource") do | a , r |
+				context = prepare( a , r )
+				if( !context[:failure] ) then
+					if( context[:actions].include?("read") ) then
+						context[:controller].readAll( context , request , response )
 					else
-						"Resource Undefined"
+						"Operation not allowed"
 					end
 				else
-					"App Undefined"	
+					context[:message]
+				end
+			end
+
+			## Read One
+			@sinatra.get("/:app/:resource/:id") do | a , r , i |
+				context = prepare( a , r )
+				if( !context[:failure] ) then
+					if( context[:actions].include?("read") ) then
+						context[:controller].read( i , context , request , response )
+					else
+						"Operation not allowed"
+					end
+				else
+					context[:message]
+				end
+			end
+
+			## Update One or More
+			@sinatra.post("/:app/:resource" ) do | a , r |
+				context = prepare( a , r )
+				if( !context[:failure] ) then
+					if( context[:actions].include?("update") ) then
+						context[:controller].update( context , request , response )
+					else
+						"Operation not allowed"
+					end
+				else
+					context[:message]
+				end
+			end
+
+			## Delete One
+			@sinatra.delete("/:app/:resource/:id") do | a , r , i |
+				context = prepare( a , r )
+				if( !context[:failure] ) then
+					if( context[:actions].include?("delete") ) then
+						context[:controller].delete( i , context , request , response )
+					else
+						"Operation not permitted"
+					end
+				else
+					context[:message]
 				end
 			end
 		end

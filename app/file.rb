@@ -1,31 +1,42 @@
+require 'awesome_print'
 require_relative '../wire'
 
-class File
-
-	class Resource
-		include Wire::Resource
-
-		def enableCreate
-			Web.instance.sinatra.get(@uri) do
-				"This Just Happened"
-			end
-
-		end
-
-		def enableRead
-                        Web.instance.sinatra.get(@uri) do
-                                "This Just Happened"
-                        end
+class Wire
+	
+	module Resource
+		def file_root( path )
+			$config[@currentURI][:resources][@currentResource][:file_root] = path
 		end
 	end
 
-	class App
-		include Wire::App
+end
 
-		def builder
-			@type = 'File'
-			File::Resource
+class File
+
+	class Controller
+
+		def self.readAll( context , request , response )
+			path = context[:resource][:file_root]
+			if( path != nil ) then
+				if( File.directory?( path ) ) then
+					"#{ap Dir.entries( path )}"
+				else
+					"#{path} is a file, not a folder"
+				end
+			else
+				"Root Directory not specified"
+			end
 		end
+
+		def self.read( id , context , request , response )
+			path = context[:resource][:file_root]
+			if( path != nil ) then
+				"Requested: #{path}/#{id}"
+			else
+				"Root directory not specified"
+			end
+		end
+
 	end
 
 end
