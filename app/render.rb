@@ -1,18 +1,41 @@
 require 'filemagic'
 require 'awesome_print'
+require 'docile'
 require_relative '../wire'
 
 class Wire
 	
 	module App
-		def dav_host( path )
-			$config[@currentURI][:dav_host] = path
+
+		def mime( mime )
+			$config[:renderers][mime] = @currentRenderer
+		end
+
+		def remote_host( hostname )
+			$config[:apps][@currentURI][:remote_host] = hostname
+		end
+
+		def remote_uri( uri )
+			$config[:apps][@currentURI][:remote_uri] = uri	
+		end
+
+		def renderer( klass , &block)
+			@currentRenderer = klass
+			Docile.dsl_eval( self , &block )
+		end
+
+		def template( path )
+			$config[:apps][@currentURI][:template] = path
 		end
 	end
 
 end
 
-class DAV
+class Render
+
+	class Audio
+
+	end
 
 	class Controller
 
@@ -21,9 +44,9 @@ class DAV
 		end
 
 		def self.readAll( context , request , response )
-			path = context[:resource][:file_root]
+			template = context[:app][:template]
+			path = context[:id]
 			if( path != nil ) then
-				context[:sinatra].pass unless File.exists?(path)
 				if( File.directory?( path ) ) then
 					"#{ap Dir.entries( path ).sort}"
 				else
@@ -35,7 +58,8 @@ class DAV
 		end
 
 		def self.read( id , context , request , response )
-			path = context[:resource][:file_root]
+			template = context[:app][:template]
+			path = context[:id]
 			if( path != nil ) then
 				"Requested: #{path}/#{id}"
 				ext_path = File.join( path , id )
@@ -62,4 +86,24 @@ class DAV
 
 	end
 
+	class Image
+
+	end
+
+	class ML
+
+	end
+
+	class Page
+
+	end
+
+	class Video
+
+	end
+
+	class Wiki
+
+	end
+	
 end

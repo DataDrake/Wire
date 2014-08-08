@@ -2,22 +2,16 @@ require 'awesome_print'
 require 'singleton'
 require 'sinatra/base'
 
-$config = {}
-
 class Sinatra::Base
 	def prepare( appName , resourceName )
 		hash = {:failure => false}
-		app = $config[appName]
+		hash[:sinatra] = self
+		app = $config[:apps][appName]
 		if( app != nil ) then
 			hash[:app] = app
 			resource = app[:resources][resourceName]
 			if( resource != nil ) then
 				hash[:resource] = resource
-				actions = resource[:actions]
-				hash[:actions] = actions
-			else
-				hash[:message] = "Resource Undefined"
-				hash[:failure] = true
 			end
 			type = app[:type]
 			if( type != nil ) then
@@ -39,26 +33,26 @@ class Wire
 	module App
 
 		def app( baseURI , &block)
-			$config[baseURI] = {:resources => {}}
+			$config[:apps][baseURI] = {:resources => {}}
 			@currentURI = baseURI
-			puts "Starting App at: #{baseURI}"
+			puts "Starting App at: /#{baseURI}"
 			puts "Setting up resources..."
 			Docile.dsl_eval( self, &block )
 		end
 
 		def type( type )
-			$config[@currentURI][:type] = type
+			$config[:apps][@currentURI][:type] = type
 		end
 
 		def app_info( uri , config )
-			puts "\t#{config[:type]} URI: #{uri}"
+			puts "\t#{config[:type]} URI: /#{uri}"
 
-			puts "\n\tResources:"
-			config[:resources].each do |uri, config|
-				resource_info( uri , config )
-
+			if( !config[:resources].empty? ) then
+				puts "\n\tResources:"
+				config[:resources].each do |uri, config|
+					resource_info( uri , config )
+				end
 			end
-
 			puts "\n"
 		end
 	end
@@ -66,24 +60,14 @@ class Wire
 	module Resource
 
 		def resource( uri , &block )
-			$config[@currentURI][:resources][uri] = {:actions => []}
+			$config[:apps][@currentURI][:resources][uri] = {}
 			@currentResource = uri
-			puts "Starting Resource At: #{@currentURI + uri}"
-			puts "Creating actions..."
+			puts "Starting Resource At: /#{@currentURI + '/' + uri}"
 			Docile.dsl_eval( self , &block )
 		end
 
-		def action( name )
-			puts "Enabling Action: #{name}"
-			$config[@currentURI][:resources][@currentResource][:actions] << name 
-		end
-
 		def resource_info( uri , config )
-			puts "\t\tResource URI: #{uri}"
-			puts "\t\tActions Allowed:"
-			config[:actions].each do |a,v|
-				puts "\t\t\t#{a}"
-			end
+			puts "\t\tResource URI: /#{uri}"
 			puts "\n"
 		end
 	end
@@ -99,7 +83,7 @@ class Wire
 			@sinatra.put("/:app/:resource") do | a , r |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("create") ) then
+					if( $auth.create?(a , r , session[:username] ) ) then
 						context[:controller].create( context , request , response )
 					else
 						"Operation not allowed"
@@ -114,7 +98,7 @@ class Wire
 			@sinatra.get("/:app/:resource") do | a , r |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("read") ) then
+					if( $auth.readAll?( a , r , session[:username] ) ) then
 						context[:controller].readAll( context , request , response )
 					else
 						"Operation not allowed"
@@ -125,10 +109,10 @@ class Wire
 			end
 
 			## Read One
-			@sinatra.get("/:app/:resource/:id") do | a , r , i |
+			@sinatra.get("/:app/:resource/*") do | a , r , i |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("read") ) then
+					if( $auth.read?( a , r , i , session[:username] ) ) then
 						context[:controller].read( i , context , request , response )
 					else
 						"Operation not allowed"
@@ -142,7 +126,7 @@ class Wire
 			@sinatra.post("/:app/:resource" ) do | a , r |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("update") ) then
+					if( $auth.update?( a , r , session[:username] ) ) then
 						context[:controller].update( context , request , response )
 					else
 						"Operation not allowed"
@@ -153,10 +137,10 @@ class Wire
 			end
 
 			## Delete One
-			@sinatra.delete("/:app/:resource/:id") do | a , r , i |
+			@sinatra.delete("/:app/:resource/*") do | a , r , i |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("delete") ) then
+					if( $auth.delete?( a , r , i , session[:username] ) ) then
 						context[:controller].delete( i , context , request , response )
 					else
 						"Operation not permitted"
@@ -165,6 +149,12 @@ class Wire
 					context[:message]
 				end
 			end
+
+			$config = { :apps => {} , :renderers => {} }
+		end
+
+		def auth( auth )
+			$auth = auth.new
 		end
 
 		def build( &block )
@@ -175,7 +165,7 @@ class Wire
 
 		def info
 			puts "Wire Instance Info\n\nApps:"
-			$config.each do |uri , config|
+			$config[:apps].each do |uri , config|
 				app_info( uri , config )
 			end
 		end
