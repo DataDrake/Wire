@@ -21,17 +21,18 @@ class File
 		end
 
 		def self.readAll( context , request , response )
-			path = context[:resource][:local_path]
-			if( path != nil ) then
-				context[:sinatra].pass unless File.exists?(path)
-				if( File.directory?( path ) ) then
-					"#{ap Dir.entries( path ).sort}"
+			context[:sinatra].pass unless (context[:resource] != nil )
+				path = context[:resource][:local_path]
+				if( path != nil ) then
+					context[:sinatra].pass unless File.exists?(path)
+					if( File.directory?( path ) ) then
+						"#{ap Dir.entries( path ).sort}"
+					else
+						"This is a file"
+					end
 				else
-					"This is a file"
+					"Root Directory not specified"
 				end
-			else
-				"Root Directory not specified"
-			end
 		end
 
 		def self.read( id , context , request , response )

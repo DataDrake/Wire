@@ -12,7 +12,6 @@ class Wire
 
 	module Resource
 		def model( model )
-			puts 'bump'
 			$config[:apps][@currentURI][:resources][@currentResource][:model] = model
 		end
 	end

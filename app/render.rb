@@ -37,7 +37,7 @@ class Render
 
 	end
 
-	class Controller
+	module Page
 
 		def self.create( context , request , response )
 			"Action not allowed"
@@ -45,34 +45,25 @@ class Render
 
 		def self.readAll( context , request , response )
 			template = context[:app][:template]
-			path = context[:id]
-			if( path != nil ) then
-				if( File.directory?( path ) ) then
-					"#{ap Dir.entries( path ).sort}"
-				else
-					"This is a file"
-				end
+			host = context[:app][:remote_host]
+			app = context[:app][:remote_uri]
+			resource = context[:resource_name]
+			if( resource != nil ) then
+				"Forward Request to https://#{host + '/' + app + '/' + resource}"
 			else
-				"Root Directory not specified"
+				"Resource not specified"
 			end
 		end
 
 		def self.read( id , context , request , response )
 			template = context[:app][:template]
-			path = context[:id]
-			if( path != nil ) then
-				"Requested: #{path}/#{id}"
-				ext_path = File.join( path , id )
-
-				context[:sinatra].pass unless File.exists?(ext_path)
-					if( File.directory?( ext_path ) ) then
-						"#{ap Dir.entries( ext_path ).sort}"
-					else
-						response.headers['Content-Type'] = FileMagic.new(FileMagic::MAGIC_MIME).file(ext_path)
-						response.body = File.read( ext_path )
-					end
+			host = context[:app][:remote_host]
+			app = context[:app][:remote_uri]
+			resource = context[:resource_name]
+			if( resource != nil ) then
+				"Forward Request to https://#{host + '/' + app +'/' + resource + '/' + id}"
 			else
-				"Root directory not specified"
+				"Resource not specified"
 			end
 		end
 
@@ -91,10 +82,6 @@ class Render
 	end
 
 	class ML
-
-	end
-
-	class Page
 
 	end
 

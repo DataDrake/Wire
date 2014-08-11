@@ -3,12 +3,26 @@ require 'singleton'
 require 'sinatra/base'
 
 class Sinatra::Base
+	def actionAllowed?( action , app , resource , id , username )
+		authConfig = $config[:apps][app][:auth]
+		level = authConfig[:level]
+		case level
+			when :any
+				return ( ( action == :read ) || (action == :readAll) ) 
+			when :app
+				return authConfig[:handler].actionAllowed?( action , resource , id , username )
+			when :user
+				return ( username == authConfig[:user] )
+		end
+	end
+
 	def prepare( appName , resourceName )
 		hash = {:failure => false}
 		hash[:sinatra] = self
 		app = $config[:apps][appName]
 		if( app != nil ) then
 			hash[:app] = app
+			hash[:resource_name] = resourceName
 			resource = app[:resources][resourceName]
 			if( resource != nil ) then
 				hash[:resource] = resource
@@ -57,6 +71,21 @@ class Wire
 		end
 	end
 
+	module Auth
+
+		def auth_handler( handler )
+			$config[:apps][@currentURI][:auth][:handler] = handler
+		end
+
+		def auth_level( level )
+			$config[:apps][@currentURI][:auth] = { :level => level }
+		end
+		
+		def auth_user( user )
+			$config[:apps][@currentURI][:auth][:user] = user
+		end
+	end
+
 	module Resource
 
 		def resource( uri , &block )
@@ -74,6 +103,7 @@ class Wire
 
 	class Closet
 		include Wire::App
+		include Wire::Auth
 		include Wire::Resource
 
 		def initialize
@@ -83,7 +113,7 @@ class Wire
 			@sinatra.put("/:app/:resource") do | a , r |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( $auth.create?(a , r , session[:username] ) ) then
+					if( actionAllowed?( :create , a , r , nil , headers[:username] ) ) then
 						context[:controller].create( context , request , response )
 					else
 						"Operation not allowed"
@@ -98,7 +128,7 @@ class Wire
 			@sinatra.get("/:app/:resource") do | a , r |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( $auth.readAll?( a , r , session[:username] ) ) then
+					if( actionAllowed?( :readAll , a , r , nil , headers[:username] ) ) then
 						context[:controller].readAll( context , request , response )
 					else
 						"Operation not allowed"
@@ -112,7 +142,7 @@ class Wire
 			@sinatra.get("/:app/:resource/*") do | a , r , i |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( $auth.read?( a , r , i , session[:username] ) ) then
+					if( actionAllowed?( :read , a , r , i , headers[:username] ) ) then
 						context[:controller].read( i , context , request , response )
 					else
 						"Operation not allowed"
@@ -123,10 +153,10 @@ class Wire
 			end
 
 			## Update One or More
-			@sinatra.post("/:app/:resource" ) do | a , r |
+			@sinatra.post("/:app/:resource/*" ) do | a , r , i |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( $auth.update?( a , r , session[:username] ) ) then
+					if( actionAllowed?( :update , a , r , i , headers[:username] ) ) then
 						context[:controller].update( context , request , response )
 					else
 						"Operation not allowed"
@@ -140,7 +170,7 @@ class Wire
 			@sinatra.delete("/:app/:resource/*") do | a , r , i |
 				context = prepare( a , r )
 				if( !context[:failure] ) then
-					if( $auth.delete?( a , r , i , session[:username] ) ) then
+					if( $auth.delete?( :delete , a , r , i , headers[:username] ) ) then
 						context[:controller].delete( i , context , request , response )
 					else
 						"Operation not permitted"
@@ -151,10 +181,6 @@ class Wire
 			end
 
 			$config = { :apps => {} , :renderers => {} }
-		end
-
-		def auth( auth )
-			$auth = auth.new
 		end
 
 		def build( &block )
