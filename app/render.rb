@@ -1,3 +1,4 @@
+require 'rest_client'
 require 'filemagic'
 require 'awesome_print'
 require 'docile'
@@ -49,7 +50,13 @@ class Render
 			app = context[:app][:remote_uri]
 			resource = context[:resource_name]
 			if( resource != nil ) then
-				"Forward Request to https://#{host + '/' + app + '/' + resource}"
+				begin
+					response = RestClient.get "http://#{host}/#{app}/#{resource}"
+					"Forward Request to https://#{host + '/' + app + '/' + resource}"
+					response.to_str
+				rescue RestClient::ResourceNotFound
+					"File not found at http://#{host}/#{app}/#{resource}"
+				end
 			else
 				"Resource not specified"
 			end
@@ -61,7 +68,13 @@ class Render
 			app = context[:app][:remote_uri]
 			resource = context[:resource_name]
 			if( resource != nil ) then
-				"Forward Request to https://#{host + '/' + app +'/' + resource + '/' + id}"
+				begin
+					response = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
+					"Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
+					response.to_str
+				rescue RestClient::ResourceNotFound
+					"File not found at http://#{host}/#{app}/#{resource}/#{id}"
+				end
 			else
 				"Resource not specified"
 			end

@@ -16,9 +16,10 @@ class Sinatra::Base
 		end
 	end
 
-	def prepare( appName , resourceName )
+	def prepare( appName , resourceName , user)
 		hash = {:failure => false}
 		hash[:sinatra] = self
+		hash[:user] = user
 		app = $config[:apps][appName]
 		if( app != nil ) then
 			hash[:app] = app
@@ -111,9 +112,10 @@ class Wire
 
 			## Create One or More
 			@sinatra.put("/:app/:resource") do | a , r |
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user )
 				if( !context[:failure] ) then
-					if( actionAllowed?( :create , a , r , nil , headers[:username] ) ) then
+					if( actionAllowed?( :create , a , r , nil , user ) ) then
 						context[:controller].create( context , request , response )
 					else
 						"Operation not allowed"
@@ -126,9 +128,10 @@ class Wire
 
 			## Read all
 			@sinatra.get("/:app/:resource") do | a , r |
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user )
 				if( !context[:failure] ) then
-					if( actionAllowed?( :readAll , a , r , nil , headers[:username] ) ) then
+					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
 						context[:controller].readAll( context , request , response )
 					else
 						"Operation not allowed"
@@ -140,9 +143,10 @@ class Wire
 
 			## Read One
 			@sinatra.get("/:app/:resource/*") do | a , r , i |
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user)
 				if( !context[:failure] ) then
-					if( actionAllowed?( :read , a , r , i , headers[:username] ) ) then
+					if( actionAllowed?( :read , a , r , i , user ) ) then
 						context[:controller].read( i , context , request , response )
 					else
 						"Operation not allowed"
@@ -154,9 +158,10 @@ class Wire
 
 			## Update One or More
 			@sinatra.post("/:app/:resource/*" ) do | a , r , i |
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user)
 				if( !context[:failure] ) then
-					if( actionAllowed?( :update , a , r , i , headers[:username] ) ) then
+					if( actionAllowed?( :update , a , r , i , user ) ) then
 						context[:controller].update( context , request , response )
 					else
 						"Operation not allowed"
@@ -168,9 +173,10 @@ class Wire
 
 			## Delete One
 			@sinatra.delete("/:app/:resource/*") do | a , r , i |
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user)
 				if( !context[:failure] ) then
-					if( $auth.delete?( :delete , a , r , i , headers[:username] ) ) then
+					if( $auth.delete?( :delete , a , r , i , user ) ) then
 						context[:controller].delete( i , context , request , response )
 					else
 						"Operation not permitted"

@@ -1,3 +1,4 @@
+require 'rest_client'
 require 'filemagic'
 require 'awesome_print'
 require_relative '../wire'
@@ -21,34 +22,26 @@ class DAV
 		end
 
 		def self.readAll( context , request , response )
-			path = context[:resource][:file_root]
-			if( path != nil ) then
-				context[:sinatra].pass unless File.exists?(path)
-				if( File.directory?( path ) ) then
-					"#{ap Dir.entries( path ).sort}"
-				else
-					"This is a file"
-				end
-			else
-				"Root Directory not specified"
+			host = context[:app][:remote_host]
+			path = context[:app][:remote_uri]
+			resource = context[:resource_name]
+			begin
+				response = RestClient.get "http://#{host}/#{path}/#{resource}" ,{ :from => context[:user] }
+				response.code
+			rescue RestClient::ResourceNotFound
+				"File Not Found at http://#{host}/#{path}/#{resource}"
 			end
 		end
 
 		def self.read( id , context , request , response )
-			path = context[:resource][:file_root]
-			if( path != nil ) then
-				"Requested: #{path}/#{id}"
-				ext_path = File.join( path , id )
-
-				context[:sinatra].pass unless File.exists?(ext_path)
-					if( File.directory?( ext_path ) ) then
-						"#{ap Dir.entries( ext_path ).sort}"
-					else
-						response.headers['Content-Type'] = FileMagic.new(FileMagic::MAGIC_MIME).file(ext_path)
-						response.body = File.read( ext_path )
-					end
-			else
-				"Root directory not specified"
+			host = context[:app][:remote_host]
+			path = context[:app][:remote_uri]
+			resource = context[:resource_name]
+			begin
+				response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+				response.code
+			rescue RestClient::ResourceNotFound
+				"File Not Found at http://#{host}/#{path}/#{resource}/#{id}"
 			end
 		end
 
