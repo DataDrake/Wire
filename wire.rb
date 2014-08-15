@@ -107,6 +107,8 @@ class Wire
 		include Wire::Auth
 		include Wire::Resource
 
+		attr_reader :sinatra
+
 		def initialize
 			@sinatra = Sinatra.new
 
@@ -200,12 +202,6 @@ class Wire
 			$config[:apps].each do |uri , config|
 				app_info( uri , config )
 			end
-		end
-
-		def run
-			ap $config
-			puts @sinatra.routes
-			@sinatra.run!
 		end
 	end
 end

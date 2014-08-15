@@ -35,7 +35,9 @@ end
 class Render
 
 	class Audio
-
+		def self.render( resource , id )
+			"<content><audio controls><source src=\"/static/#{resource}/#{id}\"></source></audio></content>"
+		end
 	end
 
 	module Page
@@ -91,7 +93,9 @@ class Render
 	end
 
 	class Image
-
+		def self.render( resource , id )
+			"<content><img src=\"/static/#{resource}/#{id}\"></img></content>"
+		end
 	end
 
 	class ML
@@ -99,7 +103,9 @@ class Render
 	end
 
 	class Video
-
+		def self.render( resource , id )
+			"<content><video controls><source src=\"/static/#{resource}/#{id}\"></source></video></content>"
+		end
 	end
 
 	class Wiki
