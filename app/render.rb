@@ -1,3 +1,6 @@
+require 'nokogiri'
+require 'wikicloth'
+require 'redcarpet'
 require 'rest_client'
 require 'filemagic'
 require 'awesome_print'
@@ -35,8 +38,8 @@ end
 class Render
 
 	class Audio
-		def self.render( resource , id )
-			"<content><audio controls><source src=\"/static/#{resource}/#{id}\"></source></audio></content>"
+		def self.render( resource , id , mime , content )
+			"<content><div id=\"audio\" class=\"small-12 medium-12 large-12 columns\"><div id=\"title\" class=\"top\">#{id}</div><div id=\"player\" class=\"row bottom\"><audio controls=\"true\"><source src=\"/static/#{resource}/#{id}\"></source></audio></div></div></content>"
 		end
 	end
 
@@ -71,9 +74,17 @@ class Render
 			resource = context[:resource_name]
 			if( resource != nil ) then
 				begin
-					response = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
+					result = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
 					"Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
-					response.to_str
+					if( template != nil ) then 
+						doc = Nokogiri::XML( result.to_str )
+						xslt = Nokogiri::XSLT( File.read(template) )
+						xslt.transform( doc ).to_s
+					else
+						puts result.headers[:content_type]
+						response.headers['Content-Type'] = result.headers[:content_type]
+						response.body = result.to_str
+					end
 				rescue RestClient::ResourceNotFound
 					"File not found at http://#{host}/#{app}/#{resource}/#{id}"
 				end
@@ -93,23 +104,36 @@ class Render
 	end
 
 	class Image
-		def self.render( resource , id )
+		def self.render( resource , id , mime , content )
 			"<content><img src=\"/static/#{resource}/#{id}\"></img></content>"
 		end
 	end
 
 	class ML
-
+		def self.render( resource , id , mime , content )
+		end
 	end
 
 	class Video
-		def self.render( resource , id )
-			"<content><video controls><source src=\"/static/#{resource}/#{id}\"></source></video></content>"
+		def self.render( resource , id , mime , content )
+			"<content><div id=\"video\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top\">#{id}</div><div class=\"row bottom\"><div class=\"small-12 medium-8 large-6 large-centered columns\"><video controls=\"true\"><source src=\"/static/#{resource}/#{id}\"></source></video></div></div></div></content>"
 		end
 	end
 
 	class Wiki
 
+		@@markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true)
+
+		def self.render( resource , id , mime , content )
+			result = ""
+			case (mime)
+				when 'text/wiki'
+					result = WikiCloth::Parser.new( :data => content , :noedit => true ).to_html
+				when 'text/x-markdown'
+					result = @@markdown.render( content )
+			end
+			"<content><div id=\"wiki\">#{result}</div></content>"
+		end
 	end
 	
 end

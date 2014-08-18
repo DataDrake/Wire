@@ -45,7 +45,13 @@ class File
 					if( File.directory?( ext_path ) ) then
 						"#{ap Dir.entries( ext_path ).sort}"
 					else
-						response.headers['Content-Type'] = FileMagic.new(FileMagic::MAGIC_MIME).file(ext_path)
+						mime = 'text/plain'
+						if( ext_path.end_with?( '.wiki' ) || ext_path.end_with?( '.mediawiki' ) ) then
+							mime = 'text/wiki'
+						else
+							mime = `mimetype --brief #{ext_path}`
+						end
+						response.headers['Content-Type'] = mime
 						response.body = File.read( ext_path )
 					end
 			else

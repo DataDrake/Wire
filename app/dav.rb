@@ -28,9 +28,6 @@ class DAV
 			begin
 				response = RestClient.get "http://#{host}/#{path}/#{resource}" ,{ :from => context[:user] }
 				mime = response.headers[:content_type]
-				if( mime != nil ) then
-					mime.slice(0..(mime.index(';') - 1))
-				end
 			rescue RestClient::ResourceNotFound
 				"File Not Found at http://#{host}/#{path}/#{resource}"
 			end
@@ -43,12 +40,10 @@ class DAV
 			begin
 				response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
 				mime = response.headers[:content_type]
-				if( mime != nil ) then
-					mime = mime.slice(0..(mime.index(';') - 1))
-				end
+				puts "MIME: #{mime}"
 				renderer = $config[:renderers][mime]
 				if( renderer != nil ) then
-					renderer.render( resource , id )
+					renderer.render( resource , id , mime , response.body )
 				else
 					mime
 				end
