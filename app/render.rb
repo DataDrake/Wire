@@ -111,6 +111,15 @@ class Render
 
 	class ML
 		def self.render( resource , id , mime , content )
+			result = ""
+			case( mime )
+				when 'text/html'
+					html = Nokogiri::HTML( content )
+					result = html.at('body').inner_html
+				when 'application/xml'
+					result = content
+			end
+			"<content><div id=\"ml\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top row\">#{id}</div><div class=\"bottom row\">#{result}</div></div></content>"
 		end
 	end
 
@@ -132,7 +141,7 @@ class Render
 				when 'text/x-markdown'
 					result = @@markdown.render( content )
 			end
-			"<content><div id=\"wiki\">#{result}</div></content>"
+			"<content><div id=\"wiki\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top\"><h1>#{id.slice(0..(id.index('.')-1)).capitalize}</h1></div><div class=\"bottom row\">#{result}</div></div></div></content>"
 		end
 	end
 	
