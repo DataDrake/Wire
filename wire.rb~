@@ -2,28 +2,37 @@ require 'awesome_print'
 require 'singleton'
 require 'sinatra/base'
 
-$config = {}
-
 class Sinatra::Base
-	def prepare( appName , resourceName )
+	def actionAllowed?( action , app , resource , id , username )
+		authConfig = $config[:apps][app][:auth]
+		level = authConfig[:level]
+		case level
+			when :any
+				return ( ( action == :read ) || (action == :readAll) ) 
+			when :app
+				return authConfig[:handler].actionAllowed?( action , resource , id , username )
+			when :user
+				return ( username == authConfig[:user] )
+		end
+	end
+
+	def prepare( appName , resourceName , user)
 		hash = {:failure => false}
-		app = $config[appName]
+		hash[:sinatra] = self
+		hash[:user] = user
+		app = $config[:apps][appName]
 		if( app != nil ) then
 			hash[:app] = app
+			hash[:resource_name] = resourceName
 			resource = app[:resources][resourceName]
 			if( resource != nil ) then
-				actions = resource[:actions]
-				hash[:actions] = actions
-			else
-				hash[:message] = "Resource Undefined"
-				hash[:failure] = true
+				hash[:resource] = resource
 			end
 			type = app[:type]
 			if( type != nil ) then
-				controller = type.resource
-				hash[:controller] = controller
+				hash[:controller] = type
 			else
-				hash[:message] = "Application Type Not Specified"
+				hash[:message] = "Application type Not Specified"
 				hash[:failure] = true
 			end
 		else
@@ -39,67 +48,96 @@ class Wire
 	module App
 
 		def app( baseURI , &block)
-			$config[baseURI] = {:resources => {}}
+			$config[:apps][baseURI] = {:resources => {}}
 			@currentURI = baseURI
-			puts "Starting App at: #{baseURI}"
+			puts "Starting App at: /#{baseURI}"
 			puts "Setting up resources..."
 			Docile.dsl_eval( self, &block )
 		end
 
 		def type( type )
-			$config[@currentURI][:type] = type
+			$config[:apps][@currentURI][:type] = type
 		end
 
 		def app_info( uri , config )
-			puts "\t#{config[:type]} URI: #{uri}"
+			puts "\t#{config[:type]} URI: /#{uri}"
 
-			puts "\n\tResources:"
-			config[:resources].each do |uri, config|
-				resource_info( uri , config )
-
+			if( !config[:resources].empty? ) then
+				puts "\n\tResources:"
+				config[:resources].each do |uri, config|
+					resource_info( uri , config )
+				end
 			end
-
 			puts "\n"
+		end
+
+		def self.create( context , request , response )
+			"Action not allowed"
+		end
+
+		def self.readAll( context , request , response )
+			"Action not allowed"
+		end
+
+		def self.read( id , context , request , response )
+			"Action not allowed"
+		end
+
+		def self.update( id , context , request , response )
+			"Action not allowed"
+		end
+
+		def self.delete( id , context , request , response )
+			"Action not allowed"
+		end
+	end
+
+	module Auth
+
+		def auth_handler( handler )
+			$config[:apps][@currentURI][:auth][:handler] = handler
+		end
+
+		def auth_level( level )
+			$config[:apps][@currentURI][:auth] = { :level => level }
+		end
+		
+		def auth_user( user )
+			$config[:apps][@currentURI][:auth][:user] = user
 		end
 	end
 
 	module Resource
 
 		def resource( uri , &block )
-			$config[@currentURI][:resources][uri] = {:actions => []}
+			$config[:apps][@currentURI][:resources][uri] = {}
 			@currentResource = uri
-			puts "Starting Resource At: #{@currentURI + uri}"
-			puts "Creating actions..."
+			puts "Starting Resource At: /#{@currentURI + '/' + uri}"
 			Docile.dsl_eval( self , &block )
 		end
 
-		def action( name )
-			puts "Enabling Action: #{name}"
-			$config[@currentURI][:resources][@currentResource][:actions] << name 
-		end
-
 		def resource_info( uri , config )
-			puts "\t\tResource URI: #{uri}"
-			puts "\t\tActions Allowed:"
-			config[:actions].each do |a,v|
-				puts "\t\t\t#{a}"
-			end
+			puts "\t\tResource URI: /#{uri}"
 			puts "\n"
 		end
 	end
 
 	class Closet
 		include Wire::App
+		include Wire::Auth
 		include Wire::Resource
+
+		attr_reader :sinatra
 
 		def initialize
 			@sinatra = Sinatra.new
 
 			## Create One or More
 			@sinatra.put("/:app/:resource") do | a , r |
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("create") ) then
+					if( actionAllowed?( :create , a , r , nil , user ) ) then
 						context[:controller].create( context , request , response )
 					else
 						"Operation not allowed"
@@ -112,10 +150,10 @@ class Wire
 
 			## Read all
 			@sinatra.get("/:app/:resource") do | a , r |
-				extend Wire::Closet
-				context = prepare( a , r )
+				user = headers[:from]
+				context = prepare( a , r , user )
 				if( !context[:failure] ) then
-					if( context[:actions].include?("read") ) then
+					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
 						context[:controller].readAll( context , request , response )
 					else
 						"Operation not allowed"
@@ -126,10 +164,11 @@ class Wire
 			end
 
 			## Read One
-			@sinatra.get("/:app/:resource/:id") do | a , r , i |
-				context = prepare( a , r )
+			@sinatra.get("/:app/:resource/*") do | a , r , i |
+				user = headers[:from]
+				context = prepare( a , r , user)
 				if( !context[:failure] ) then
-					if( context[:actions].include?("read") ) then
+					if( actionAllowed?( :read , a , r , i , user ) ) then
 						context[:controller].read( i , context , request , response )
 					else
 						"Operation not allowed"
@@ -140,11 +179,12 @@ class Wire
 			end
 
 			## Update One or More
-			@sinatra.post("/:app/:resource" ) do | a , r |
-				context = prepare( a , r )
+			@sinatra.post("/:app/:resource/*" ) do | a , r , i |
+				user = headers[:from]
+				context = prepare( a , r , user)
 				if( !context[:failure] ) then
-					if( context[:actions].include?("update") ) then
-						context[:controller].update( context , request , response )
+					if( actionAllowed?( :update , a , r , i , user ) ) then
+						context[:controller].update( i , context , request , response )
 					else
 						"Operation not allowed"
 					end
@@ -154,10 +194,11 @@ class Wire
 			end
 
 			## Delete One
-			@sinatra.delete("/:app/:resource/:id") do | a , r , i |
-				context = prepare( a , r )
+			@sinatra.delete("/:app/:resource/*") do | a , r , i |
+				user = headers[:from]
+				context = prepare( a , r , user)
 				if( !context[:failure] ) then
-					if( context[:actions].include?("delete") ) then
+					if( $auth.delete?( :delete , a , r , i , user ) ) then
 						context[:controller].delete( i , context , request , response )
 					else
 						"Operation not permitted"
@@ -166,6 +207,8 @@ class Wire
 					context[:message]
 				end
 			end
+
+			$config = { :apps => {} , :renderers => {} }
 		end
 
 		def build( &block )
@@ -176,15 +219,9 @@ class Wire
 
 		def info
 			puts "Wire Instance Info\n\nApps:"
-			$config.each do |uri , config|
+			$config[:apps].each do |uri , config|
 				app_info( uri , config )
 			end
-		end
-
-		def run
-			ap $config
-			puts @sinatra.routes
-			@sinatra.run!
 		end
 	end
 end

@@ -1,5 +1,4 @@
 require 'awesome_print'
-require 'singleton'
 require 'sinatra/base'
 
 class Sinatra::Base
@@ -59,16 +58,24 @@ class Wire
 			$config[:apps][@currentURI][:type] = type
 		end
 
-		def app_info( uri , config )
-			puts "\t#{config[:type]} URI: /#{uri}"
+		def create( context , request , response )
+			"Action not allowed"
+		end
 
-			if( !config[:resources].empty? ) then
-				puts "\n\tResources:"
-				config[:resources].each do |uri, config|
-					resource_info( uri , config )
-				end
-			end
-			puts "\n"
+		def readAll( context , request , response )
+			"Action not allowed"
+		end
+
+		def read( id , context , request , response )
+			"Action not allowed"
+		end
+
+		def update( id , context , request , response )
+			"Action not allowed"
+		end
+
+		def delete( id , context , request , response )
+			"Action not allowed"
 		end
 	end
 
@@ -94,11 +101,6 @@ class Wire
 			@currentResource = uri
 			puts "Starting Resource At: /#{@currentURI + '/' + uri}"
 			Docile.dsl_eval( self , &block )
-		end
-
-		def resource_info( uri , config )
-			puts "\t\tResource URI: /#{uri}"
-			puts "\n"
 		end
 	end
 
@@ -164,7 +166,7 @@ class Wire
 				context = prepare( a , r , user)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :update , a , r , i , user ) ) then
-						context[:controller].update( context , request , response )
+						context[:controller].update( i , context , request , response )
 					else
 						"Operation not allowed"
 					end
@@ -198,10 +200,7 @@ class Wire
 		end
 
 		def info
-			puts "Wire Instance Info\n\nApps:"
-			$config[:apps].each do |uri , config|
-				app_info( uri , config )
-			end
+			ap $config
 		end
 	end
 end

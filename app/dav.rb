@@ -16,6 +16,7 @@ end
 class DAV
 
 	class Controller
+		extend  Wire::App
 
 		def self.create( context , request , response )
 			"Action not allowed"
@@ -40,7 +41,6 @@ class DAV
 			begin
 				response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
 				mime = response.headers[:content_type]
-				puts "MIME: #{mime}"
 				renderer = $config[:renderers][mime]
 				if( renderer != nil ) then
 					renderer.render( resource , id , mime , response.body )

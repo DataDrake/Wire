@@ -15,10 +15,7 @@ end
 class File
 
 	class Controller
-
-		def self.create( context , request , response )
-			"Action not allowed"
-		end
+		extend Wire::App
 
 		def self.readAll( context , request , response )
 			context[:sinatra].pass unless (context[:resource] != nil )
@@ -38,7 +35,6 @@ class File
 		def self.read( id , context , request , response )
 			path = context[:resource][:local_path]
 			if( path != nil ) then
-				"Requested: #{path}/#{id}"
 				ext_path = File.join( path , id )
 
 				context[:sinatra].pass unless File.exists?(ext_path)
@@ -58,15 +54,6 @@ class File
 				"Root directory not specified"
 			end
 		end
-
-		def self.update( id , context , request , response )
-			"Action not allowed"
-		end
-
-		def self.delete( id , context , request , response )
-			"Action not allowed"
-		end
-
 	end
 
 end

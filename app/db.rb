@@ -21,6 +21,7 @@ end
 class DB
 
 	class Controller
+		extend Wire::App
 
 		def self.readAll( context , request , response )
 			model = context[:resource][:model]
