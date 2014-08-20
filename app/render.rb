@@ -33,6 +33,10 @@ class Wire
 		def template( path )
 			$config[:apps][@currentURI][:template] = path
 		end
+
+		def use_renderers( flag )
+			$config[:apps][@currentURI][:use_renderers] = flag
+		end
 	end
 
 end
@@ -87,9 +91,9 @@ class Render
 			message = "Resource not specified"
 			if( resource != nil ) then
 				begin
-					response = RestClient.get "http://#{host}/#{app}/#{resource}"
+					result = RestClient.get "http://#{host}/#{app}/#{resource}"
 					"Forward Request to https://#{host + '/' + app + '/' + resource}"
-					message = response.to_str
+					message = result.to_str
 				rescue RestClient::ResourceNotFound
 					message = "File not found at http://#{host}/#{app}/#{resource}"
 				end
@@ -98,6 +102,8 @@ class Render
 		end
 
 		def self.read( id , context , request , response )
+
+			failed = false
 			template = context[:app][:template]
 			host = context[:app][:remote_host]
 			app = context[:app][:remote_uri]
@@ -108,20 +114,35 @@ class Render
 				begin
 					result = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
 					"Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
-					if( template != nil ) then 
-						doc = Nokogiri::XML( result.to_str )
+					content = result.to_str
+					mime = result.headers[:content_type]
+
+					if( context[:app][:use_renderers] ) then
+						renderer = $config[:renderers][mime]
+						if( renderer != nil ) then
+							content = renderer.render( resource , id , mime , content )
+							mime = 'text/html'
+						else
+							failed = true
+						end
+					end
+					if( (template != nil) && (!failed) && isML?(mime) ) then
+						doc = Nokogiri::XML( content.to_str )
 						xslt = Nokogiri::XSLT( File.read(template) )
 						message = xslt.transform( doc ).to_xml
 					else
-						puts result.headers[:content_type]
-						response.headers['Content-Type'] = result.headers[:content_type]
-						message = result.to_str
+						response.headers['Content-Type'] = mime
+						message = content
 					end
 				rescue RestClient::ResourceNotFound
 					message = "File not found at http://#{host}/#{app}/#{resource}/#{id}"
 				end
 			end
 			message
+		end
+		
+		def self.isML?( mime )
+			( $config[:renderers][mime] == Render::ML)
 		end
 
 		def self.update( id , context , request , response )
