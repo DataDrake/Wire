@@ -15,7 +15,7 @@ class Sinatra::Base
 		end
 	end
 
-	def prepare( appName , resourceName , user)
+	def prepare( appName , resourceName , user , id)
 		hash = {:failure => false}
 		hash[:sinatra] = self
 		hash[:user] = user
@@ -38,6 +38,14 @@ class Sinatra::Base
 			hash[:message] = "App Undefined"
 			hash[:failure] = true
 		end
+		page = ""
+		if( id != nil ) then
+			if( id.include?('.') ) then
+				page = id.slice(0..(id.index('.')-1))
+			end
+			page.capitalize!
+		end
+		hash[:params] = [ 'server' , "'EDGE'" , 'page' , "'#{page}'" , 'user' , "'Bob'" , 'tracks' , "'<tracks><track>Transportation</track></tracks>'"]
 		hash
 	end	
 end
@@ -117,7 +125,7 @@ class Wire
 			## Create One or More
 			@sinatra.put("/:app/:resource") do | a , r |
 				user = headers[:from]
-				context = prepare( a , r , user )
+				context = prepare( a , r , user , r )
 				if( !context[:failure] ) then
 					if( actionAllowed?( :create , a , r , nil , user ) ) then
 						context[:controller].create( context , request , response )
@@ -133,7 +141,7 @@ class Wire
 			## Read all
 			@sinatra.get("/:app/:resource") do | a , r |
 				user = headers[:from]
-				context = prepare( a , r , user )
+				context = prepare( a , r , user , r)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
 						context[:controller].readAll( context , request , response )
@@ -148,7 +156,7 @@ class Wire
 			## Read One
 			@sinatra.get("/:app/:resource/*") do | a , r , i |
 				user = headers[:from]
-				context = prepare( a , r , user)
+				context = prepare( a , r , user, i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :read , a , r , i , user ) ) then
 						context[:controller].read( i , context , request , response )
@@ -163,7 +171,7 @@ class Wire
 			## Update One or More
 			@sinatra.post("/:app/:resource/*" ) do | a , r , i |
 				user = headers[:from]
-				context = prepare( a , r , user)
+				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :update , a , r , i , user ) ) then
 						context[:controller].update( i , context , request , response )
@@ -178,7 +186,7 @@ class Wire
 			## Delete One
 			@sinatra.delete("/:app/:resource/*") do | a , r , i |
 				user = headers[:from]
-				context = prepare( a , r , user)
+				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( $auth.delete?( :delete , a , r , i , user ) ) then
 						context[:controller].delete( i , context , request , response )

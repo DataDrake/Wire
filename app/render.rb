@@ -111,7 +111,7 @@ class Render
 					if( template != nil ) then 
 						doc = Nokogiri::XML( result.to_str )
 						xslt = Nokogiri::XSLT( File.read(template) )
-						message = xslt.transform( doc ).to_xml
+						message = xslt.transform( doc , context[:params] ).to_xml
 					else
 						puts result.headers[:content_type]
 						response.headers['Content-Type'] = result.headers[:content_type]
