@@ -4,15 +4,15 @@ class Wire
 	
 	module App
 		def db_setup( namespace , location )
-			$config[:apps][@currentURI][:db_namespace] = namespace
-			$config[:apps][@currentURI][:db_location] = location
+			@currentApp[:db_namespace] = namespace
+			@currentApp[:db_location] = location
 			DataMapper.setup( namespace , location )
 		end
 	end
 
 	module Resource
 		def model( model )
-			$config[:apps][@currentURI][:resources][@currentResource][:model] = model
+			@currentResource[:model] = model
 		end
 	end
 

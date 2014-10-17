@@ -1,4 +1,3 @@
-require 'filemagic'
 require 'awesome_print'
 require_relative '../wire'
 
@@ -6,7 +5,7 @@ class Wire
 	
 	module Resource
 		def local_path( path )
-			$config[:apps][@currentURI][:resources][@currentResource][:local_path] = path
+			@currentResource[:local_path] = path
 		end
 	end
 

@@ -16,6 +16,9 @@ class Sinatra::Base
 	end
 
 	def prepare( appName , resourceName , user , id)
+		if (user == nil ) then
+			user = 'nobody'
+		end
 		hash = {:failure => false}
 		hash[:sinatra] = self
 		hash[:user] = user
@@ -45,7 +48,7 @@ class Sinatra::Base
 			end
 			page.capitalize!
 		end
-		hash[:params] = [ 'server' , "'EDGE'" , 'page' , "'#{page}'" , 'user' , "'Bob'" , 'tracks' , "'<tracks><track>Transportation</track></tracks>'"]
+		hash[:params] = [ 'server' , "'EDGE'" , 'page' , "'#{page}'" , 'user' , "'#{user}'" , 'tracks' , "'<tracks><track>Transportation</track></tracks>'"]
 		hash
 	end	
 end
@@ -55,15 +58,16 @@ class Wire
 	module App
 
 		def app( baseURI , &block)
-			$config[:apps][baseURI] = {:resources => {}}
 			@currentURI = baseURI
+			$config[:apps][baseURI] = {:resources => {}}
+			@currentApp = $config[:apps][baseURI]
 			puts "Starting App at: /#{baseURI}"
 			puts "Setting up resources..."
 			Docile.dsl_eval( self, &block )
 		end
 
 		def type( type )
-			$config[:apps][@currentURI][:type] = type
+			@currentApp[:type] = type
 		end
 
 		def create( context , request , response )
@@ -90,26 +94,27 @@ class Wire
 	module Auth
 
 		def auth_handler( handler )
-			$config[:apps][@currentURI][:auth][:handler] = handler
+			@currentApp[:auth][:handler] = handler
 		end
 
 		def auth_level( level )
-			$config[:apps][@currentURI][:auth] = { :level => level }
+			@currentApp[:auth] = { :level => level }
 		end
 		
 		def auth_user( user )
-			$config[:apps][@currentURI][:auth][:user] = user
+			@currentApp[:auth][:user] = user
 		end
 	end
 
 	module Resource
 
 		def resource( uri , &block )
-			$config[:apps][@currentURI][:resources][uri] = {}
-			@currentResource = uri
+			@currentApp[:resources][uri] = {}
+			@currentResource = @currentApp[:resources][uri]
 			puts "Starting Resource At: /#{@currentURI + '/' + uri}"
 			Docile.dsl_eval( self , &block )
 		end
+
 	end
 
 	class Closet
@@ -155,6 +160,7 @@ class Wire
 
 			## Read One
 			@sinatra.get("/:app/:resource/*") do | a , r , i |
+				puts "/#{a}/#{r}/#{i}"
 				user = headers[:from]
 				context = prepare( a , r , user, i)
 				if( !context[:failure] ) then

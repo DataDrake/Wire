@@ -7,7 +7,7 @@ class Wire
 	
 	module App
 		def dav_host( path )
-			$config[@currentURI][:dav_host] = path
+			@currentApp[:dav_host] = path
 		end
 	end
 
