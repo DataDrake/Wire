@@ -26,11 +26,7 @@ class DB
 		def self.readAll( context , request , response )
 			model = context[:resource][:model]
 			if( model != nil ) then
-				items = model.all
-				items.map do |item|
-					model.inflate( item )
-				end
-				items
+				model.inflateAll
 			else
 				"Undefined DB Model"
 			end
