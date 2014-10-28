@@ -101,7 +101,6 @@ class Render
 						doc.root().add_child( doc2.root() )
 						local[:sources].each do |k , v|
 							url = "http://#{local[:host]}/#{k}"
-							puts "bob"
 							content = ""
 							if( v[:key] != nil ) then
 								case( v[:key] )

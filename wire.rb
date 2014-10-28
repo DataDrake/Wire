@@ -16,9 +16,12 @@ class Sinatra::Base
 	end
 
 	def prepare( appName , resourceName , user , id)
-		if (user == nil ) then
+		flag = 'true'
+		if (user == nil || user.eql?( 'nobody') ) then
 			user = 'nobody'
+			flag = 'false'
 		end
+		puts flag
 		hash = {:failure => false}
 		hash[:sinatra] = self
 		hash[:user] = user
@@ -48,7 +51,7 @@ class Sinatra::Base
 			end
 			page.capitalize!
 		end
-		hash[:params] = [ 'server' , "'EDGE'" , 'page' , "'#{page}'" , 'user' , "'#{user}'" , 'tracks' , "'<tracks><track>Transportation</track></tracks>'"]
+		hash[:params] = [ 'server' , "'KGCOE-Research'" , 'page' , "'#{page}'" , 'user' , "'#{flag}'" ]
 		hash
 	end	
 end
