@@ -116,7 +116,6 @@ class Render
 							doc2 = Nokogiri::XML( content.to_str )
 							doc.root().add_child( doc2.root() )
 						end
-						puts doc.to_xml
 						xslt = Nokogiri::XSLT( File.read(local[:path]) )
 						message = xslt.transform( doc ).to_xml
 					end
@@ -179,7 +178,6 @@ class Render
 						xslt = Nokogiri::XSLT( File.read(template[:path]) )
 						message = xslt.transform( doc , context[:params] ).to_xml
 					else
-						puts result.headers[:content_type]
 						response.headers['Content-Type'] = result.headers[:content_type]
 						message = result.to_str
 					end

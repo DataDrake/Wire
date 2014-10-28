@@ -21,7 +21,6 @@ class Sinatra::Base
 			user = 'nobody'
 			flag = 'false'
 		end
-		puts flag
 		hash = {:failure => false}
 		hash[:sinatra] = self
 		hash[:user] = user
@@ -163,7 +162,6 @@ class Wire
 
 			## Read One
 			@sinatra.get("/:app/:resource/*") do | a , r , i |
-				puts "/#{a}/#{r}/#{i}"
 				user = headers[:from]
 				context = prepare( a , r , user, i)
 				if( !context[:failure] ) then
