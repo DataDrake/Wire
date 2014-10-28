@@ -141,7 +141,7 @@ class Render
 			if( resource != nil ) then
 				begin
 					response = RestClient.get "http://#{host}/#{app}/#{resource}"
-					"Forward Request to https://#{host + '/' + app + '/' + resource}"
+					puts "Forward Request to https://#{host + '/' + app + '/' + resource}"
 					message = response.to_str
 				rescue RestClient::ResourceNotFound
 					message = "File not found at http://#{host}/#{app}/#{resource}"
@@ -160,7 +160,7 @@ class Render
 			if( resource != nil ) then
 				begin
 					result = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
-					"Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
+					puts "Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
 					if( template[:path] != nil ) then
 						page = "<page>#{result.to_str}"
 						sources.each do |k,s|
