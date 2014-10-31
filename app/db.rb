@@ -20,7 +20,7 @@ end
 
 class DB
 
-	class Controller
+  class Controller
 		extend Wire::App
 
 		def self.readAll( context , request , response )
@@ -28,7 +28,7 @@ class DB
 			if( model != nil ) then
 				model.inflateAll
 			else
-				"Undefined DB Model"
+				'Undefined DB Model'
 			end
 		end
 
@@ -42,7 +42,7 @@ class DB
 					"Could Not Find record #{id}"
 				end
 			else
-				"Undefined DB Model"
+				'Undefined DB Model'
 			end
 		end
 

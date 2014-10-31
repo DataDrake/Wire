@@ -24,10 +24,10 @@ class File
 					if( File.directory?( path ) ) then
 						"#{ap Dir.entries( path ).sort}"
 					else
-						"This is a file"
+						'This is a file'
 					end
 				else
-					"Root Directory not specified"
+					'Root Directory not specified'
 				end
 		end
 
@@ -40,7 +40,6 @@ class File
 					if( File.directory?( ext_path ) ) then
 						"#{ap Dir.entries( ext_path ).sort}"
 					else
-						mime = 'text/plain'
 						if( ext_path.end_with?( '.wiki' ) || ext_path.end_with?( '.mediawiki' ) ) then
 							mime = 'text/wiki'
 						else
@@ -50,7 +49,7 @@ class File
 						response.body = File.read( ext_path )
 					end
 			else
-				"Root directory not specified"
+				'Root directory not specified'
 			end
 		end
 	end

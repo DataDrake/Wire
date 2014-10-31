@@ -16,10 +16,10 @@ end
 class DAV
 
 	class Controller
-		extend  Wire::App
+		extend Wire::App
 
 		def self.create( context , request , response )
-			"Action not allowed"
+			'Action not allowed'
 		end
 
 		def self.readAll( context , request , response )
@@ -27,7 +27,7 @@ class DAV
 			path = context[:app][:remote_uri]
 			resource = context[:resource_name]
 			begin
-				response = RestClient.get "http://#{host}/#{path}/#{resource}" ,{ :from => context[:user] }
+				response = RestClient.get "http://#{host}/#{path}/#{resource}" ,{ from: context[:user] }
 				mime = response.headers[:content_type]
 			rescue RestClient::ResourceNotFound
 				"File Not Found at http://#{host}/#{path}/#{resource}"
@@ -53,11 +53,11 @@ class DAV
 		end
 
 		def self.update( id , context , request , response )
-			"Action not allowed"
+			'Action not allowed'
 		end
 
 		def self.delete( id , context , request , response )
-			"Action not allowed"
+			'Action not allowed'
 		end
 
 	end

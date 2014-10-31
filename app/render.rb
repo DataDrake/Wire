@@ -29,7 +29,7 @@ class Wire
 		end
 
 		def template( path , &block)
-			@currentApp[:template] = { :path => path , :sources => {} }
+			@currentApp[:template] = { path: path , sources: {} }
 			if( block != nil ) then
 				Docile.dsl_eval( self  , &block )
 			end
@@ -40,7 +40,7 @@ class Wire
 		end
 
 		def source( uri , &block )
-			@currentApp[:template][:sources][uri] = { :key => nil }
+			@currentApp[:template][:sources][uri] = { key: nil }
 			@currentSource = @currentApp[:template][:sources][uri]
 
 			if( block != nil ) then
@@ -88,20 +88,20 @@ class Render
 			body = request[:data]
 			resource = local[:resource]
 
-			message = "Resource not Specified"
+			message = 'Resource not Specified'
 			if( resource != nil ) then
-				message = "Nothing to Render"
+				message = 'Nothing to Render'
 				if( body != nil ) then
-					message = "Unsupported Render Type"
+					message = 'Unsupported Render Type'
 					renderer = $config[:renderers]["#{resource}/#{id}"]
 					if( renderer != nil ) then
-						doc = Nokogiri::XML( "<page></page>" )
+						doc = Nokogiri::XML('<page></page>')
 						result = renderer.render( resource , id , "#{resource}/#{id}" , body )
 						doc2 = Nokogiri::XML( result.to_str )
-						doc.root().add_child( doc2.root() )
+						doc.root.add_child( doc2.root )
 						local[:sources].each do |k , v|
 							url = "http://#{local[:host]}/#{k}"
-							content = ""
+							content = ''
 							if( v[:key] != nil ) then
 								case( v[:key] )
 									when :user
@@ -111,10 +111,10 @@ class Render
 							begin
 								content = RestClient.get( url )
 							rescue
-								content = "<failure>nothing returned</failure>"
+								content = '<failure>nothing returned</failure>'
 							end
 							doc2 = Nokogiri::XML( content.to_str )
-							doc.root().add_child( doc2.root() )
+							doc.root.add_child( doc2.root )
 						end
 						xslt = Nokogiri::XSLT( File.read(local[:path]) )
 						message = xslt.transform( doc ).to_xml
@@ -128,7 +128,7 @@ class Render
 	module Page
 
 		def self.create( context , request , response )
-			"Action not allowed"
+			'Action not allowed'
 		end
 
 		def self.readAll( context , request , response )
@@ -137,7 +137,7 @@ class Render
 			app = context[:app][:remote_uri]
 			resource = context[:resource_name]
 
-			message = "Resource not specified"
+			message = 'Resource not specified'
 			if( resource != nil ) then
 				begin
 					response = RestClient.get "http://#{host}/#{app}/#{resource}"
@@ -156,7 +156,7 @@ class Render
 			app = context[:app][:remote_uri]
 			resource = context[:resource_name]
 			sources = template[:sources]
-			message = "Resource not specified"
+			message = 'Resource not specified'
 			if( resource != nil ) then
 				begin
 					result = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
@@ -168,13 +168,16 @@ class Render
 							case s[:key]
 								when :user 
 									uri += "/#{context[:user]}"
+								else
+									#do nothing
 							end
 							temp = RestClient.get uri
 							page += temp.to_str
 						end
-						page += "</page>"
- 
+						page += '</page>'
+						puts page
 						doc = Nokogiri::XML( page.to_str )
+
 						xslt = Nokogiri::XSLT( File.read(template[:path]) )
 						message = xslt.transform( doc , context[:params] ).to_xml
 					else
@@ -189,11 +192,11 @@ class Render
 		end
 
 		def self.update( id , context , request , response )
-			"Action not allowed"
+			'Action not allowed'
 		end
 
 		def self.delete( id , context , request , response )
-			"Action not allowed"
+			'Action not allowed'
 		end
 
 	end
@@ -206,12 +209,11 @@ class Render
 
 	class ML
 		def self.render( resource , id , mime , content )
-			result = ""
 			case( mime )
 				when 'text/html'
 					xml = Nokogiri::XML( content )
-					result = xml.at('body')
-				when 'application/xml'
+					result = xml.at('body').children
+				else
 					result = content
 			end
 			"<content><div id=\"ml\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top row\">#{id}</div><div class=\"bottom row\">#{result}</div></div></content>"
@@ -229,7 +231,6 @@ class Render
 		@@markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true)
 
 		def self.render( resource , id , mime , content )
-			result = ""
 			case (mime)
 				when 'text/wiki'
 					result = WikiCloth::Parser.new( :data => content , :noedit => true ).to_html
@@ -237,8 +238,10 @@ class Render
 					result = @@markdown.render( content )
 				when 'text/x-textile'
 					result = RedCloth.new( content ).to_html
+				else
+					result = content
 			end
-			"<content><div id=\"wiki\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top\"><h1>#{id.capitalize}</h1></div><div class=\"bottom row\">#{result}</div></div></div></content>"
+			"<content><div id=\"wiki\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top\"><h1>#{id.capitalize}</h1></div><div class=\"bottom row\">#{result}</div></div></content>"
 		end
 	end
 	
