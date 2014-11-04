@@ -205,7 +205,7 @@ class Wire
 				end
 			end
 
-			$config = { :apps => {} , :renderers => {} }
+			$config = { apps: {} , renderers: {} , templates: {} }
 		end
 
 		def build( &block )

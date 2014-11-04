@@ -13,7 +13,12 @@ class Wire
 
 		def mime( mime )
 			$config[:renderers][mime] = @currentRenderer
-		end
+      $config[:templates][mime] = @currentTemplate
+    end
+
+    def partial( template )
+      @currentTemplate = template
+    end
 
 		def remote_host( hostname )
 			@currentApp[:remote_host] = hostname
