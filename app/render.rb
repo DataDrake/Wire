@@ -13,7 +13,7 @@ class Wire
 
 		def mime( mime )
 			$config[:renderers][mime] = @currentRenderer
-      $config[:templates][mime] = @currentTemplate
+      $config[:templates][@currentRenderer] = @currentTemplate
     end
 
     def partial( template )
