@@ -5,20 +5,13 @@ require 'RedCloth'
 require 'rest_client'
 require 'awesome_print'
 require 'docile'
+require 'tilt'
 require_relative '../wire'
 
+
+
 class Wire
-	
 	module App
-
-		def mime( mime )
-			$config[:renderers][mime] = @currentRenderer
-      $config[:templates][@currentRenderer] = @currentTemplate
-    end
-
-    def partial( template )
-      @currentTemplate = template
-    end
 
 		def remote_host( hostname )
 			@currentApp[:remote_host] = hostname
@@ -28,20 +21,11 @@ class Wire
 			@currentApp[:remote_uri] = uri	
 		end
 
-		def renderer( klass , &block)
-			@currentRenderer = klass
-			Docile.dsl_eval( self , &block )
-		end
-
 		def template( path , &block)
 			@currentApp[:template] = { path: path , sources: {} }
 			if( block != nil ) then
 				Docile.dsl_eval( self  , &block )
 			end
-		end
-
-		def use_renderers( flag )
-			@currentApp[:use_renderers] = flag				
 		end
 
 		def source( uri , &block )
@@ -56,8 +40,29 @@ class Wire
 		def key( type )
 			@currentSource[:key] = type
 		end
-	end
+  end
 
+  module Renderer
+
+    def renderer( klass , &block)
+      @currentRenderer = klass
+      Docile.dsl_eval( self , &block )
+    end
+
+    def partial( template )
+      @currentTemplate = Tilt.new( template )
+    end
+
+    def mime( mime )
+      $config[:renderers][mime] = @currentRenderer
+      $config[:templates][@currentRenderer] = @currentTemplate
+    end
+
+  end
+
+  class Closet
+    include Wire::Renderer
+  end
 end
 
 class Render
@@ -77,11 +82,31 @@ class Render
 		hash
 	end
 
-	class Audio
-		def self.render( resource , id , mime , content )
-			"<content><div id=\"audio\" class=\"small-12 medium-12 large-12 columns\"><div id=\"title\" class=\"top\">#{id}</div><div id=\"player\" class=\"row bottom\"><audio controls=\"true\"><source src=\"/static/#{resource}/#{id}\"></source></audio></div></div></content>"
-		end
-	end
+  module Document
+    extend Wire::App
+    def self.read( id , context , request , response )
+      host = context[:app][:remote_host]
+      path = context[:app][:remote_uri]
+      resource = context[:resource_name]
+      begin
+        response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        mime = response.headers[:content_type]
+        renderer = $config[:renderers][mime]
+        if( renderer != nil ) then
+          template = $config[:templates][renderer]
+          template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
+        else
+          mime
+        end
+      rescue RestClient::ResourceNotFound
+        "File Not Found at http://#{host}/#{path}/#{resource}/#{id}"
+      end
+    end
+  end
+
+  module Partial
+
+  end
 
 	module Instant
 		extend Wire::App
@@ -101,7 +126,8 @@ class Render
 					renderer = $config[:renderers]["#{resource}/#{id}"]
 					if( renderer != nil ) then
 						doc = Nokogiri::XML('<page></page>')
-						result = renderer.render( resource , id , "#{resource}/#{id}" , body )
+            template = $config[:templates][renderer]
+						result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body} )
 						doc2 = Nokogiri::XML( result.to_str )
 						doc.root.add_child( doc2.root )
 						local[:sources].each do |k , v|
@@ -204,50 +230,8 @@ class Render
 			'Action not allowed'
 		end
 
-	end
+  end
 
-	class Image
-		def self.render( resource , id , mime , content )
-			"<content><img src=\"/static/#{resource}/#{id}\"></img></content>"
-		end
-	end
-
-	class ML
-		def self.render( resource , id , mime , content )
-			case( mime )
-				when 'text/html'
-					xml = Nokogiri::XML( content )
-					result = xml.at('body').children
-				else
-					result = content
-			end
-			"<content><div id=\"ml\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top row\">#{id}</div><div class=\"bottom row\">#{result}</div></div></content>"
-		end
-	end
-
-	class Video
-		def self.render( resource , id , mime , content )
-			"<content><div id=\"video\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top\">#{id}</div><div class=\"row bottom\"><div class=\"small-12 medium-8 large-6 large-centered columns\"><video controls=\"true\"><source src=\"/static/#{resource}/#{id}\"></source></video></div></div></div></content>"
-		end
-	end
-
-	class Wiki
-
-		@@markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true)
-
-		def self.render( resource , id , mime , content )
-			case (mime)
-				when 'text/wiki'
-					result = WikiCloth::Parser.new( :data => content , :noedit => true ).to_html
-				when 'text/x-markdown'
-					result = @@markdown.render( content )
-				when 'text/x-textile'
-					result = RedCloth.new( content ).to_html
-				else
-					result = content
-			end
-			"<content><div id=\"wiki\" class=\"small-12 medium-12 large-12 columns\"><div class=\"top\"><h1>#{id.capitalize}</h1></div><div class=\"bottom row\">#{result}</div></div></content>"
-		end
-	end
+  $markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true)
 	
 end
