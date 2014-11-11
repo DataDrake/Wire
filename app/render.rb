@@ -58,6 +58,9 @@ class Wire
       $config[:templates][@currentRenderer] = @currentTemplate
     end
 
+    def layout( layout )
+      $config[:layout] = Tilt.new( layout )
+    end
   end
 
   class Closet
@@ -125,30 +128,9 @@ class Render
 					message = 'Unsupported Render Type'
 					renderer = $config[:renderers]["#{resource}/#{id}"]
 					if( renderer != nil ) then
-						doc = Nokogiri::XML('<page></page>')
             template = $config[:templates][renderer]
 						result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body} )
-						doc2 = Nokogiri::XML( result.to_str )
-						doc.root.add_child( doc2.root )
-						local[:sources].each do |k , v|
-							url = "http://#{local[:host]}/#{k}"
-							content = ''
-							if( v[:key] != nil ) then
-								case( v[:key] )
-									when :user
-										url = url + "/#{local[:user]}"
-								end
-							end
-							begin
-								content = RestClient.get( url )
-							rescue
-								content = '<failure>nothing returned</failure>'
-							end
-							doc2 = Nokogiri::XML( content.to_str )
-							doc.root.add_child( doc2.root )
-						end
-						xslt = Nokogiri::XSLT( File.read(local[:path]) )
-						message = xslt.transform( doc ).to_xml
+						message = Tilt.new( local[:path] ).render( self , {content: result})
 					end
 				end
 			end
