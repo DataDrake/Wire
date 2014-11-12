@@ -7,11 +7,13 @@ class Sinatra::Base
 		level = authConfig[:level]
 		case level
 			when :any
-				return ( ( action == :read ) || (action == :readAll) ) 
+				( ( action == :read ) || (action == :readAll) )
 			when :app
-				return authConfig[:handler].actionAllowed?( action , resource , id , username )
+				authConfig[:handler].actionAllowed?( action , resource , id , username )
 			when :user
-				return ( username == authConfig[:user] )
+				( username == authConfig[:user] )
+      else
+        false
 		end
 	end
 

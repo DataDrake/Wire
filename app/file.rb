@@ -53,5 +53,4 @@ class File
 			end
 		end
 	end
-
 end
