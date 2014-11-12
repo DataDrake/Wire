@@ -1,3 +1,4 @@
+require 'dm-serializer/to_json'
 require_relative '../wire'
 
 class Wire
@@ -26,7 +27,7 @@ class DB
 		def self.readAll( context , request , response )
 			model = context[:resource][:model]
 			if( model != nil ) then
-				model.inflateAll
+				model.all.to_json
 			else
 				'Undefined DB Model'
 			end
@@ -35,9 +36,9 @@ class DB
 		def self.read( id , context , request , response )
 			model = context[:resource][:model]
 			if( model != nil ) then
-				hash = model.get( id )
-				if( hash != nil ) then
-					model.inflate( hash )
+				object = model.get( id )
+				if( object != nil ) then
+					object.to_json
 				else
 					"Could Not Find record #{id}"
 				end

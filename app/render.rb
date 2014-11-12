@@ -6,6 +6,7 @@ require 'rest_client'
 require 'awesome_print'
 require 'docile'
 require 'tilt'
+require 'json'
 require_relative '../wire'
 
 $markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true)
@@ -32,9 +33,9 @@ class Wire
       @currentApp[:template][:use_layout] = truth
     end
 
-		def source( uri , &block )
-			@currentApp[:template][:sources][uri] = { key: nil }
-			@currentSource = @currentApp[:template][:sources][uri]
+		def source( key, uri , &block )
+			@currentApp[:template][:sources][key] = { uri:uri, key: nil }
+			@currentSource = @currentApp[:template][:sources][key]
 
 			if( block != nil ) then
 				Docile.dsl_eval( self , &block )
@@ -62,9 +63,6 @@ class Wire
       $config[:templates][@currentRenderer] = @currentTemplate
     end
 
-    def layout( layout )
-      $config[:layout] = Tilt.new( layout )
-    end
   end
 
   class Closet
@@ -113,40 +111,50 @@ class Render
 
   module Page
     extend Wire::App
+
+    def self.renderTemplate( context, template , content)
+      if( template[:path] != nil ) then
+        hash = {content: content}
+        template[:sources].each do |k,s|
+          uri = "http://#{context[:app][:remote_host]}/#{s[:uri]}"
+          case s[:key]
+            when :user
+              uri += "/#{context[:user]}"
+            else
+              #do nothing
+          end
+          temp = RestClient.get uri
+          hash[k] = temp.to_str
+        end
+        ap hash
+        message = template[:path].render(self, hash )
+        if template[:use_layout] then
+          message = renderTemplate(context, $config[:apps][:global][:template] ,  message)
+        end
+      else
+        message = 'Invalid Template'
+      end
+      message
+    end
+
     def self.readAll( context , request , response )
       template = context[:app][:template]
       host = context[:app][:remote_host]
       app = context[:app][:remote_uri]
       resource = context[:resource_name]
-      sources = template[:sources]
       message = 'Resource not specified'
       if( resource != nil ) then
         begin
           result = RestClient.get "http://#{host}/#{app}/#{resource}"
-          puts "Forward Request to https://#{host}/#{app}/#{resource}"
-          if( template[:path] != nil ) then
-            hash = {}
-            sources.each do |k,s|
-              uri = "http://#{host}/#{k}"
-              case s[:key]
-                when :user
-                  uri += "/#{context[:user]}"
-                else
-                  #do nothing
-              end
-              temp = RestClient.get uri
-              hash[k] = temp.to_str
-            end
-            message = template[:path].render(self, {content: result})
-            if template[:use_layout] then
-              message = $config[:layout].render( self, {content: message})
-            end
+          puts "Forward Request to http://#{host}/#{app}/#{resource}"
+          if(template != nil) then
+            message = renderTemplate( context, template , result )
           else
             response.headers['Content-Type'] = result.headers[:content_type]
             message = result.to_str
           end
         rescue RestClient::ResourceNotFound
-          message = "File not found at http://#{host}/#{app}/#{resource}/#{id}"
+          message = "File not found at http://#{host}/#{app}/#{resource}"
         end
       end
       message
@@ -156,29 +164,13 @@ class Render
       host = context[:app][:remote_host]
       app = context[:app][:remote_uri]
       resource = context[:resource_name]
-      sources = template[:sources]
       message = 'Resource not specified'
       if( resource != nil ) then
         begin
           result = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
           puts "Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
-          if( template[:path] != nil ) then
-            hash = {}
-            sources.each do |k,s|
-              uri = "http://#{host}/#{k}"
-              case s[:key]
-                when :user
-                  uri += "/#{context[:user]}"
-                else
-                  #do nothing
-              end
-              temp = RestClient.get uri
-              hash[k] = temp.to_str
-            end
-            message = template[:path].render(self, {content: result})
-            if template[:use_layout] then
-              message = $config[:layout].render( self, {content: message})
-            end
+          if(template != nil) then
+            message = renderTemplate( context, template , result )
           else
             response.headers['Content-Type'] = result.headers[:content_type]
             message = result.to_str

@@ -22,7 +22,7 @@ class File
 				if( path != nil ) then
 					context[:sinatra].pass unless File.exists?(path)
 					if( File.directory?( path ) ) then
-						"#{ap Dir.entries( path ).sort}"
+						Dir.entries( path ).sort.to_str
 					else
 						'This is a file'
 					end
