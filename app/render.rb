@@ -126,7 +126,6 @@ class Render
           temp = RestClient.get uri
           hash[k] = temp.to_str
         end
-        ap hash
         message = template[:path].render(self, hash )
         if template[:use_layout] then
           message = renderTemplate(context, $config[:apps][:global][:template] ,  message)
