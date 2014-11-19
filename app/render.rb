@@ -29,8 +29,8 @@ class Wire
 			end
     end
 
-    def use_layout( truth )
-      @currentApp[:template][:use_layout] = truth
+    def use_layout
+      @currentApp[:template][:use_layout] = true
     end
 
 		def source( key, uri , &block )
@@ -47,6 +47,26 @@ class Wire
 		end
   end
 
+  module Resource
+    def single( template )
+      partial = Tilt.new( template )
+      @currentResource[:single] = partial
+    end
+    def multiple( template )
+      partial = Tilt.new( template )
+      @currentResource[:multiple] = partial
+    end
+    def all( template )
+      multiple( template )
+      partial = Tilt.new( template )
+      @currentResource[:multiple] = partial
+      @currentResource[:single] = partial
+    end
+    def forward
+      @currentResource[:forward] = true
+    end
+  end
+
   module Renderer
 
     def renderer( klass , &block)
@@ -54,15 +74,14 @@ class Wire
       Docile.dsl_eval( self , &block )
     end
 
-    def partial( template )
-      @currentTemplate = Tilt.new( template )
-    end
-
     def mime( mime )
       $config[:renderers][mime] = @currentRenderer
       $config[:templates][@currentRenderer] = @currentTemplate
     end
 
+    def partial( template )
+      @currentTemplate = Tilt.new( template )
+    end
   end
 
   class Closet
@@ -100,13 +119,49 @@ class Render
           mime
         end
       rescue RestClient::ResourceNotFound
-        "File Not Found at http://#{host}/#{path}/#{resource}/#{id}"
+        404
       end
     end
   end
 
   module Partial
-
+    extend Wire::App
+    def self.readAll( context , request , response )
+      host = context[:app][:remote_host]
+      path = context[:app][:remote_uri]
+      resource = context[:resource_name]
+      begin
+        if context[:resource][:forward] then
+          response = RestClient.get "http://#{host}/#{path}/#{resource}"
+        end
+        mime = response.headers[:content_type]
+        template = context[:resource][:multiple]
+        if( template != nil ) then
+          template.render( self, {resource: resource, mime: mime , response: response.body} )
+        else
+          response.body
+        end
+      rescue RestClient::ResourceNotFound
+        404
+      end
+    end
+    def self.read( id , context , request , response )
+      host = context[:app][:remote_host]
+      path = context[:app][:remote_uri]
+      resource = context[:resource_name]
+      begin
+        response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        mime = response.headers[:content_type]
+        template = context[:resource][:single]
+        if( template != nil ) then
+          template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
+        else
+          response.body
+        end
+      rescue RestClient::ResourceNotFound
+        404
+      end
+    end
   end
 
   module Page
@@ -123,7 +178,11 @@ class Render
             else
               #do nothing
           end
-          temp = RestClient.get uri
+          begin
+            temp = RestClient.get uri
+          rescue RestClient::ResourceNotFound
+            temp = ''
+          end
           hash[k] = temp.to_str
         end
         message = template[:path].render(self, hash )
@@ -192,11 +251,14 @@ class Render
 			body = request[:data]
 			resource = context[:resource_name]
 
-			message = 'Resource not Specified'
+      ## Default to not found
+			message = 404
 			if( resource != nil ) then
-				message = 'Nothing to Render'
+        ## Implicit not found
+				# message = 'Nothing to Render'
 				if( body != nil ) then
-					message = 'Unsupported Render Type'
+          ## Assume unsupported mime type
+					message = 403
 					renderer = $config[:renderers]["#{resource}/#{id}"]
 					if( renderer != nil ) then
             template = $config[:templates][renderer]

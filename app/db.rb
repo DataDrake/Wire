@@ -25,28 +25,26 @@ class DB
 		extend Wire::App
 
 		def self.readAll( context , request , response )
+      context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
 			if( model != nil ) then
 				model.all.to_json
 			else
-				'Undefined DB Model'
+				404
 			end
 		end
 
 		def self.read( id , context , request , response )
+      context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
 			if( model != nil ) then
 				object = model.get( id )
 				if( object != nil ) then
-					object.to_json
-				else
-					"Could Not Find record #{id}"
+					return object.to_json
 				end
-			else
-				'Undefined DB Model'
-			end
+      end
+      404
 		end
-
 	end
 
 end

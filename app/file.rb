@@ -32,10 +32,10 @@ class File
 		end
 
 		def self.read( id , context , request , response )
+      context[:sinatra].pass unless (context[:resource] != nil )
 			path = context[:resource][:local_path]
 			if( path != nil ) then
 				ext_path = File.join( path , id )
-
 				context[:sinatra].pass unless File.exists?(ext_path)
 					if( File.directory?( ext_path ) ) then
 						"#{ap Dir.entries( ext_path ).sort}"
@@ -46,11 +46,13 @@ class File
 							mime = `mimetype --brief #{ext_path}`
 						end
 						response.headers['Content-Type'] = mime
+            response.headers['Cache-Control'] = 'public,max-age=72000'
+            response.headers['Expires'] = "#{(Time.now + 100000000).utc}"
 						response.body = File.read( ext_path )
 					end
 			else
-				'Root directory not specified'
-			end
-		end
-	end
+				404
+		  end
+	  end
+  end
 end
