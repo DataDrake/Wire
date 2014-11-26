@@ -7,9 +7,10 @@ require 'awesome_print'
 require 'docile'
 require 'tilt'
 require 'json'
+require 'tilt/haml'
 require_relative '../wire'
 
-$markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true)
+$markdown = Redcarpet::Markdown.new( Redcarpet::Render::XHTML , tables: true )
 
 class Wire
 	module App
@@ -23,7 +24,7 @@ class Wire
 		end
 
 		def template( path , &block)
-			@currentApp[:template] = { path: path.nil? ? nil : Tilt.new( path ) , sources: {} }
+			@currentApp[:template] = { path: path.nil? ? nil : Tilt.new( path , 1 , {ugly: true}) , sources: {} }
 			if( block != nil ) then
 				Docile.dsl_eval( self  , &block )
 			end
@@ -49,16 +50,16 @@ class Wire
 
   module Resource
     def single( template )
-      partial = Tilt.new( template )
+      partial = Tilt.new( template , 1 , {ugly:true})
       @currentResource[:single] = partial
     end
     def multiple( template )
-      partial = Tilt.new( template )
+      partial = Tilt.new( template , 1 , {ugly:true})
       @currentResource[:multiple] = partial
     end
     def all( template )
       multiple( template )
-      partial = Tilt.new( template )
+      partial = Tilt.new( template , 1 , {ugly:true})
       @currentResource[:multiple] = partial
       @currentResource[:single] = partial
     end
@@ -71,16 +72,28 @@ class Wire
 
     def renderer( klass , &block)
       @currentRenderer = klass
+      @currentEditor = nil
       Docile.dsl_eval( self , &block )
     end
 
     def mime( mime )
-      $config[:renderers][mime] = @currentRenderer
-      $config[:templates][@currentRenderer] = @currentTemplate
+      if @currentRenderer != nil then
+        $config[:renderers][mime] = @currentRenderer
+        $config[:templates][@currentRenderer] = @currentTemplate
+      end
+      if @currentEditor != nil then
+        $config[:editors][mime] = @currentEditor
+      end
     end
 
     def partial( template )
-      @currentTemplate = Tilt.new( template )
+      @currentTemplate = Tilt.new( template , 1 , {ugly:true})
+    end
+
+    def editor( editor , &block)
+      @currentEditor = Tilt.new( editor , 1 , {ugly:true})
+      @currentRenderer = nil
+      Docile.dsl_eval( self , &block )
     end
   end
 
@@ -153,6 +166,28 @@ class Render
         response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
         mime = response.headers[:content_type]
         template = context[:resource][:single]
+        if( template != nil ) then
+          template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
+        else
+          response.body
+        end
+      rescue RestClient::ResourceNotFound
+        404
+      end
+    end
+  end
+
+  module Editor
+    extend Wire::App
+
+    def self.read( id , context , request , response )
+      host = context[:app][:remote_host]
+      path = context[:app][:remote_uri]
+      resource = context[:resource_name]
+      begin
+        response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        mime = response.headers[:content_type]
+        template = $config[:editors][mime]
         if( template != nil ) then
           template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
         else
@@ -263,7 +298,12 @@ class Render
 					if( renderer != nil ) then
             template = $config[:templates][renderer]
 						result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body} )
-						message = Tilt.new( local[:path] ).render( self , {content: result})
+            template = context[:app][:template]
+            if template != nil then
+						  message = template[:path].render( self , {content: result})
+            else
+              message = result
+            end
 					end
 				end
 			end

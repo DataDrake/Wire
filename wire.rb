@@ -1,5 +1,5 @@
 require 'awesome_print'
-require 'sinatra/base'
+require 'sinatra'
 
 class Sinatra::Base
 	def actionAllowed?( action , app , resource , id , username )
@@ -75,23 +75,23 @@ class Wire
 		end
 
 		def create( context , request , response )
-			'Action not allowed'
+			401
 		end
 
 		def readAll( context , request , response )
-			'Action not allowed'
+			401
 		end
 
 		def read( id , context , request , response )
-			'Action not allowed'
+			401
 		end
 
 		def update( id , context , request , response )
-			'Action not allowed'
+			401
 		end
 
 		def delete( id , context , request , response )
-			'Action not allowed'
+			401
 		end
 	end
 
@@ -132,14 +132,14 @@ class Wire
 			@sinatra = Sinatra.new
 
 			## Create One or More
-			@sinatra.put('/:app/:resource') do | a , r |
+			@sinatra.post('/:app/:resource') do | a , r |
 				user = headers[:from]
 				context = prepare( a , r , user , r )
 				if( !context[:failure] ) then
 					if( actionAllowed?( :create , a , r , nil , user ) ) then
 						context[:controller].create( context , request , response )
 					else
-						'Operation not allowed'
+						401
 					end
 				else
 					context[:message]
@@ -154,7 +154,7 @@ class Wire
 					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
 						context[:controller].readAll( context , request , response )
 					else
-						'Operation not allowed'
+						401
 					end
 				else
 					context[:message]
@@ -169,7 +169,7 @@ class Wire
 					if( actionAllowed?( :read , a , r , i , user ) ) then
 						context[:controller].read( i , context , request , response )
 					else
-						'Operation not allowed'
+						401
 					end
 				else
 					context[:message]
@@ -177,14 +177,14 @@ class Wire
 			end
 
 			## Update One or More
-			@sinatra.post('/:app/:resource/*' ) do | a , r , i |
+			@sinatra.put('/:app/:resource/*' ) do | a , r , i |
 				user = headers[:from]
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :update , a , r , i , user ) ) then
 						context[:controller].update( i , context , request , response )
 					else
-						'Operation not allowed'
+						401
 					end
 				else
 					context[:message]
@@ -199,14 +199,14 @@ class Wire
 					if( actionAllowed?( :delete , a , r , i , user ) ) then
 						context[:controller].delete( i , context , request , response )
 					else
-						'Operation not permitted'
+						401
 					end
 				else
 					context[:message]
 				end
 			end
 
-			$config = { apps: {} , renderers: {} , templates: {} }
+			$config = { apps: {} , editors:{}, renderers: {} , templates: {} }
 		end
 
 		def build( &block )

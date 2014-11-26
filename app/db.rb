@@ -28,7 +28,7 @@ class DB
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
 			if( model != nil ) then
-				model.all.to_json
+        model.all.to_jsonk
 			else
 				404
 			end
@@ -37,6 +37,9 @@ class DB
 		def self.read( id , context , request , response )
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
+      if id.eql?('new') then
+        return '{}'
+      end
 			if( model != nil ) then
 				object = model.get( id )
 				if( object != nil ) then

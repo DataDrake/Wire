@@ -46,8 +46,8 @@ class File
 							mime = `mimetype --brief #{ext_path}`
 						end
 						response.headers['Content-Type'] = mime
-            response.headers['Cache-Control'] = 'public,max-age=72000'
-            response.headers['Expires'] = "#{(Time.now + 100000000).utc}"
+            response.headers['Cache-Control'] = 'public'
+            response.headers['Expires'] = "#{(Time.now + 30000000).utc}"
 						response.body = File.read( ext_path )
 					end
 			else
