@@ -1,4 +1,5 @@
 require 'dm-serializer/to_json'
+require 'mash'
 require_relative '../wire'
 
 class Wire
@@ -24,11 +25,29 @@ class DB
   class Controller
 		extend Wire::App
 
+    def self.create( context , request , response )
+      context[:sinatra].pass unless (context[:resource] != nil )
+      model = context[:resource][:model]
+      if( model != nil ) then
+        instance = model.create( context[:params] )
+        instance.save
+        ap instance
+        if instance.saved? then
+          200
+        else
+          ap instance.errors
+          504
+        end
+      else
+        404
+      end
+    end
+
 		def self.readAll( context , request , response )
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
 			if( model != nil ) then
-        model.all.to_jsonk
+        model.all.to_json
 			else
 				404
 			end
@@ -42,12 +61,30 @@ class DB
       end
 			if( model != nil ) then
 				object = model.get( id )
+        ap object.to_json
 				if( object != nil ) then
 					return object.to_json
 				end
       end
       404
-		end
-	end
+    end
+
+    def self.update( id, context , request , response )
+      context[:sinatra].pass unless (context[:resource] != nil )
+      model = context[:resource][:model]
+      if( model != nil ) then
+        instance = model.get(id)
+        ap instance
+        if instance.update( context[:params]) then
+          200
+        else
+          ap instance.errors
+          504
+        end
+      else
+        404
+      end
+    end
+  end
 
 end

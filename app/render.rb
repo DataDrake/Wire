@@ -104,25 +104,42 @@ end
 
 class Render
 
-	def self.localContext( context )
-		hash = {}
-		template = context[:app][:template]
-		if( template != nil ) then
-			hash[:path] = template[:path]
-			hash[:sources] = template[:sources]
-      hash[:use_layout] = template[:use_layout]
+  def self.forward( id , method , context , request )
+    host = context[:app][:remote_host]
+    path = context[:app][:remote_uri]
+    resource = context[:resource_name]
+    case(method)
+      when :create
+        puts "POST: Forward Request to https://#{host}/#{path}/#{resource}"
+        RestClient.post "http://#{host}/#{path}/#{resource}" , request.body
+      when :update
+        puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
+        RestClient.put "http://#{host}/#{path}/#{resource}/#{id}" , request.body
+      when :readAll
+        puts "GET: Forward Request to https://#{host}/#{path}/#{resource}"
+        RestClient.get "http://#{host}/#{path}/#{resource}"
+      when :read
+        puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
+        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+      when :delete
+        puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
+        RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}"
+      else
+        401
     end
-		hash
-	end
+  end
 
   module Document
     extend Wire::App
+
+    def self.create( context , request , response )
+      Render.forward( nil , :create , context , request )
+    end
+
     def self.read( id , context , request , response )
-      host = context[:app][:remote_host]
-      path = context[:app][:remote_uri]
       resource = context[:resource_name]
       begin
-        response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        response = Render.forward(id , :read , context , request )
         mime = response.headers[:content_type]
         renderer = $config[:renderers][mime]
         if( renderer != nil ) then
@@ -139,13 +156,22 @@ class Render
 
   module Partial
     extend Wire::App
+
+    def self.create( context , request , response )
+      if context[:resource][:Render] then
+        Render.forward( nil , :create , context , request )
+      else
+        401
+      end
+    end
+
     def self.readAll( context , request , response )
-      host = context[:app][:remote_host]
-      path = context[:app][:remote_uri]
       resource = context[:resource_name]
       begin
         if context[:resource][:forward] then
-          response = RestClient.get "http://#{host}/#{path}/#{resource}"
+          response = Render.forward( nil , :readAll , context , request )
+        else
+          401
         end
         mime = response.headers[:content_type]
         template = context[:resource][:multiple]
@@ -158,12 +184,11 @@ class Render
         404
       end
     end
+
     def self.read( id , context , request , response )
-      host = context[:app][:remote_host]
-      path = context[:app][:remote_uri]
       resource = context[:resource_name]
       begin
-        response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        response = Render.forward( id , :read , context , request )
         mime = response.headers[:content_type]
         template = context[:resource][:single]
         if( template != nil ) then
@@ -180,12 +205,14 @@ class Render
   module Editor
     extend Wire::App
 
+    def self.create( context , request , response )
+      Render.forward( nil , :create , context , request )
+    end
+
     def self.read( id , context , request , response )
-      host = context[:app][:remote_host]
-      path = context[:app][:remote_uri]
       resource = context[:resource_name]
       begin
-        response = RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        response = Render.forward( id , :read , context , request )
         mime = response.headers[:content_type]
         template = $config[:editors][mime]
         if( template != nil ) then
@@ -230,16 +257,17 @@ class Render
       message
     end
 
+    def self.create( context, request , response )
+      Render.forward( nil , :create , context , request )
+    end
+
     def self.readAll( context , request , response )
       template = context[:app][:template]
-      host = context[:app][:remote_host]
-      app = context[:app][:remote_uri]
       resource = context[:resource_name]
       message = 'Resource not specified'
       if( resource != nil ) then
         begin
-          result = RestClient.get "http://#{host}/#{app}/#{resource}"
-          puts "Forward Request to http://#{host}/#{app}/#{resource}"
+          result = Render.forward( nil , :readAll , context , request )
           if(template != nil) then
             message = renderTemplate( context, template , result )
           else
@@ -247,21 +275,18 @@ class Render
             message = result.to_str
           end
         rescue RestClient::ResourceNotFound
-          message = "File not found at http://#{host}/#{app}/#{resource}"
+          message = 404
         end
       end
       message
     end
     def self.read( id , context , request , response )
       template = context[:app][:template]
-      host = context[:app][:remote_host]
-      app = context[:app][:remote_uri]
       resource = context[:resource_name]
       message = 'Resource not specified'
       if( resource != nil ) then
         begin
-          result = RestClient.get "http://#{host}/#{app}/#{resource}/#{id}"
-          puts "Forward Request to https://#{host}/#{app}/#{resource}/#{id}"
+          result = Render.forward( id , :read , context , request)
           if(template != nil) then
             message = renderTemplate( context, template , result )
           else
@@ -269,7 +294,7 @@ class Render
             message = result.to_str
           end
         rescue RestClient::ResourceNotFound
-          message = "File not found at http://#{host}/#{app}/#{resource}/#{id}"
+          message = 404
         end
       end
       message
@@ -280,8 +305,6 @@ class Render
 		extend Wire::App
 
 		def self.update( id , context , request , response )
-
-			local = Render.localContext( context )
 
 			body = request[:data]
 			resource = context[:resource_name]

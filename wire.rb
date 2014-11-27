@@ -7,7 +7,7 @@ class Sinatra::Base
 		level = authConfig[:level]
 		case level
 			when :any
-				( ( action == :read ) || (action == :readAll) )
+				true
 			when :app
 				authConfig[:handler].actionAllowed?( action , resource , id , username )
 			when :user
@@ -51,8 +51,10 @@ class Sinatra::Base
 				page = id.slice(0..(id.index('.')-1))
 			end
 			page.capitalize!
-		end
-		hash[:params] = [ 'server' , "'KGCOE-Research'" , 'page' , "'#{page}'" , 'user' , "'#{flag}'" ]
+    end
+    if !params.keys.first.eql?('splat') then
+		  hash[:params] = JSON.parse(params.keys.first)
+    end
 		hash
 	end	
 end
@@ -92,7 +94,8 @@ class Wire
 
 		def delete( id , context , request , response )
 			401
-		end
+    end
+
 	end
 
 	module Auth
