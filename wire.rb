@@ -27,6 +27,7 @@ class Sinatra::Base
 		hash[:sinatra] = self
 		hash[:user] = user
 		app = $config[:apps][appName]
+    hash[:uri] = appName
 		if( app != nil ) then
 			hash[:app] = app
 			hash[:resource_name] = resourceName

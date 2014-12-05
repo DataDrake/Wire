@@ -108,6 +108,7 @@ class Render
     host = context[:app][:remote_host]
     path = context[:app][:remote_uri]
     resource = context[:resource_name]
+    referrer = request.url
     case(method)
       when :create
         puts "POST: Forward Request to https://#{host}/#{path}/#{resource}"
@@ -120,7 +121,7 @@ class Render
         RestClient.get "http://#{host}/#{path}/#{resource}"
       when :read
         puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
-        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}"
+        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}" , referrer: referrer
       when :delete
         puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
         RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}"
@@ -137,14 +138,18 @@ class Render
     end
 
     def self.read( id , context , request , response )
+      app = context[:uri]
       resource = context[:resource_name]
+      referrer = request.env["HTTP_REFERRER"]
+      ap request
+      puts referrer
       begin
         response = Render.forward(id , :read , context , request )
         mime = response.headers[:content_type]
         renderer = $config[:renderers][mime]
         if( renderer != nil ) then
           template = $config[:templates][renderer]
-          template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
+          template.render( self, {referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
         else
           mime
         end
@@ -186,13 +191,14 @@ class Render
     end
 
     def self.read( id , context , request , response )
+      app = context[:app][:uri]
       resource = context[:resource_name]
       begin
         response = Render.forward( id , :read , context , request )
         mime = response.headers[:content_type]
         template = context[:resource][:single]
         if( template != nil ) then
-          template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
+          template.render( self, {app: app, resource: resource, id: id , mime: mime , response: response.body} )
         else
           response.body
         end
@@ -231,7 +237,8 @@ class Render
 
     def self.renderTemplate( context, template , content)
       if( template[:path] != nil ) then
-        hash = {content: content}
+        app = context[:uri]
+        hash = {content: content, app: app}
         template[:sources].each do |k,s|
           uri = "http://#{context[:app][:remote_host]}/#{s[:uri]}"
           case s[:key]
