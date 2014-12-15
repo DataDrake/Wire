@@ -18,10 +18,8 @@ class Sinatra::Base
 	end
 
 	def prepare( appName , resourceName , user , id)
-		flag = 'true'
 		if (user == nil || user.eql?( 'nobody') ) then
 			user = 'nobody'
-			flag = 'false'
 		end
 		hash = {failure: false}
 		hash[:sinatra] = self
@@ -53,8 +51,8 @@ class Sinatra::Base
 			end
 			page.capitalize!
     end
-    if request.env["rack.request.form_vars"] != nil then
-		  hash[:params] = JSON.parse(request.env["rack.request.form_vars"])
+    if request.env['rack.request.form_vars'] != nil then
+		  hash[:params] = JSON.parse(request.env['rack.request.form_vars'])
     end
 		hash
 	end	

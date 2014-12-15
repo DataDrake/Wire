@@ -1,5 +1,4 @@
 require 'dm-serializer/to_json'
-require 'mash'
 require_relative '../wire'
 
 class Wire

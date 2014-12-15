@@ -147,7 +147,7 @@ class Render
     def self.read( id , context , request , response )
       app = context[:uri]
       resource = context[:resource_name]
-      referrer = request.env["HTTP_REFERRER"]
+      referrer = request.env['HTTP_REFERRER']
       ap request
       puts referrer
       begin
