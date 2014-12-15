@@ -63,6 +63,13 @@ class Wire
       @currentResource[:multiple] = partial
       @currentResource[:single] = partial
     end
+    def extra( name , path )
+      if @currentResource[:sources] == nil then
+        @currentResource[:sources] = {}
+      end
+      @currentResource[:sources][name] = path
+    end
+
     def forward
       @currentResource[:forward] = true
     end
@@ -180,8 +187,15 @@ class Render
         end
         mime = response.headers[:content_type]
         template = context[:resource][:multiple]
+        hash = {resource: resource, mime: mime , response: response.body}
+        if context[:resource][:sources] != nil then
+          ap context[:resource][:sources]
+          context[:resource][:sources].each do |k,v|
+            hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
+          end
+        end
         if( template != nil ) then
-          template.render( self, {resource: resource, mime: mime , response: response.body} )
+          template.render( self, hash )
         else
           response.body
         end
@@ -197,8 +211,15 @@ class Render
         response = Render.forward( id , :read , context , request )
         mime = response.headers[:content_type]
         template = context[:resource][:single]
+        hash = {app: app, id: id, resource: resource, mime: mime , response: response.body}
+        if context[:resource][:sources] != nil then
+          ap context[:resource][:sources]
+          context[:resource][:sources].each do |k,v|
+            hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
+          end
+        end
         if( template != nil ) then
-          template.render( self, {app: app, resource: resource, id: id , mime: mime , response: response.body} )
+          template.render( self, hash )
         else
           response.body
         end

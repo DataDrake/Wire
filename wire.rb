@@ -53,8 +53,8 @@ class Sinatra::Base
 			end
 			page.capitalize!
     end
-    if !params.keys.first.eql?('splat') then
-		  hash[:params] = JSON.parse(params.keys.first)
+    if request.env["rack.request.form_vars"] != nil then
+		  hash[:params] = JSON.parse(request.env["rack.request.form_vars"])
     end
 		hash
 	end	

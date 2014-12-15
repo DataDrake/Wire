@@ -29,6 +29,7 @@ class DB
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
+        ap context[:params]
         instance = model.create( context[:params] )
         instance.save
         ap instance
@@ -47,7 +48,16 @@ class DB
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
 			if( model != nil ) then
-        model.all.to_json
+        hash = '[ '
+        model.all.each do |e|
+          hash << ( e.to_json )
+          if e != model.all.last then
+            hash << ','
+          end
+        end
+        hash << ']'
+        ap hash
+        hash
 			else
 				404
 			end
@@ -61,8 +71,8 @@ class DB
       end
 			if( model != nil ) then
 				object = model.get( id )
-        ap object.to_json
 				if( object != nil ) then
+          ap object.to_json
 					return object.to_json
 				end
       end
