@@ -148,8 +148,6 @@ class Render
       app = context[:uri]
       resource = context[:resource_name]
       referrer = request.env['HTTP_REFERRER']
-      ap request
-      puts referrer
       begin
         response = Render.forward(id , :read , context , request )
         mime = response.headers[:content_type]
@@ -189,7 +187,6 @@ class Render
         template = context[:resource][:multiple]
         hash = {resource: resource, mime: mime , response: response.body}
         if context[:resource][:sources] != nil then
-          ap context[:resource][:sources]
           context[:resource][:sources].each do |k,v|
             hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
           end
@@ -213,7 +210,6 @@ class Render
         template = context[:resource][:single]
         hash = {app: app, id: id, resource: resource, mime: mime , response: response.body}
         if context[:resource][:sources] != nil then
-          ap context[:resource][:sources]
           context[:resource][:sources].each do |k,v|
             hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
           end

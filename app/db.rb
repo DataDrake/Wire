@@ -28,14 +28,11 @@ class DB
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
-        ap context[:params]
         instance = model.create( context[:params] )
         instance.save
-        ap instance
         if instance.saved? then
           200
         else
-          ap instance.errors
           504
         end
       else
@@ -55,7 +52,6 @@ class DB
           end
         end
         hash << ']'
-        ap hash
         hash
 			else
 				404
@@ -71,7 +67,6 @@ class DB
 			if( model != nil ) then
 				object = model.get( id )
 				if( object != nil ) then
-          ap object.to_json
 					return object.to_json
 				end
       end
@@ -83,11 +78,9 @@ class DB
       model = context[:resource][:model]
       if( model != nil ) then
         instance = model.get(id)
-        ap instance
         if instance.update( context[:params]) then
           200
         else
-          ap instance.errors
           504
         end
       else

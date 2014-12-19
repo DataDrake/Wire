@@ -43,7 +43,6 @@ class Repo
           401
         else
           list = `svn ls --xml https://kgcoe-research.rit.edu/dav/Test`
-          ap list
           if $?.success? then
             list
           else
