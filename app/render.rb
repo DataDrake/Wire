@@ -361,14 +361,15 @@ class Render
 			message = 404
 			if( resource != nil ) then
         ## Implicit not found
-				# message = 'Nothing to Render'
+				message = 'Nothing to Render'
 				if( body != nil ) then
           ## Assume unsupported mime type
 					message = 403
 					renderer = $config[:renderers]["#{resource}/#{id}"]
 					if( renderer != nil ) then
             template = $config[:templates][renderer]
-						result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body} )
+            referrer = '/edge'
+						result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body, referrer: referrer} )
             template = context[:app][:template]
             if template != nil then
 						  message = template[:path].render( self , {content: result})
@@ -377,7 +378,8 @@ class Render
             end
 					end
 				end
-			end
+      end
+      puts message
 			message
 		end
 	end
