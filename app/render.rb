@@ -120,7 +120,7 @@ class Render
     else
       referrer = request.env['HTTP_REFERRER']
     end
-    puts referrer
+    ##id.sub!(' ' , '%20')
     case(method)
       when :create
         puts "POST: Forward Request to https://#{host}/#{path}/#{resource}"
@@ -129,10 +129,10 @@ class Render
         puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
         RestClient.put "http://#{host}/#{path}/#{resource}/#{id}" , request.body
       when :readAll
-        puts "GET: Forward Request to https://#{host}/#{path}/#{resource}"
+        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}"
         RestClient.get "http://#{host}/#{path}/#{resource}" , referrer: referrer
       when :read
-        puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
+        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
         RestClient.get "http://#{host}/#{path}/#{resource}/#{id}" , referrer: referrer
       when :delete
         puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"

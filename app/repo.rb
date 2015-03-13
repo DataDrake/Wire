@@ -43,7 +43,7 @@ class Repo
       path = context[:resource_name]
       referrer = request.env['HTTP_REFERRER']
       mime = 'text/html'
-      list = `svn --xml list https://kgcoe-research.rit.edu/dav/#{path}`
+      list = `svn --xml list 'https://kgcoe-research.rit.edu/dav/#{path}'`
       unless $?.success? then
         500
       end
@@ -65,8 +65,7 @@ class Repo
       context[:sinatra].pass unless (context[:resource_name] != nil )
       path = context[:resource_name]
       referrer = request.env['HTTP_REFERRER']
-      ap referrer
-      info = `svn info --xml https://kgcoe-research.rit.edu/dav/#{path}/#{id}`
+      info = `svn info --xml 'https://kgcoe-research.rit.edu/dav/#{path}/#{id}'`
       unless $?.success? then
         response.headers['Content-Type'] = 'text/html'
         response.body = Tilt.new( 'views/forms/new.haml').render(self, resource: path, id: id)
@@ -77,20 +76,24 @@ class Repo
       type = info[:info][:entry][:@kind]
       if type.eql? 'dir' then
         mime = 'text/html'
-        list = `svn --xml list https://kgcoe-research.rit.edu/dav/#{path}/#{id}`
+        list = `svn --xml list 'https://kgcoe-research.rit.edu/dav/#{path}/#{id}'`
         unless $?.success? then
           500
         end
         list = $nori.parse( list )
-        referrer = referrer.split('/')[3]
+        unless referrer.nil? then
+          referrer = referrer.split('/')[3]
+        else
+          referrer = request.url.split('/')[3]
+        end
         template = Tilt.new( 'views/lists/dav.haml' , 1 , {ugly: true})
         body = template.render( self, list: list[:lists][:list][:entry], resource: path , id: id, referrer: referrer)
       else
-        body = `svn cat https://kgcoe-research.rit.edu/dav/#{path}/#{id}`
+        body = `svn cat 'https://kgcoe-research.rit.edu/dav/#{path}/#{id}'`
         unless $?.success? then
           500
         end
-        mime = `svn --xml propget svn:mime-type https://kgcoe-research.rit.edu/dav/#{path}/#{id}`
+        mime = `svn --xml propget svn:mime-type 'https://kgcoe-research.rit.edu/dav/#{path}/#{id}'`
         unless $?.success? then
           500
         end
