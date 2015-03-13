@@ -33,7 +33,6 @@ class DB
         if instance.saved? then
           200
         else
-          ap instance.errors
           504
         end
       else

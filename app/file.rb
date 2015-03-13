@@ -24,10 +24,10 @@ class File
 					if( File.directory?( path ) ) then
 						Dir.entries( path ).sort.to_str
 					else
-						'This is a file'
+						401
 					end
 				else
-					'Root Directory not specified'
+					404
 				end
 		end
 

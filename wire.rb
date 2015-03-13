@@ -21,7 +21,7 @@ class Sinatra::Base
 		if (user == nil || user.eql?( 'nobody') ) then
 			user = 'nobody'
 		end
-		hash = {failure: false}
+		hash = {failure: true}
 		hash[:sinatra] = self
 		hash[:user] = user
 		app = $config[:apps][appName]
@@ -38,11 +38,9 @@ class Sinatra::Base
 				hash[:controller] = type
 			else
 				hash[:message] = 'Application type Not Specified'
-				hash[:failure] = true
 			end
 		else
 			hash[:message] = 'App Undefined'
-			hash[:failure] = true
 		end
 		page = ''
 		if( id != nil ) then
@@ -58,6 +56,7 @@ class Sinatra::Base
         hash[:params] = request.env['rack.request.form_vars']
       end
     end
+    hash[:failure] = false
 		hash
 	end	
 end
