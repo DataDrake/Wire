@@ -221,7 +221,23 @@ class Wire
 		end
 
 		def info
-			ap $config
+      puts "Apps:\n"
+      $config[:apps].each do |app, config|
+        puts "\u{2502}"
+        puts "\u{251c} Name: #{app}"
+        if config[:auth] then
+          puts "\u{2502}\t\u{251c} Auth:"
+          if config[:auth][:level] == :app then
+            puts "\u{2502}\t\u{2502}\t\u{251c} Level:\t#{config[:auth][:level]}"
+            puts "\u{2502}\t\u{2502}\t\u{2514} Handler:\t#{config[:auth][:handler]}"
+          else
+            puts "\u{2502}\t\u{2502}\t\u{2514} Level:\t#{config[:auth][:level]}"
+          end
+        end
+        if config[:type] then
+          puts "\u{2502}\t\u{2514} Type: #{config[:type]}"
+        end
+      end
 		end
 	end
 end
