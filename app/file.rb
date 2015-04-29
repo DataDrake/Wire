@@ -1,20 +1,15 @@
 require 'awesome_print'
 require_relative '../wire'
 
-class Wire
-	
-	module Resource
-		def local_path( path )
-			@currentResource[:local_path] = path
-		end
-	end
+module Static
 
-end
-
-class File
-
-	class Controller
+	module Controller
 		extend Wire::App
+    extend Wire::Resource
+
+    def self.local_path( path )
+      $currentResource[:local_path] = path
+    end
 
 		def self.readAll( context , request , response )
 			context[:sinatra].pass unless (context[:resource] != nil )

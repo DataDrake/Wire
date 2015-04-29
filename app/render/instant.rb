@@ -1,0 +1,38 @@
+require_relative '../render'
+
+module Render
+  module Instant
+    extend Render
+
+    def self.update( id , context , request , response )
+
+      body = request[:data]
+      resource = context[:resource_name]
+
+      ## Default to not found
+      message = 404
+      if( resource != nil ) then
+        ## Implicit not found
+        message = 'Nothing to Render'
+        if( body != nil ) then
+          ## Assume unsupported mime type
+          message = 403
+          renderer = $config[:renderers]["#{resource}/#{id}"]
+          if( renderer != nil ) then
+            template = $config[:templates][renderer]
+            referrer = '/edge'
+            result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body, referrer: referrer} )
+            template = context[:app][:template]
+            if template != nil then
+              message = template[:path].render( self , {content: result})
+            else
+              message = result
+            end
+          end
+        end
+      end
+      puts message
+      message
+    end
+  end
+end

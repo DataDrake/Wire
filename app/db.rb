@@ -1,28 +1,21 @@
 require 'dm-serializer/to_json'
 require_relative '../wire'
 
-class Wire
-	
-	module App
-		def db_setup( namespace , location )
-			@currentApp[:db_namespace] = namespace
-			@currentApp[:db_location] = location
-			DataMapper.setup( namespace , location )
-		end
-	end
+module DB
 
-	module Resource
-		def model( model )
-			@currentResource[:model] = model
-		end
-	end
+  module Controller
+		include Wire::App
+    include Wire::Resource
 
-end
+    def self.db_setup( namespace , location )
+      $currentApp[:db_namespace] = namespace
+      $currentApp[:db_location] = location
+      DataMapper.setup( namespace , location )
+    end
 
-class DB
-
-  class Controller
-		extend Wire::App
+    def self.model( model )
+      $currentResource[:model] = model
+    end
 
     def self.create( context , request , response )
       context[:sinatra].pass unless (context[:resource] != nil )

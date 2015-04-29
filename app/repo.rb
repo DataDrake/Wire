@@ -4,20 +4,15 @@ require_relative '../wire'
 
 $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
 
-class Wire
+module Repo
 
-  module App
-    def repos_path( path )
-      @currentApp[:repos_path] = path
-    end
-  end
-
-end
-
-class Repo
-
-  class SVN
+  module SVN
     extend Wire::App
+    extend Wire::Resource
+
+    def self.repos_path( path )
+      $currentApp[:repos_path] = path
+    end
 
     def self.create( context , request , response )
       context[:sinatra].pass unless (context[:resource] != nil )

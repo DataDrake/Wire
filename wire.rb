@@ -61,21 +61,17 @@ class Sinatra::Base
 	end	
 end
 
-class Wire
+module Wire
 
 	module App
 
-		def app( baseURI , &block)
-			@currentURI = baseURI
-			$config[:apps][baseURI] = {resources: {}}
-			@currentApp = $config[:apps][baseURI]
+		def app( baseURI , type, &block)
+			$currentURI = baseURI
+			$config[:apps][baseURI] = {type: type, resources: {}}
+			$currentApp = $config[:apps][baseURI]
 			puts "Starting App at: /#{baseURI}"
 			puts 'Setting up resources...'
-			Docile.dsl_eval( self, &block )
-		end
-
-		def type( type )
-			@currentApp[:type] = type
+			Docile.dsl_eval( type, &block )
 		end
 
 		def create( context , request , response )
@@ -103,24 +99,24 @@ class Wire
 	module Auth
 
 		def auth_handler( handler )
-			@currentApp[:auth][:handler] = handler
+			$currentApp[:auth][:handler] = handler
 		end
 
 		def auth_level( level )
-			@currentApp[:auth] = { level: level }
+			$currentApp[:auth] = { level: level }
 		end
 		
 		def auth_user( user )
-			@currentApp[:auth][:user] = user
+			$currentApp[:auth][:user] = user
 		end
 	end
 
 	module Resource
 
 		def resource( uri , &block )
-			@currentApp[:resources][uri] = {}
-			@currentResource = @currentApp[:resources][uri]
-			puts "Starting Resource At: /#{@currentURI + '/' + uri}"
+			$currentApp[:resources][uri] = {}
+			$currentResource = $currentApp[:resources][uri]
+			puts "Starting Resource At: /#{$currentURI + '/' + uri}"
 			Docile.dsl_eval( self , &block )
 		end
 
