@@ -1,5 +1,8 @@
 require 'awesome_print'
 require 'sinatra'
+require 'docile'
+
+
 
 class Sinatra::Base
 	def actionAllowed?( action , app , resource , id , username )
@@ -210,10 +213,12 @@ module Wire
 			$config = { apps: {} , editors:{}, renderers: {} , templates: {} }
 		end
 
-		def build( &block )
+		def self.build( &block )
+      closet = Wire::Closet.new
 			puts 'Starting Up Wire...'
 			puts 'Starting Apps...'
-			Docile.dsl_eval( self , &block )
+			Docile.dsl_eval( closet , &block )
+      closet
 		end
 
 		def info
@@ -235,5 +240,10 @@ module Wire
         end
       end
 		end
-	end
+  end
+
+  require_relative 'app/db'
+  require_relative 'app/file'
+  require_relative 'app/render'
+  require_relative 'app/repo'
 end
