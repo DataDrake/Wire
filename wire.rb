@@ -101,15 +101,18 @@ module Wire
 
 	module Auth
 
-		def auth_handler( handler )
+    def auth( level , &block)
+      $currentApp[:auth] = { level: level }
+      unless (level == :any) || (block.nil?)
+        Docile.dsl_eval( self , &block )
+      end
+    end
+
+		def handler( handler )
 			$currentApp[:auth][:handler] = handler
 		end
-
-		def auth_level( level )
-			$currentApp[:auth] = { level: level }
-		end
 		
-		def auth_user( user )
+		def user( user )
 			$currentApp[:auth][:user] = user
 		end
 	end
