@@ -59,11 +59,8 @@ module Render
   extend Wire::App
   extend Wire::Resource
 
-  def remote_host( hostname )
+  def remote( hostname , uri)
     $currentApp[:remote_host] = hostname
-  end
-
-  def remote_uri( uri )
     $currentApp[:remote_uri] = uri
   end
 

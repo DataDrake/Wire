@@ -7,13 +7,13 @@ module Static
 		extend Wire::App
     extend Wire::Resource
 
-    def self.local_path( path )
-      $currentResource[:local_path] = path
+    def self.local( resource, path )
+      $currentApp[:resources][resource] = {local: path}
     end
 
 		def self.readAll( context , request , response )
 			context[:sinatra].pass unless (context[:resource] != nil )
-				path = context[:resource][:local_path]
+				path = context[:resource][:local]
 				if( path != nil ) then
 					context[:sinatra].pass unless File.exists?(path)
 					if( File.directory?( path ) ) then
@@ -28,7 +28,7 @@ module Static
 
 		def self.read( id , context , request , response )
       context[:sinatra].pass unless (context[:resource] != nil )
-			path = context[:resource][:local_path]
+			path = context[:resource][:local]
 			if( path != nil ) then
 				ext_path = File.join( path , id )
 				context[:sinatra].pass unless File.exists?(ext_path)

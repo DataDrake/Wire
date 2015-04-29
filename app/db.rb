@@ -7,14 +7,14 @@ module DB
 		include Wire::App
     include Wire::Resource
 
-    def self.db_setup( namespace , location )
+    def self.db( namespace , location )
       $currentApp[:db_namespace] = namespace
       $currentApp[:db_location] = location
       DataMapper.setup( namespace , location )
     end
 
-    def self.model( model )
-      $currentResource[:model] = model
+    def self.model( resource, model )
+      $currentApp[:resources][resource] = {model: model}
     end
 
     def self.create( context , request , response )
