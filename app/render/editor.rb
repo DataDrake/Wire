@@ -5,8 +5,6 @@ module Render
   module Editor
     extend Render
 
-
-
     def self.create( context , request , response )
       forward( nil , :create , context , request )
     end

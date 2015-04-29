@@ -20,11 +20,6 @@ $markdown = Redcarpet::Markdown.new( Redcarpet::Render::HTML , tables: true )
 
 module Wire
 
-  module Resource
-
-
-  end
-
   module Renderer
 
     def renderer( klass , &block)
@@ -108,9 +103,7 @@ module Render
 
   def all( template )
     multiple( template )
-    partial = Tilt.new( template , 1 , {ugly:true})
-    $currentResource[:multiple] = partial
-    $currentResource[:single] = partial
+    single( template )
   end
 
   def forward( id , method , context , request )
