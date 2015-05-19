@@ -52,11 +52,12 @@ class Sinatra::Base
 			end
 			page.capitalize!
     end
-    if request.env['rack.request.form_vars'] != nil then
+    if request.env['rack.input'] != nil then
+			params = request.env['rack.input'].read
       begin
-		    hash[:params] = JSON.parse(request.env['rack.request.form_vars'])
-      rescue JSON::ParserError
-        hash[:params] = request.env['rack.request.form_vars']
+		    hash[:params] = JSON.parse( params )
+			rescue JSON::ParserError
+        hash[:params] = params
       end
     end
     hash[:failure] = false
