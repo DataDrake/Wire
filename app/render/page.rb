@@ -75,5 +75,10 @@ module Render
       end
       message
     end
+    def self.update( id, context, request , response )
+      forward( id , :update , context , request )
+      200
+    end
   end
+
 end

@@ -24,6 +24,11 @@ module Render
         404
       end
     end
+
+    def self.update( id, context, request , response )
+      response = forward( id , :update , context , request )
+      200
+    end
   end
 
 end
