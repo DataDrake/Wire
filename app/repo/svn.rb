@@ -5,7 +5,7 @@ $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
 
 module Repo
   module SVN
-    include Repo
+    extend Repo
 
     def self.do_create( path , repo)
       `svnadmin create #{path}/#{repo}`
@@ -16,8 +16,8 @@ module Repo
       end
     end
 
-    def self.do_read( repo , id )
-      body = `svn cat 'https://kgcoe-research.rit.edu/dav/#{repo}/#{id}'`
+    def self.do_read( path, repo , id )
+      body = `svn cat '#{path}/#{repo}/#{id}'`
       if $?.success? then
         body
       else
@@ -25,11 +25,12 @@ module Repo
       end
     end
 
-    def self.do_read_listing( repo , id)
+    def self.do_read_listing( path, repo , id = nil)
       if id.nil? then
-        list = `svn --xml list 'svn+ssh://localhost/dav/#{repo}'`
+        list = `svn --xml list '#{path}/#{repo}'`
+        puts list
       else
-        list = `svn --xml list 'svn+ssh://localhost/dav/#{repo}/#{id}'`
+        list = `svn --xml list '#{path}/#{repo}/#{id}'`
       end
       unless $?.success? then
         500
@@ -38,18 +39,17 @@ module Repo
       list[:lists][:list][:entry]
     end
 
-    def self.do_read_info( repo , id)
-      info = `svn info --xml 'https://kgcoe-research.rit.edu/dav/#{repo}/#{id}'`
-      unless $?.success? then
-
+    def self.do_read_info( path, repo , id)
+      info = `svn info --xml '#{path}/#{repo}/#{id}'`
+      unless $?.exitstatus == 0 then
         return 404
       end
       info = $nori.parse( info )
       info[:info][:entry]
     end
 
-    def self.do_read_mime(repo , id)
-      mime = `svn --xml propget svn:mime-type 'https://localhost/dav/#{path}/#{id}'`
+    def self.do_read_mime(path, repo , id)
+      mime = `svn --xml propget svn:mime-type '#{path}/#{repo}/#{id}'`
       unless $?.success? then
         500
       end
@@ -61,9 +61,9 @@ module Repo
       end
     end
 
-    def self.do_update( repo, id , file, message)
+    def self.do_update( path, repo, id , file, message , user)
       status = 500
-      `svn checkout 'https://localhost/dav/#{repo}' /tmp/svn/#{repo}`
+      `svn checkout '#{path}/#{repo}' /tmp/svn/#{repo}`
       if $?.success? then
         add = true
         if File.exist? "/tmp/svn/#{repo}/#{id}" then
@@ -76,7 +76,7 @@ module Repo
           end
         end
         if add then
-          `svn commit -m "#{message}" /tmp/svn/#{repo}`
+          `svn commit --username #{user} -m "#{message}" /tmp/svn/#{repo}`
           if $?.success? then
             status = 200
           end
