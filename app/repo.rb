@@ -3,8 +3,6 @@ require_relative '../wire'
 require_relative 'repo/svn'
 
 module Repo
-  extend Wire::App
-  extend Wire::Resource
 
   def repos( path )
     $currentApp[:repos_path] = path
@@ -15,9 +13,9 @@ module Repo
   end
 
   def create( context , request , response )
-    context[:sinatra].pass unless (context[:resource] != nil )
+    context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:app][:repos_path]
-    resource = context[:resource]
+    resource = context[:resource_name]
     if( path != nil ) then
       unless Dir.exist?( "#{path}/#{resource}" )
         do_create( path, resource)
@@ -36,8 +34,8 @@ module Repo
     repos = context[:app][:repos_path]
     mime = 'text/html'
     list = do_read_listing( repos, resource )
-    if list == 500 then
-      return 500
+    if list == 404 then
+      return 404
     end
     unless referrer.nil? then
       referrer = referrer.split('/')[3]

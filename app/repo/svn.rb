@@ -5,19 +5,29 @@ $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
 
 module Repo
   module SVN
+    extend Wire::App
+    extend Wire::Resource
     extend Repo
 
     def self.do_create( path , repo)
+      result = 200
       `svnadmin create #{path}/#{repo}`
-      if $?.success? then
-        200
-      else
+      if $?.exitstatus != 0 then
+        return 500
+      end
+
+      `sed 's/# anon-access = read/anon-access = read/g' #{path}/#{repo}/conf/svnserve.conf`
+      `sed 's/# auth-access = read/auth-access = write/g' #{path}/#{repo}/conf/svnserve.conf`
+
+      if $?.exitstatus != 0 then
         500
+      else
+        result
       end
     end
 
     def self.do_read( path, repo , id )
-      body = `svn cat '#{path}/#{repo}/#{id}'`
+      body = `svn cat 'svn://localhost/#{repo}/#{id}'`
       if $?.success? then
         body
       else
@@ -27,20 +37,19 @@ module Repo
 
     def self.do_read_listing( path, repo , id = nil)
       if id.nil? then
-        list = `svn --xml list '#{path}/#{repo}'`
-        puts list
+        list = `svn --xml list 'svn://localhost/#{repo}'`
       else
-        list = `svn --xml list '#{path}/#{repo}/#{id}'`
+        list = `svn --xml list 'svn://localhost/#{repo}/#{id}'`
       end
-      unless $?.success? then
-        500
+      unless $?.exitstatus == 0 then
+        return 404
       end
       list = $nori.parse( list )
       list[:lists][:list][:entry]
     end
 
     def self.do_read_info( path, repo , id)
-      info = `svn info --xml '#{path}/#{repo}/#{id}'`
+      info = `svn info --xml 'svn://localhost/#{repo}/#{id}'`
       unless $?.exitstatus == 0 then
         return 404
       end
@@ -49,9 +58,9 @@ module Repo
     end
 
     def self.do_read_mime(path, repo , id)
-      mime = `svn --xml propget svn:mime-type '#{path}/#{repo}/#{id}'`
+      mime = `svn --xml propget svn:mime-type 'svn://localhost/#{repo}/#{id}'`
       unless $?.success? then
-        500
+        return 500
       end
       mime = $nori.parse( mime )
       unless mime[:properties].nil? then
@@ -63,7 +72,7 @@ module Repo
 
     def self.do_update( path, repo, id , file, message , user)
       status = 500
-      `svn checkout '#{path}/#{repo}' /tmp/svn/#{repo}`
+      `svn checkout 'svn://localhost#{repo}' /tmp/svn/#{repo}`
       if $?.success? then
         add = true
         if File.exist? "/tmp/svn/#{repo}/#{id}" then
