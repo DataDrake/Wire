@@ -139,6 +139,11 @@ module Wire
 		def initialize
 			@sinatra = Sinatra.new
 
+      @sinatra.get('/login') do
+        referrer = request.env['HTTP_REFERER']
+        redirect referrer
+      end
+
 			## Create One or More
 			@sinatra.post('/:app/:resource') do | a , r |
 				user = headers[:from]
