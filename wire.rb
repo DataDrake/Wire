@@ -146,7 +146,7 @@ module Wire
 
 			## Create One or More
 			@sinatra.post('/:app/:resource') do | a , r |
-				user = request.env['HTTP_REFERER']
+				user = request.env['HTTP_REMOTE_USER']
 				context = prepare( a , r , user , r )
 				if( !context[:failure] ) then
 					if( actionAllowed?( :create , a , r , nil , user ) ) then
@@ -161,7 +161,8 @@ module Wire
 
 			## Read all
 			@sinatra.get('/:app/:resource') do | a , r |
-				user = request.env['HTTP_REFERER']
+				user = request.env['HTTP_REMOTE_USER']
+        ap user
 				context = prepare( a , r , user , r)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
@@ -176,7 +177,7 @@ module Wire
 
 			## Read One
 			@sinatra.get('/:app/:resource/*') do | a , r , i |
-				user = request.env['HTTP_REFERER']
+				user = request.env['HTTP_REMOTE_USER']
 				context = prepare( a , r , user, i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :read , a , r , i , user ) ) then
@@ -191,7 +192,7 @@ module Wire
 
 			## Update One or More
 			@sinatra.put('/:app/:resource/*' ) do | a , r , i |
-				user = request.env['HTTP_REFERER']
+				user = request.env['HTTP_REMOTE_USER']
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :update , a , r , i , user ) ) then
@@ -206,7 +207,7 @@ module Wire
 
 			## Delete One
 			@sinatra.delete('/:app/:resource/*') do | a , r , i |
-				user = request.env['HTTP_REFERER']
+				user = request.env['HTTP_REMOTE_USER']
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :delete , a , r , i , user ) ) then
