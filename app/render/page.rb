@@ -19,7 +19,7 @@ module Render
           begin
             temp = RestClient.get uri
           rescue RestClient::ResourceNotFound
-            temp = ''
+            temp = nil
           end
           hash[k] = temp.to_str
         end
