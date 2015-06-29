@@ -5,6 +5,7 @@ require 'docile'
 
 
 class Sinatra::Base
+
 	def actionAllowed?( action , app , resource , id , username )
 		authConfig = $config[:apps][app][:auth]
 		level = authConfig[:level]
@@ -62,7 +63,15 @@ class Sinatra::Base
     end
     hash[:failure] = false
 		hash
-	end	
+  end
+
+  def updateSession( request , session )
+    user = request.env['HTTP_REMOTE_USER']
+    unless user.nil? or user.eql? 'nobody' or user.eql? '(null)'
+      session[:user] = user
+    end
+    session[:user]
+  end
 end
 
 module Wire
@@ -138,15 +147,17 @@ module Wire
 
 		def initialize
 			@sinatra = Sinatra.new
+      @sinatra.enable :sessions
 
       @sinatra.get('/login') do
+        updateSession( request , session )
         referrer = request.env['HTTP_REFERER']
         redirect referrer
       end
 
 			## Create One or More
 			@sinatra.post('/:app/:resource') do | a , r |
-				user = request.env['HTTP_REMOTE_USER']
+				user = updateSession( request , session )
 				context = prepare( a , r , user , r )
 				if( !context[:failure] ) then
 					if( actionAllowed?( :create , a , r , nil , user ) ) then
@@ -161,8 +172,7 @@ module Wire
 
 			## Read all
 			@sinatra.get('/:app/:resource') do | a , r |
-				user = request.env['HTTP_REMOTE_USER']
-        ap user
+				user = updateSession( request , session )
 				context = prepare( a , r , user , r)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
@@ -177,7 +187,7 @@ module Wire
 
 			## Read One
 			@sinatra.get('/:app/:resource/*') do | a , r , i |
-				user = request.env['HTTP_REMOTE_USER']
+				user = updateSession( request , session )
 				context = prepare( a , r , user, i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :read , a , r , i , user ) ) then
@@ -192,7 +202,7 @@ module Wire
 
 			## Update One or More
 			@sinatra.put('/:app/:resource/*' ) do | a , r , i |
-				user = request.env['HTTP_REMOTE_USER']
+				user = updateSession( request , session )
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :update , a , r , i , user ) ) then
@@ -207,7 +217,7 @@ module Wire
 
 			## Delete One
 			@sinatra.delete('/:app/:resource/*') do | a , r , i |
-				user = request.env['HTTP_REMOTE_USER']
+				user = updateSession( request , session )
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
 					if( actionAllowed?( :delete , a , r , i , user ) ) then
