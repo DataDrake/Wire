@@ -21,7 +21,7 @@ module Render
           rescue RestClient::ResourceNotFound
             temp = nil
           end
-          hash[k] = temp.to_str
+          hash[k] = temp
         end
         message = template[:path].render(self, hash )
         if template[:use_layout] then
