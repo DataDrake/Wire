@@ -1,4 +1,5 @@
 require_relative '../repo'
+require_relative '../../../env/production'
 require 'nori'
 
 $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
@@ -9,15 +10,14 @@ module Repo
     extend Wire::Resource
     extend Repo
 
+    options = "--username=#{$production[:repos_user]} --password=#{$production[:repos_password]}"
+
     def self.do_create( path , repo)
       result = 200
       `svnadmin create #{path}/#{repo}`
       if $?.exitstatus != 0 then
         return 500
       end
-
-      `sed 's/# anon-access = read/anon-access = read/g' #{path}/#{repo}/conf/svnserve.conf`
-      `sed 's/# auth-access = read/auth-access = write/g' #{path}/#{repo}/conf/svnserve.conf`
 
       if $?.exitstatus != 0 then
         500
@@ -27,7 +27,7 @@ module Repo
     end
 
     def self.do_read( path, repo , id )
-      body = `svn cat 'svn://localhost/#{repo}/#{id}'`
+      body = `svn cat #{options} 'svn://localhost/#{repo}/#{id}'`
       if $?.success? then
         body
       else
@@ -37,9 +37,9 @@ module Repo
 
     def self.do_read_listing( path, repo , id = nil)
       if id.nil? then
-        list = `svn --xml list 'svn://localhost/#{repo}'`
+        list = `svn list #{options} --xml 'svn://localhost/#{repo}'`
       else
-        list = `svn --xml list 'svn://localhost/#{repo}/#{id}'`
+        list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{id}'`
       end
       unless $?.exitstatus == 0 then
         return 404
@@ -49,7 +49,7 @@ module Repo
     end
 
     def self.do_read_info( path, repo , id)
-      info = `svn info --xml 'svn://localhost/#{repo}/#{id}'`
+      info = `svn info #{options} --xml 'svn://localhost/#{repo}/#{id}'`
       unless $?.exitstatus == 0 then
         return 404
       end
@@ -58,7 +58,7 @@ module Repo
     end
 
     def self.do_read_mime(path, repo , id)
-      mime = `svn --xml propget svn:mime-type 'svn://localhost/#{repo}/#{id}'`
+      mime = `svn propget #{options} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
       unless $?.success? then
         return 500
       end
@@ -72,7 +72,7 @@ module Repo
 
     def self.do_update( path, repo, id , file, message , user)
       status = 500
-      `svn checkout 'svn://localhost#{repo}' /tmp/svn/#{repo}`
+      `svn checkout #{options} 'svn://localhost#{repo}' /tmp/svn/#{repo}`
       if $?.success? then
         add = true
         if File.exist? "/tmp/svn/#{repo}/#{id}" then
@@ -85,7 +85,7 @@ module Repo
           end
         end
         if add then
-          `svn commit --username #{user} -m "#{message}" /tmp/svn/#{repo}`
+          `svn commit #{options} -m "#{message}" /tmp/svn/#{repo}`
           if $?.success? then
             status = 200
           end
