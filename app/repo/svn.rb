@@ -10,7 +10,7 @@ module Repo
     extend Wire::Resource
     extend Repo
 
-    options = "--username=#{$production[:repos_user]} --password=#{$production[:repos_password]}"
+    @options = "--username=#{$production[:repos_user]} --password=#{$production[:repos_password]}"
 
     def self.do_create( path , repo)
       result = 200
@@ -27,7 +27,7 @@ module Repo
     end
 
     def self.do_read( path, repo , id )
-      body = `svn cat #{options} 'svn://localhost/#{repo}/#{id}'`
+      body = `svn cat #{@options} 'svn://localhost/#{repo}/#{id}'`
       if $?.success? then
         body
       else
@@ -37,9 +37,9 @@ module Repo
 
     def self.do_read_listing( path, repo , id = nil)
       if id.nil? then
-        list = `svn list #{options} --xml 'svn://localhost/#{repo}'`
+        list = `svn list #{@options} --xml 'svn://localhost/#{repo}'`
       else
-        list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{id}'`
+        list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
       end
       unless $?.exitstatus == 0 then
         return 404
@@ -49,7 +49,7 @@ module Repo
     end
 
     def self.do_read_info( path, repo , id)
-      info = `svn info #{options} --xml 'svn://localhost/#{repo}/#{id}'`
+      info = `svn info #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
       unless $?.exitstatus == 0 then
         return 404
       end
@@ -58,7 +58,7 @@ module Repo
     end
 
     def self.do_read_mime(path, repo , id)
-      mime = `svn propget #{options} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
+      mime = `svn propget #{@options} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
       unless $?.success? then
         return 500
       end
@@ -72,7 +72,7 @@ module Repo
 
     def self.do_update( path, repo, id , file, message , user)
       status = 500
-      `svn checkout #{options} 'svn://localhost#{repo}' /tmp/svn/#{repo}`
+      `svn checkout #{@options} 'svn://localhost#{repo}' /tmp/svn/#{repo}`
       if $?.success? then
         add = true
         if File.exist? "/tmp/svn/#{repo}/#{id}" then
@@ -85,7 +85,7 @@ module Repo
           end
         end
         if add then
-          `svn commit #{options} -m "#{message}" /tmp/svn/#{repo}`
+          `svn commit #{@options} -m "#{message}" /tmp/svn/#{repo}`
           if $?.success? then
             status = 200
           end
