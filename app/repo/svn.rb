@@ -26,8 +26,13 @@ module Repo
       end
     end
 
-    def self.do_read( path, repo , id )
-      body = `svn cat #{@options} 'svn://localhost/#{repo}/#{id}'`
+    def self.do_read( web, path, repo , id )
+      if web.nil? then
+        body = `svn cat #{@options} 'svn://localhost/#{repo}/#{id}'`
+      else
+        body = `svn cat #{@options} 'svn://localhost/#{repo}/#{web}/#{id}'`
+      end
+
       if $?.success? then
         body
       else
@@ -35,12 +40,21 @@ module Repo
       end
     end
 
-    def self.do_read_listing( path, repo , id = nil)
-      if id.nil? then
-        list = `svn list #{@options} --xml 'svn://localhost/#{repo}'`
+    def self.do_read_listing( web, path, repo , id = nil)
+      if web.nil? then
+        if id.nil? then
+          list = `svn list #{@options} --xml 'svn://localhost/#{repo}'`
+        else
+          list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
+        end
       else
-        list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
+        if id.nil? then
+          list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{web}'`
+        else
+          list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+        end
       end
+      ap list
       unless $?.exitstatus == 0 then
         return 404
       end
@@ -48,8 +62,13 @@ module Repo
       list[:lists][:list][:entry]
     end
 
-    def self.do_read_info( path, repo , id)
-      info = `svn info #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
+    def self.do_read_info( web, path, repo , id)
+      if web.nil? then
+        info = `svn info #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
+      else
+        info = `svn info #{@options} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+      end
+
       unless $?.exitstatus == 0 then
         return 404
       end
@@ -57,8 +76,13 @@ module Repo
       info[:info][:entry]
     end
 
-    def self.do_read_mime(path, repo , id)
-      mime = `svn propget #{@options} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
+    def self.do_read_mime( web, path, repo , id)
+      if web.nil?
+        mime = `svn propget #{@options} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
+      else
+        mime = `svn propget #{@options} --xml svn:mime-type 'svn://localhost/#{repo}/#{web}/#{id}'`
+      end
+
       unless $?.success? then
         return 500
       end
@@ -70,7 +94,7 @@ module Repo
       end
     end
 
-    def self.do_update( path, repo, id , file, message , user)
+    def self.do_update( web, path, repo, id , file, message , user)
       status = 500
       `svn checkout #{@options} 'svn://localhost#{repo}' /tmp/svn/#{repo}`
       if $?.success? then

@@ -12,6 +12,10 @@ module Repo
     $currentApp[:template] = Tilt.new( path , 1 , {ugly: true})
   end
 
+  def web_folder( path )
+    $currentApp[:web] = path
+  end
+
   def create( context , request , response )
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:app][:repos_path]
@@ -32,8 +36,9 @@ module Repo
     resource = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
     repos = context[:app][:repos_path]
+    web = context[:app][:web]
     mime = 'text/html'
-    list = do_read_listing( repos, resource )
+    list = do_read_listing( web, repos, resource )
     if list == 404 then
       return 404
     end
@@ -55,7 +60,8 @@ module Repo
     path = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
     repos = context[:app][:repos_path]
-    info = do_read_info( repos, path , id )
+    web = context[:app][:web]
+    info = do_read_info( web, repos, path , id )
     if info == 404 then
       response.headers['Content-Type'] = 'text/html'
       response.body = Tilt.new( 'views/forms/new.haml').render(self, resource: path, id: id)
@@ -65,7 +71,7 @@ module Repo
     type = info[:@kind]
     if type.eql? 'dir' then
       mime = 'text/html'
-      list = do_read_listing( repos, path , id)
+      list = do_read_listing( web, repos, path , id)
       unless referrer.nil? then
         referrer = referrer.split('/')[3]
       else
@@ -74,11 +80,11 @@ module Repo
       template =context[:app][:template]
       body = template.render( self, list: list, resource: path , id: id, referrer: referrer)
     else
-      body = do_read( repos, path , id )
+      body = do_read( web, repos, path , id )
       if body == 500
         return body
       end
-      mime = do_read_mime( repos, path , id )
+      mime = do_read_mime( web, repos, path , id )
     end
     response.headers['Content-Type'] = mime
     response.headers['Cache-Control'] = 'public'
