@@ -1,8 +1,14 @@
 require 'awesome_print'
 require 'sinatra'
 require 'docile'
+require 'json'
 
-
+module JSON
+  def self.parse_clean( source , opts = {})
+    opts[:symbolize_names] = true
+    parse( source , opts )
+  end
+end
 
 class Sinatra::Base
 
