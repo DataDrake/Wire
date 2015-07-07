@@ -13,6 +13,8 @@ module Render
           case s[:key]
             when :user
               uri += "/#{context[:user]}"
+            when :resource
+              uri += "/#{context[:resource_name]}"
             else
               #do nothing
           end
