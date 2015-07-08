@@ -8,7 +8,7 @@ module Render
       if $currentApp[:styles].nil? then
         $currentApp[:styles] = {}
       end
-      $currentApp[:styles][resource] = path.nil? ? nil : Tilt.new( path , 1 , {ugly: true})
+      $currentApp[:styles][resource] = path.nil? ? nil : Tilt.new( path , 1 , {ugly: true}).render
     end
 
     def self.readAll( context , request , response )
@@ -17,7 +17,7 @@ module Render
         template = context[:app][:styles][resource]
         if( template != nil ) then
           response.headers['Content-Type'] = 'text/css'
-          template.render
+          template
         else
           500
         end
