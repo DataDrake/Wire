@@ -90,6 +90,18 @@ module Repo
   end
 
   def update( id, context, request , response )
-    200
+    context[:sinatra].pass unless (context[:resource_name] != nil )
+    path = context[:resource_name]
+    referrer = request.env['HTTP_REFERRER']
+    repos = context[:app][:repos_path]
+    web = context[:app][:web]
+    ap context[:params]
+    content = context[:params]
+    if content.nil?
+
+    else
+      do_update( web , repos, path , id , content['updated'], content['message'] , context[:user] )
+    end
+
   end
 end
