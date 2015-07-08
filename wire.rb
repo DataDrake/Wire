@@ -59,12 +59,13 @@ class Sinatra::Base
 			end
 			page.capitalize!
     end
+    hash[:query] = params
     if request.env['rack.input'] != nil then
-			params = request.env['rack.input'].read
+			json = request.env['rack.input'].read
       begin
-		    hash[:params] = JSON.parse( params )
+		    hash[:params] = JSON.parse( json )
 			rescue JSON::ParserError
-        hash[:params] = params
+        hash[:params] = json
       end
     end
     hash[:failure] = false
@@ -245,7 +246,7 @@ module Wire
 			puts 'Starting Apps...'
 			Docile.dsl_eval( closet , &block )
       closet
-		end
+    end
 
 		def info
       puts "Apps:\n"

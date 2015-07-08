@@ -63,10 +63,7 @@ module Repo
     web = context[:app][:web]
     info = do_read_info( web, repos, path , id )
     if info == 404 then
-      response.headers['Content-Type'] = 'text/html'
-      response.body = Tilt.new( 'views/forms/new.haml').render(self, resource: path, id: id)
-      response.status = 200
-      return response
+      return 404
     end
     type = info[:@kind]
     if type.eql? 'dir' then
@@ -93,7 +90,6 @@ module Repo
   end
 
   def update( id, context, request , response )
-    ap context[:params]
     200
   end
 end

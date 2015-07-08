@@ -34,15 +34,15 @@ module Render
       begin
         response = forward(id , :read , context , request )
         mime = response.headers[:content_type]
-        renderer = $config[:renderers][mime]
-        if( renderer != nil ) then
-          template = $config[:templates][renderer]
-          template.render( self, {referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
-        else
-          response
-        end
       rescue RestClient::ResourceNotFound
-        404
+        response = $config[:apps][404][:template][:path].render( self, locals = {referrer: referrer, app: app, resource: resource, id: id})
+      end
+      renderer = $config[:renderers][mime]
+      if( renderer != nil ) then
+        template = $config[:templates][renderer]
+        template.render( self, {referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
+      else
+        response
       end
     end
   end

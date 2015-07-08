@@ -8,6 +8,7 @@ module Render
 
       body = request[:data]
       resource = context[:resource_name]
+      query = context[:query]
 
       ## Default to not found
       message = 404
@@ -21,7 +22,7 @@ module Render
           if( renderer != nil ) then
             template = $config[:templates][renderer]
             referrer = '/edge'
-            result = template.render(self,{resource: resource , mime: "#{resource}/#{id}" , id: id , response: body, referrer: referrer} )
+            result = template.render(self,{resource: query[:resource] , mime: "#{query[:resource]}/#{id}" , id: query[:id] , response: body, referrer: referrer} )
             template = context[:app][:template]
             if template != nil then
               message = template[:path].render( self , {content: result})
@@ -31,7 +32,6 @@ module Render
           end
         end
       end
-      puts message
       message
     end
   end

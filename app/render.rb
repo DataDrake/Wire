@@ -112,23 +112,29 @@ module Render
     else
       referrer = request.env['HTTP_REFERRER']
     end
-    ##id.sub!(' ' , '%20')
+    query = context[:query]
+    q = '?'
+    query.each do |k,v|
+      unless v.is_a? Hash or v.is_a? Array
+        q = "#{q}#{k}=#{v}&"
+      end
+    end
     case(method)
       when :create
-        puts "POST: Forward Request to https://#{host}/#{path}/#{resource}"
-        RestClient.post "http://#{host}/#{path}/#{resource}" , request.body
+        puts "POST: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
+        RestClient.post "http://#{host}/#{path}/#{resource}#{q}" , request.body
       when :update
-        puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
-        RestClient.put "http://#{host}/#{path}/#{resource}/#{id}" , request.body
+        puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
+        RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}" , request.body
       when :readAll
-        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}"
-        RestClient.get "http://#{host}/#{path}/#{resource}" , referrer: referrer
+        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
+        RestClient.get "http://#{host}/#{path}/#{resource}#{q}" , referrer: referrer
       when :read
-        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
-        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}" , referrer: referrer
+        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
+        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}" , referrer: referrer
       when :delete
-        puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}"
-        RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}"
+        puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
+        RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}#{q}"
       else
         401
     end

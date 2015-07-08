@@ -54,7 +54,6 @@ module Repo
           list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
         end
       end
-      ap list
       unless $?.exitstatus == 0 then
         return 404
       end
