@@ -96,14 +96,13 @@ module Repo
     referrer = request.env['HTTP_REFERRER']
     repos = context[:app][:repos_path]
     web = context[:app][:web]
-    ap context[:params]
     content = context[:params]
     if content.include? 'file'
       file = content['file']['content'].match(/base64,(.*)/)[1]
       file = Base64.decode64( file )
       do_update( web , repos, path , id , file , content['message'] , content['file']['mime'], context[:user] )
     else
-      do_update( web , repos, path , id , content['updated'], content['message'] , context[:user] )
+      do_update( web , repos, path , id , content['updated'], content['message'] , context[:query]['type'], context[:user] )
     end
 
   end
