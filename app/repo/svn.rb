@@ -93,30 +93,23 @@ module Repo
       end
     end
 
-    def self.do_update( web, path, repo, id , file, message , user)
+    def self.do_update( web, path, repo, id , content, message , mime , user)
       status = 500
+      puts "mark"
       `svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
       if $?.exitstatus == 0 then
-        add = true
-        if File.exist? "/tmp/svn/#{repo}/web/#{id}" then
-          `echo #{file} > /tmp/svn/#{repo}/web/#{id}`
-        else
-          `echo #{file} > /tmp/svn/#{repo}/web/#{id}`
-          `svn add /tmp/svn/#{repo}/web/#{id}`
-          unless $?.exitstatus == 0 then
-            add = false
-          end
+        file = File.open( "/tmp/svn/#{repo}/web/#{id}" ,'w+')
+        file.syswrite( content )
+        file.close
+        `svn add /tmp/svn/#{repo}/web/#{id}`
+        `svn propset svn:mime-type #{mime} /tmp/svn/#{repo}/web/#{id}`
+        `svn commit #{@options} -m '#{message}' /tmp/svn/#{repo}`
+        if $?.exitstatus == 0 then
+          status = 200
         end
-        if add then
-
-          `svn commit #{@options} -m '#{message}' /tmp/svn/#{repo}`
-          if $?.exitstatus == 0 then
-            status = 200
-          end
-          info = `svn info /tmp/svn/#{repo}`
-          rev = info.match(/Last Changed Rev: (\d+)/)[1]
-          `svn propset --revprop -r #{rev} svn:author '#{user}' /tmp/svn/#{repo}`
-        end
+        info = `svn info /tmp/svn/#{repo}`
+        rev = info.match(/Last Changed Rev: (\d+)/)[1]
+        `svn propset --revprop -r #{rev} svn:author '#{user}' /tmp/svn/#{repo}`
       end
       `rm -R /tmp/svn/#{repo}`
       status

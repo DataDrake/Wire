@@ -71,10 +71,11 @@ module DB
       model = context[:resource][:model]
       if( model != nil ) then
         instance = model.get(id)
+        ap context[:params]
         if instance.update( context[:params]) then
           200
         else
-          504
+          500
         end
       else
         404

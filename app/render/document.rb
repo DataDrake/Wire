@@ -8,6 +8,10 @@ module Render
       forward( nil , :create , context , request )
     end
 
+    def self.update( id, context , request , response )
+      forward( id , :update , context , request )
+    end
+
     def self.readAll( context , request , response )
       app = context[:uri]
       resource = context[:resource_name]

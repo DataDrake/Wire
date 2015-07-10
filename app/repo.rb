@@ -1,4 +1,5 @@
 require 'awesome_print'
+require 'base64'
 require_relative '../wire'
 require_relative 'repo/svn'
 
@@ -97,8 +98,10 @@ module Repo
     web = context[:app][:web]
     ap context[:params]
     content = context[:params]
-    if content.nil?
-
+    if content.include? 'file'
+      file = content['file']['content'].match(/base64,(.*)/)[1]
+      file = Base64.decode64( file )
+      do_update( web , repos, path , id , file , content['message'] , content['file']['mime'], context[:user] )
     else
       do_update( web , repos, path , id , content['updated'], content['message'] , context[:user] )
     end
