@@ -4,10 +4,11 @@ module Render
   module Page
     extend Render
 
-    def self.renderTemplate( context, template , content)
+    def self.renderTemplate( context, template , content , id = nil)
       if( template[:path] != nil ) then
         app = context[:uri]
-        hash = {content: content, app: app}
+        resource = context[:resource_name]
+        hash = {content: content, app: app, resource: resource, id: id}
         template[:sources].each do |k,s|
           uri = "http://#{context[:app][:remote_host]}/#{s[:uri]}"
           case s[:key]
@@ -27,7 +28,7 @@ module Render
         end
         message = template[:path].render(self, hash )
         if template[:use_layout] then
-          message = renderTemplate(context, $config[:apps][:global][:template] ,  message)
+          message = renderTemplate(context, $config[:apps][:global][:template] ,  message , id)
         end
       else
         message = 'Invalid Template'
@@ -66,7 +67,7 @@ module Render
         begin
           result = forward( id , :read , context , request)
           if(template != nil) then
-            message = renderTemplate( context, template , result )
+            message = renderTemplate( context, template , result , id)
           else
             response.headers['Content-Type'] = result.headers[:content_type]
             message = result.to_str
