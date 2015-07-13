@@ -26,11 +26,14 @@ module Repo
       end
     end
 
-    def self.do_read( web, path, repo , id )
+    def self.do_read( rev, web, path, repo , id )
+      if rev.nil?
+        rev = 'HEAD'
+      end
       if web.nil? then
-        body = `svn cat #{@options} 'svn://localhost/#{repo}/#{id}'`
+        body = `svn cat #{@options} -r #{rev} 'svn://localhost/#{repo}/#{id}'`
       else
-        body = `svn cat #{@options} 'svn://localhost/#{repo}/#{web}/#{id}'`
+        body = `svn cat #{@options} -r #{rev} 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
 
       if $?.success? then
@@ -61,11 +64,14 @@ module Repo
       list[:lists][:list][:entry]
     end
 
-    def self.do_read_info( web, path, repo , id)
+    def self.do_read_info( rev, web, path, repo , id)
+      if rev.nil?
+        rev = 'HEAD'
+      end
       if web.nil? then
-        info = `svn info #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
+        info = `svn info #{@options} -r #{rev} --xml 'svn://localhost/#{repo}/#{id}'`
       else
-        info = `svn info #{@options} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+        info = `svn info #{@options} -r #{rev} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
 
       unless $?.exitstatus == 0 then
@@ -75,11 +81,14 @@ module Repo
       info[:info][:entry]
     end
 
-    def self.do_read_mime( web, path, repo , id)
+    def self.do_read_mime( rev, web, path, repo , id)
+      if rev.nil?
+        rev = 'HEAD'
+      end
       if web.nil?
-        mime = `svn propget #{@options} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
+        mime = `svn propget #{@options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
       else
-        mime = `svn propget #{@options} --xml svn:mime-type 'svn://localhost/#{repo}/#{web}/#{id}'`
+        mime = `svn propget #{@options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
 
       unless $?.success? then
@@ -95,14 +104,18 @@ module Repo
 
     def self.do_update( web, path, repo, id , content, message , mime , user)
       status = 500
-      puts "mark"
       `svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
       if $?.exitstatus == 0 then
-        file = File.open( "/tmp/svn/#{repo}/web/#{id}" ,'w+')
+        if web.nil?
+          filepath = "/tmp/svn/#{repo}/#{id}"
+        else
+          filepath = "/tmp/svn/#{repo}/#{web}/#{id}"
+        end
+        file = File.open( filepath ,'w+')
         file.syswrite( content )
         file.close
-        `svn add /tmp/svn/#{repo}/web/#{id}`
-        `svn propset svn:mime-type #{mime} /tmp/svn/#{repo}/web/#{id}`
+        `svn add #{filepath}`
+        `svn propset svn:mime-type #{mime} #{filepath}`
         `svn commit #{@options} -m '#{message}' /tmp/svn/#{repo}`
         if $?.exitstatus == 0 then
           status = 200

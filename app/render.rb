@@ -115,7 +115,7 @@ module Render
     query = context[:query]
     q = '?'
     query.each do |k,v|
-      unless v.is_a? Hash or v.is_a? Array
+      unless v.is_a? Hash or v.is_a? Array or k.eql? 'resource' or k.eql? 'app'
         q = "#{q}#{k}=#{v}&"
       end
     end

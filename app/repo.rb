@@ -62,7 +62,8 @@ module Repo
     referrer = request.env['HTTP_REFERRER']
     repos = context[:app][:repos_path]
     web = context[:app][:web]
-    info = do_read_info( web, repos, path , id )
+    rev = context[:query][:rev]
+    info = do_read_info( rev, web, repos, path , id )
     if info == 404 then
       return 404
     end
@@ -78,11 +79,11 @@ module Repo
       template =context[:app][:template]
       body = template.render( self, list: list, resource: path , id: id, referrer: referrer)
     else
-      body = do_read( web, repos, path , id )
+      body = do_read( rev, web, repos, path , id )
       if body == 500
         return body
       end
-      mime = do_read_mime( web, repos, path , id )
+      mime = do_read_mime( rev, web, repos, path , id )
     end
     response.headers['Content-Type'] = mime
     response.headers['Cache-Control'] = 'public'
