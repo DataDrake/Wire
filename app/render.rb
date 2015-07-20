@@ -1,5 +1,5 @@
 require 'nokogiri'
-require 'wikicloth'
+require 'wiki-this'
 require 'redcarpet'
 require 'RedCloth'
 require 'rest_client'
