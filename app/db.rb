@@ -21,19 +21,23 @@ module DB
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
-        if model.instance_methods.include?(:updated_by) then
-          context[:params][:updated_by] = context[:user]
-        end
-        if model.instance_methods.include?(:created_by) then
-          context[:params][:created_by] = context[:user]
-        end
-        instance = model.create( context[:params] )
-        instance.save
-        if instance.saved? then
-          200
+        if context[:params]['file']
+          puts "TODO: Make this work"
         else
-          ap instance.errors
-          504
+          if model.instance_methods.include?(:updated_by) then
+            context[:params][:updated_by] = context[:user]
+          end
+          if model.instance_methods.include?(:created_by) then
+            context[:params][:created_by] = context[:user]
+          end
+          instance = model.create( context[:params] )
+          instance.save
+          if instance.saved? then
+            200
+          else
+            ap instance.errors
+            504
+          end
         end
       else
         404
@@ -61,7 +65,7 @@ module DB
 		def self.read( id , context , request , response )
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
-      if id.eql?('new') then
+      if id.eql?('new') or id.eql? 'upload' then
         return '{}'
       end
 			if( model != nil ) then
