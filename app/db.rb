@@ -21,11 +21,18 @@ module DB
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
+        if model.instance_methods.include?(:updated_by) then
+          context[:params][:updated_by] = context[:user]
+        end
+        if model.instance_methods.include?(:created_by) then
+          context[:params][:created_by] = context[:user]
+        end
         instance = model.create( context[:params] )
         instance.save
         if instance.saved? then
           200
         else
+          ap instance.errors
           504
         end
       else
@@ -70,8 +77,10 @@ module DB
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
+        if model.respond_to?(:updated_by) then
+            context[:params][:updated_by] = context[:user]
+        end
         instance = model.get(id)
-        ap context[:params]
         if instance.update( context[:params]) then
           200
         else
@@ -82,5 +91,4 @@ module DB
       end
     end
   end
-
 end
