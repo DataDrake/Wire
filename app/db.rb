@@ -21,8 +21,34 @@ module DB
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
-        if context[:params]['file']
+        file = context[:params]['file']
+        if file
           puts "TODO: Make this work"
+          if file['mime'].eql? 'text/csv'
+            file['content'].match(/.*base64,(.*)/) do
+              csv = Base64.decode64($1)
+              columns = []
+              csv.split("\n").each_with_index do |v,i|
+                if i == 0
+                  columns = v.split(', ')
+                  columns.map! { |v| v.delete('"').to_sym }
+                else
+                  values = v.split(', ')
+                  hash = {}
+                  columns.each_with_index do |c, i|
+                    if values[i].is_a? String
+                      values[i].delete!('"')
+                    end
+                    hash[c] = values[i]
+                  end
+                  ap hash
+                end
+              end
+            end
+            200
+          else
+            415
+          end
         else
           if model.instance_methods.include?(:updated_by) then
             context[:params][:updated_by] = context[:user]
