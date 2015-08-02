@@ -23,17 +23,24 @@ module DB
       if( model != nil ) then
         file = context[:params]['file']
         if file
-          puts "TODO: Make this work"
           if file['mime'].eql? 'text/csv'
             file['content'].match(/.*base64,(.*)/) do
               csv = Base64.decode64($1)
               columns = []
+              errors = []
               csv.split("\n").each_with_index do |v,i|
                 if i == 0
-                  columns = v.split(', ')
+                  columns = v.split(/(?<!\[),(?!=\])/)
                   columns.map! { |v| v.delete('"').to_sym }
                 else
-                  values = v.split(', ')
+                  values = v.split(',')
+                  values.map! do |v|
+                    if v.include? ';'
+                      v.split(';')
+                    else
+                      v
+                    end
+                  end
                   hash = {}
                   columns.each_with_index do |c, i|
                     if values[i].is_a? String
@@ -41,11 +48,19 @@ module DB
                     end
                     hash[c] = values[i]
                   end
-                  ap hash
+                  m = model.first_or_create( hash )
+                  unless m.saved?
+                    errors << "row: #{i} errors: #{m.errors.delete("\n")}"
+                  end
                 end
               end
+              if errors.length > 0
+                ap errors
+                [400, nil ,errors]
+              else
+                200
+              end
             end
-            200
           else
             415
           end

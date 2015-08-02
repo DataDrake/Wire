@@ -155,7 +155,6 @@ module Wire
 		def initialize
 			@sinatra = Sinatra.new
       @sinatra.enable :sessions
-
       @sinatra.get('/login') do
         updateSession( request , session )
         referrer = request.env['HTTP_REFERER']
