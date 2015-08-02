@@ -12,7 +12,8 @@ end
 
 class Sinatra::Base
 
-	def actionAllowed?( action , app , resource , id , username )
+	def actionAllowed?( action , app , resource , id , username)
+    username = username ? username : 'nobody'
 		authConfig = $config[:apps][app][:auth]
 		level = authConfig[:level]
 		case level
