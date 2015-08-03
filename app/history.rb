@@ -20,8 +20,8 @@ module History
     context[:sinatra].pass unless (context[:resource_name] != nil )
     resource = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
-    repos = context[:app][:repos_path]
-    list = get_log( repos, resource , id )
+    web = context[:app][:web]
+    list = get_log( web, resource , id )
     if list == 404 then
       return 404
     end

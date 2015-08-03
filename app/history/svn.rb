@@ -10,11 +10,15 @@ module History
     extend Wire::Resource
     extend History
 
-    def self.get_log(path, repo , id = nil)
+    def self.get_log(web, repo , id = nil)
       if id.nil? then
         log = `svn log --xml 'svn://localhost/#{repo}'`
       else
-        log = `svn log --xml 'svn://localhost/#{repo}/#{id}'`
+        if web.nil?
+          log = `svn log --xml 'svn://localhost/#{repo}/#{id}'`
+        else
+          log = `svn log --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+        end
       end
       unless $?.exitstatus == 0 then
         return 404
