@@ -22,7 +22,6 @@ module History
         return 404
       end
       log = CobraVsMongoose.xml_to_hash( log )
-      ap log
       log['log']['logentry']
     end
   end

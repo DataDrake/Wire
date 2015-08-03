@@ -15,7 +15,7 @@ module Render
       $currentResource[:sources][name] = path
     end
 
-    def self.create( context , request , response , actions )
+    def self.do_create( context , request , response , actions )
       if context[:resource][:Render] then
         forward( nil , :create , context , request )
       else
@@ -23,7 +23,7 @@ module Render
       end
     end
 
-    def self.readAll( context , request , response , actions )
+    def self.do_readAll( context , request , response , actions )
       resource = context[:resource_name]
       begin
         if context[:resource][:forward] then
@@ -49,7 +49,7 @@ module Render
       end
     end
 
-    def self.read( id , context , request , response , actions )
+    def self.do_read( id , context , request , response , actions )
       app = context[:app][:uri]
       resource = context[:resource_name]
       begin

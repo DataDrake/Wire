@@ -17,13 +17,13 @@ module Repo
     $currentApp[:web] = path
   end
 
-  def create( context , request , response , actions)
+  def do_create( context , request , response , actions)
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:app][:repos_path]
     resource = context[:resource_name]
     if( path != nil ) then
       unless Dir.exist?( "#{path}/#{resource}" )
-        do_create( path, resource)
+        do_create_file( path, resource)
       else
         401
       end
@@ -32,7 +32,7 @@ module Repo
     end
   end
 
-  def readAll( context , request , response , actions)
+  def do_readAll( context , request , response , actions)
     context[:sinatra].pass unless (context[:resource_name] != nil )
     resource = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
@@ -56,7 +56,7 @@ module Repo
     response.body = list
   end
 
-  def read( id , context , request , response , actions)
+  def do_read( id , context , request , response , actions)
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
@@ -79,7 +79,7 @@ module Repo
       template =context[:app][:template]
       body = template.render( self, list: list, resource: path , id: id, referrer: referrer)
     else
-      body = do_read( rev, web, repos, path , id )
+      body = do_read_file( rev, web, repos, path , id )
       if body == 500
         return body
       end
@@ -91,7 +91,7 @@ module Repo
     response.body = body
   end
 
-  def update( id, context, request , response , actions )
+  def do_update( id, context, request , response , actions )
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
@@ -101,9 +101,9 @@ module Repo
     if content.include? 'file'
       file = content['file']['content'].match(/base64,(.*)/)[1]
       file = Base64.decode64( file )
-      do_update( web , repos, path , id , file , content['message'] , content['file']['mime'], context[:user] )
+      do_update_file( web , repos, path , id , file , content['message'] , content['file']['mime'], context[:user] )
     else
-      do_update( web , repos, path , id , content['updated'], content['message'] , context[:query]['type'], context[:user] )
+      do_update_file( web , repos, path , id , content['updated'], content['message'] , context[:query]['type'], context[:user] )
     end
 
   end

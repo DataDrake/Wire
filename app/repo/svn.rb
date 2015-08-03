@@ -12,7 +12,7 @@ module Repo
 
     @options = "--username=#{$production[:repos_user]} --password=#{$production[:repos_password]}"
 
-    def self.do_create( path , repo)
+    def self.do_create_file( path , repo)
       result = 200
       `svnadmin create #{path}/#{repo}`
       if $?.exitstatus != 0 then
@@ -26,7 +26,7 @@ module Repo
       end
     end
 
-    def self.do_read( rev, web, path, repo , id )
+    def self.do_read_file( rev, web, path, repo , id )
       if rev.nil?
         rev = 'HEAD'
       end
@@ -102,7 +102,7 @@ module Repo
       end
     end
 
-    def self.do_update( web, path, repo, id , content, message , mime , user)
+    def self.do_update_file( web, path, repo, id , content, message , mime , user)
       status = 500
       `svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
       if $?.exitstatus == 0 then

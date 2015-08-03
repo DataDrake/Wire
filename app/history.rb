@@ -16,7 +16,7 @@ module History
     $currentApp[:web] = path
   end
 
-  def read( id , context , request , response , actions )
+  def do_read( id , context , request , response , actions )
     context[:sinatra].pass unless (context[:resource_name] != nil )
     resource = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
@@ -35,7 +35,7 @@ module History
     template.render( self, list: list, resource: resource , id: id, referrer: referrer)
   end
 
-  def readAll( context , request , response , actions )
-    read( nil , context, request , response , actions)
+  def do_readAll( context , request , response , actions )
+    do_read( nil , context, request , response , actions)
   end
 end

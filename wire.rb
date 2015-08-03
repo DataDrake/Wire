@@ -99,23 +99,23 @@ module Wire
 			Docile.dsl_eval( type, &block )
 		end
 
-		def create( context , request , response , actions )
+		def do_create( context , request , response , actions )
 			401
 		end
 
-		def readAll( context , request , response , actions)
+		def do_readAll( context , request , response , actions)
 			401
 		end
 
-		def read( id , context , request , response , actions )
+		def do_read( id , context , request , response , actions )
 			401
 		end
 
-		def update( id , context , request , response , actions )
+		def do_update( id , context , request , response , actions )
 			401
 		end
 
-		def delete( id , context , request , response , actions )
+		def do_delete( id , context , request , response , actions )
 			401
     end
 
@@ -150,114 +150,107 @@ module Wire
 
 	end
 
-	class Closet
-		include Wire::App
-		include Wire::Auth
-		include Wire::Resource
+	class Closet < Sinatra::Base
+		extend Wire::App
+		extend Wire::Auth
+		extend Wire::Resource
 
-		attr_reader :sinatra
-
-		def initialize
-			@sinatra = Sinatra.new
-      @sinatra.enable :sessions
-      @sinatra.get('/login') do
-        updateSession( request , session )
-        referrer = request.env['HTTP_REFERER']
-        redirect referrer
-      end
-
-			## Create One or More
-			@sinatra.post('/:app/:resource') do | a , r |
-				user = updateSession( request , session )
-				context = prepare( a , r , user , r )
-				if( !context[:failure] ) then
-          actions = actionsAllowed?( a , r , nil , user )
-					if( actions.include? :create ) then
-						context[:controller].create( context , request , response , actions)
-					else
-						401
-					end
-				else
-					context[:message]
-				end
-			end
-
-			## Read all
-			@sinatra.get('/:app/:resource') do | a , r |
-				user = updateSession( request , session )
-				context = prepare( a , r , user , r)
-				if( !context[:failure] ) then
-          actions = actionsAllowed?( a , r , nil , user )
-					if( actions.include? :readAll ) then
-						context[:controller].readAll( context , request , response , actions )
-					else
-						401
-					end
-				else
-					context[:message]
-				end
-			end
-
-			## Read One
-			@sinatra.get('/:app/:resource/*') do | a , r , i |
-				user = updateSession( request , session )
-				context = prepare( a , r , user, i)
-				if( !context[:failure] ) then
-          actions = actionsAllowed?( a , r , i , user )
-					if( actions.include? :read ) then
-						context[:controller].read( i , context , request , response , actions )
-					else
-						401
-					end
-				else
-					context[:message]
-				end
-			end
-
-			## Update One or More
-			@sinatra.put('/:app/:resource/*' ) do | a , r , i |
-				user = updateSession( request , session )
-				context = prepare( a , r , user , i)
-				if( !context[:failure] ) then
-          actions = actionsAllowed?( a , r , i , user )
-					if( actions.include? :update ) then
-						context[:controller].update( i , context , request , response , actions)
-					else
-						401
-					end
-				else
-					context[:message]
-				end
-			end
-
-			## Delete One
-			@sinatra.delete('/:app/:resource/*') do | a , r , i |
-				user = updateSession( request , session )
-				context = prepare( a , r , user , i)
-				if( !context[:failure] ) then
-          actions = actionAllowed?( a , r , i , user )
-					if( actions.include? :delete ) then
-						context[:controller].delete( i , context , request , response , actions)
-					else
-						401
-					end
-				else
-					context[:message]
-				end
-			end
-
-			$config = { apps: {} , editors:{}, renderers: {} , templates: {} }
-		end
-
-		def self.build( &block )
-      closet = Wire::Closet.new
-			puts 'Starting Up Wire...'
-			puts 'Starting Apps...'
-			Docile.dsl_eval( closet , &block )
-      closet
+    enable :sessions
+    get('/login') do
+      updateSession( request , session )
+      referrer = request.env['HTTP_REFERER']
+      redirect referrer
     end
 
-		def info
+    ## Create One or More
+    post('/:app/:resource') do | a , r |
+      user = updateSession( request , session )
+      context = prepare( a , r , user , r )
+      if( !context[:failure] ) then
+        actions = actionsAllowed?( a , r , nil , user )
+        if( actions.include? :create ) then
+          context[:controller].do_create( context , request , response , actions)
+        else
+          401
+        end
+      else
+        context[:message]
+      end
+    end
+
+			## Read all
+    get('/:app/:resource') do | a , r |
+      user = updateSession( request , session )
+      context = prepare( a , r , user , r)
+      if( !context[:failure] ) then
+        actions = actionsAllowed?( a , r , nil , user )
+        if( actions.include? :readAll ) then
+          context[:controller].do_readAll( context , request , response , actions )
+        else
+          401
+        end
+      else
+        context[:message]
+      end
+    end
+
+    ## Read One
+    get('/:app/:resource/*') do | a , r , i |
+      user = updateSession( request , session )
+      context = prepare( a , r , user, i)
+      if( !context[:failure] ) then
+        actions = actionsAllowed?( a , r , i , user )
+        if( actions.include? :read ) then
+          context[:controller].do_read( i , context , request , response , actions )
+        else
+          401
+        end
+      else
+        context[:message]
+      end
+    end
+
+    ## Update One or More
+    put('/:app/:resource/*' ) do | a , r , i |
+      user = updateSession( request , session )
+      context = prepare( a , r , user , i)
+      if( !context[:failure] ) then
+        actions = actionsAllowed?( a , r , i , user )
+        if( actions.include? :update ) then
+          context[:controller].do_update( i , context , request , response , actions)
+        else
+          401
+        end
+      else
+        context[:message]
+      end
+    end
+
+    ## Delete One
+    delete('/:app/:resource/*') do | a , r , i |
+      user = updateSession( request , session )
+      context = prepare( a , r , user , i)
+      if( !context[:failure] ) then
+        actions = actionsAllowed?( a , r , i , user )
+        if( actions.include? :delete ) then
+          context[:controller].do_delete( i , context , request , response , actions)
+        else
+          401
+        end
+      else
+        context[:message]
+      end
+    end
+
+    $config = { apps: {} , editors:{}, renderers: {} , templates: {} }
+
+		def self.config( &block )
+			puts 'Starting Up Wire...'
+			puts 'Starting Apps...'
+			Docile.dsl_eval( self , &block )
+    end
+
+		def self.info
       puts "Apps:\n"
       $config[:apps].each do |app, config|
         puts "\u{2502}"

@@ -5,11 +5,11 @@ module Render
   module Editor
     extend Render
 
-    def self.create( context , request , response , actions)
+    def self.do_create( context , request , response , actions)
       forward( nil , :create , context , request )
     end
 
-    def self.read( id , context , request , response , actions)
+    def self.do_read( id , context , request , response , actions)
       resource = context[:resource_name]
       query = context[:query]
       begin
@@ -31,7 +31,7 @@ module Render
       end
     end
 
-    def self.update( id, context, request , response , actions)
+    def self.do_update( id, context, request , response , actions)
       response = forward( id , :update , context , request )
       200
     end

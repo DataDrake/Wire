@@ -11,7 +11,7 @@ module Render
       $currentApp[:styles][resource] = path.nil? ? nil : Tilt.new( path , 1 , {ugly: true}).render
     end
 
-    def self.readAll( context , request , response , actions )
+    def self.do_readAll( context , request , response , actions )
       begin
         resource = context[:resource_name]
         template = context[:app][:styles][resource]

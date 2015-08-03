@@ -51,7 +51,7 @@ module Wire
   end
 
   class Closet
-    include Wire::Renderer
+    extend Wire::Renderer
   end
 end
 

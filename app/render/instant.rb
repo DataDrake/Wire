@@ -4,7 +4,7 @@ module Render
   module Instant
     extend Render
 
-    def self.update( id , context , request , response , actions )
+    def self.do_update( id , context , request , response , actions )
       app = context[:app]
       body = request[:data]
       resource = context[:resource_name]
