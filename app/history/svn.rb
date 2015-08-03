@@ -1,8 +1,6 @@
 require_relative '../repo'
 require_relative '../../../env/production'
-require 'nori'
-
-$nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
+require 'cobravsmongoose'
 
 module History
   module SVN
@@ -12,20 +10,20 @@ module History
 
     def self.get_log(web, repo , id = nil)
       if id.nil? then
-        log = `svn log --xml 'svn://localhost/#{repo}'`
+        log = `svn log -v --xml 'svn://localhost/#{repo}'`
       else
         if web.nil?
-          log = `svn log --xml 'svn://localhost/#{repo}/#{id}'`
+          log = `svn log -v --xml 'svn://localhost/#{repo}/#{id}'`
         else
-          log = `svn log --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+          log = `svn log -v --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
         end
       end
       unless $?.exitstatus == 0 then
         return 404
       end
-      log = $nori.parse( log )
+      log = CobraVsMongoose.xml_to_hash( log )
       ap log
-      log[:log][:logentry]
+      log['log']['logentry']
     end
   end
 end

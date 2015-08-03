@@ -29,7 +29,8 @@ module History
     if referrer.nil? then
       referrer = request.url
     end
-    referrer.sub!(/^.*?:\/\/.*?(\/.*)$/, '\1')
+    referrer.sub!(/^.*?\/\/.*?(\/.*)$/, '\1')
+    referrer.sub!(/^(.*)\/.*$/, '\1') ## TODO: Fix referral links
     template = context[:app][:template]
     template.render( self, list: list, resource: resource , id: id, referrer: referrer)
   end
