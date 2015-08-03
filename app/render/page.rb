@@ -36,11 +36,11 @@ module Render
       message
     end
 
-    def self.create( context, request , response )
+    def self.create( context, request , response , actions )
       forward( nil , :create , context , request )
     end
 
-    def self.readAll( context , request , response )
+    def self.readAll( context , request , response , actions )
       template = context[:app][:template]
       resource = context[:resource_name]
       message = 'Resource not specified'
@@ -59,7 +59,7 @@ module Render
       end
       message
     end
-    def self.read( id , context , request , response )
+    def self.read( id , context , request , response , actions )
       template = context[:app][:template]
       resource = context[:resource_name]
       message = 'Resource not specified'
@@ -78,7 +78,7 @@ module Render
       end
       message
     end
-    def self.update( id, context, request , response )
+    def self.update( id, context, request , response , actions)
       forward( id , :update , context , request )
       200
     end

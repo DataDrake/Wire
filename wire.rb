@@ -12,19 +12,23 @@ end
 
 class Sinatra::Base
 
-	def actionAllowed?( action , app , resource , id , username)
+	def actionsAllowed?( app , resource , id , username)
     username = username ? username : 'nobody'
 		authConfig = $config[:apps][app][:auth]
 		level = authConfig[:level]
 		case level
 			when :any
-				true
+				[:create,:read,:readAll,:update,:delete]
 			when :app
-				authConfig[:handler].actionAllowed?( action , resource , id , username )
+				authConfig[:handler].actionsAllowed?( resource , id , username )
 			when :user
-				( username == authConfig[:user] )
+				if ( username == authConfig[:user] )
+          [:create,:read,:readAll,:update,:delete]
+        else
+          []
+        end
       else
-        false
+        []
 		end
 	end
 
@@ -95,23 +99,23 @@ module Wire
 			Docile.dsl_eval( type, &block )
 		end
 
-		def create( context , request , response )
+		def create( context , request , response , actions )
 			401
 		end
 
-		def readAll( context , request , response )
+		def readAll( context , request , response , actions)
 			401
 		end
 
-		def read( id , context , request , response )
+		def read( id , context , request , response , actions )
 			401
 		end
 
-		def update( id , context , request , response )
+		def update( id , context , request , response , actions )
 			401
 		end
 
-		def delete( id , context , request , response )
+		def delete( id , context , request , response , actions )
 			401
     end
 
@@ -167,8 +171,9 @@ module Wire
 				user = updateSession( request , session )
 				context = prepare( a , r , user , r )
 				if( !context[:failure] ) then
-					if( actionAllowed?( :create , a , r , nil , user ) ) then
-						context[:controller].create( context , request , response )
+          actions = actionsAllowed?( a , r , nil , user )
+					if( actions.include? :create ) then
+						context[:controller].create( context , request , response , actions)
 					else
 						401
 					end
@@ -182,8 +187,9 @@ module Wire
 				user = updateSession( request , session )
 				context = prepare( a , r , user , r)
 				if( !context[:failure] ) then
-					if( actionAllowed?( :readAll , a , r , nil , user ) ) then
-						context[:controller].readAll( context , request , response )
+          actions = actionsAllowed?( a , r , nil , user )
+					if( actions.include? :readAll ) then
+						context[:controller].readAll( context , request , response , actions )
 					else
 						401
 					end
@@ -197,8 +203,9 @@ module Wire
 				user = updateSession( request , session )
 				context = prepare( a , r , user, i)
 				if( !context[:failure] ) then
-					if( actionAllowed?( :read , a , r , i , user ) ) then
-						context[:controller].read( i , context , request , response )
+          actions = actionsAllowed?( a , r , i , user )
+					if( actions.include? :read ) then
+						context[:controller].read( i , context , request , response , actions )
 					else
 						401
 					end
@@ -212,8 +219,9 @@ module Wire
 				user = updateSession( request , session )
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
-					if( actionAllowed?( :update , a , r , i , user ) ) then
-						context[:controller].update( i , context , request , response )
+          actions = actionsAllowed?( a , r , i , user )
+					if( actions.include? :update ) then
+						context[:controller].update( i , context , request , response , actions)
 					else
 						401
 					end
@@ -227,8 +235,9 @@ module Wire
 				user = updateSession( request , session )
 				context = prepare( a , r , user , i)
 				if( !context[:failure] ) then
-					if( actionAllowed?( :delete , a , r , i , user ) ) then
-						context[:controller].delete( i , context , request , response )
+          actions = actionAllowed?( a , r , i , user )
+					if( actions.include? :delete ) then
+						context[:controller].delete( i , context , request , response , actions)
 					else
 						401
 					end

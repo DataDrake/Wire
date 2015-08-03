@@ -17,7 +17,7 @@ module DB
       $currentApp[:resources][resource] = {model: model}
     end
 
-    def self.create( context , request , response )
+    def self.create( context , request , response , actions)
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then
@@ -85,7 +85,7 @@ module DB
       end
     end
 
-		def self.readAll( context , request , response )
+		def self.readAll( context , request , response , actions )
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
 			if( model != nil ) then
@@ -103,7 +103,7 @@ module DB
 			end
 		end
 
-		def self.read( id , context , request , response )
+		def self.read( id , context , request , response , actions)
       context[:sinatra].pass unless (context[:resource] != nil )
 			model = context[:resource][:model]
       if id.eql?('new') or id.eql? 'upload' then
@@ -118,7 +118,7 @@ module DB
       404
     end
 
-    def self.update( id, context , request , response )
+    def self.update( id, context , request , response , actions)
       context[:sinatra].pass unless (context[:resource] != nil )
       model = context[:resource][:model]
       if( model != nil ) then

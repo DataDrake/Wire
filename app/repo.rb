@@ -17,7 +17,7 @@ module Repo
     $currentApp[:web] = path
   end
 
-  def create( context , request , response )
+  def create( context , request , response , actions)
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:app][:repos_path]
     resource = context[:resource_name]
@@ -32,7 +32,7 @@ module Repo
     end
   end
 
-  def readAll( context , request , response )
+  def readAll( context , request , response , actions)
     context[:sinatra].pass unless (context[:resource_name] != nil )
     resource = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
@@ -56,7 +56,7 @@ module Repo
     response.body = list
   end
 
-  def read( id , context , request , response )
+  def read( id , context , request , response , actions)
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']
@@ -91,7 +91,7 @@ module Repo
     response.body = body
   end
 
-  def update( id, context, request , response )
+  def update( id, context, request , response , actions )
     context[:sinatra].pass unless (context[:resource_name] != nil )
     path = context[:resource_name]
     referrer = request.env['HTTP_REFERRER']

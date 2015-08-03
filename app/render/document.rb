@@ -4,15 +4,15 @@ module Render
   module Document
     extend Render
 
-    def self.create( context , request , response )
+    def self.create( context , request , response , actions)
       forward( nil , :create , context , request )
     end
 
-    def self.update( id, context , request , response )
+    def self.update( id, context , request , response , actions )
       forward( id , :update , context , request )
     end
 
-    def self.readAll( context , request , response )
+    def self.readAll( context , request , response , actions)
       app = context[:uri]
       resource = context[:resource_name]
       referrer = request.env['HTTP_REFERRER']
@@ -31,7 +31,7 @@ module Render
       end
     end
 
-    def self.read( id , context , request , response )
+    def self.read( id , context , request , response , actions)
       app = context[:uri]
       resource = context[:resource_name]
       referrer = request.env['HTTP_REFERRER']

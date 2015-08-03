@@ -11,7 +11,7 @@ module Static
       $currentApp[:resources][resource] = {local: path}
     end
 
-		def self.readAll( context , request , response )
+		def self.readAll( context , request , response , actions )
 			context[:sinatra].pass unless (context[:resource] != nil )
 				path = context[:resource][:local]
 				if( path != nil ) then
@@ -26,7 +26,7 @@ module Static
 				end
 		end
 
-		def self.read( id , context , request , response )
+		def self.read( id , context , request , response , actions )
       context[:sinatra].pass unless (context[:resource] != nil )
 			path = context[:resource][:local]
 			if( path != nil ) then
