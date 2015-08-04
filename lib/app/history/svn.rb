@@ -1,5 +1,4 @@
 require_relative '../repo'
-require_relative '../../../env/production'
 require 'cobravsmongoose'
 
 module History
@@ -9,7 +8,7 @@ module History
     extend History
 
     def self.get_log(web, repo , id = nil)
-      if id.nil? then
+      if id.nil?
         log = `svn log -v --xml 'svn://localhost/#{repo}'`
       else
         if web.nil?
@@ -18,7 +17,7 @@ module History
           log = `svn log -v --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
         end
       end
-      unless $?.exitstatus == 0 then
+      unless $?.exitstatus == 0
         return 404
       end
       log = CobraVsMongoose.xml_to_hash( log )

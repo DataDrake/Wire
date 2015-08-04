@@ -1,9 +1,12 @@
-require_relative 'app'
-require_relative 'resource'
+$production = {}
+
 require_relative 'closet'
+require_relative 'resource'
+require_relative 'app'
 
 require 'docile'
 require 'json'
+require 'rack'
 
 module JSON
   def self.parse_clean( source , opts = {})

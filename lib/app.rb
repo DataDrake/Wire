@@ -1,9 +1,3 @@
-require_relative 'app/db'
-require_relative 'app/file'
-require_relative 'app/history'
-require_relative 'app/render'
-require_relative 'app/repo'
-
 module Wire
 
   module App
@@ -39,3 +33,9 @@ module Wire
 
   end
 end
+
+require_relative 'app/db'
+require_relative 'app/file'
+require_relative 'app/history'
+require_relative 'app/render'
+require_relative 'app/repo'

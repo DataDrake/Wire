@@ -10,5 +10,8 @@ Gem::Specification.new do |s|
   s.files       =  Dir.glob('lib/**/*') + %w(LICENSE README.md)
   s.homepage    = 'http://rubygems.org/gems/wire'
   s.license     = 'GPL v2'
+  s.add_runtime_dependency 'data-mapper'
   s.add_runtime_dependency 'docile'
+  s.add_runtime_dependency 'nori'
+  s.add_runtime_dependency 'rack'
 end

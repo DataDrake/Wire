@@ -1,5 +1,6 @@
 require 'dm-serializer/to_json'
-require_relative '../wire'
+require_relative '../app'
+require_relative '../resource'
 
 module DB
 

@@ -1,5 +1,4 @@
 require_relative '../repo'
-require_relative '../../../env/production'
 require 'nori'
 
 $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
@@ -15,11 +14,11 @@ module Repo
     def self.do_create_file( path , repo)
       result = 200
       `svnadmin create #{path}/#{repo}`
-      if $?.exitstatus != 0 then
+      if $?.exitstatus != 0
         return 500
       end
 
-      if $?.exitstatus != 0 then
+      if $?.exitstatus != 0
         500
       else
         result
@@ -30,13 +29,13 @@ module Repo
       if rev.nil?
         rev = 'HEAD'
       end
-      if web.nil? then
+      if web.nil?
         body = `svn cat #{@options} -r #{rev} 'svn://localhost/#{repo}/#{id}'`
       else
         body = `svn cat #{@options} -r #{rev} 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
 
-      if $?.success? then
+      if $?.success?
         body
       else
         500
@@ -44,20 +43,20 @@ module Repo
     end
 
     def self.do_read_listing( web, path, repo , id = nil)
-      if web.nil? then
-        if id.nil? then
+      if web.nil?
+        if id.nil?
           list = `svn list #{@options} --xml 'svn://localhost/#{repo}'`
         else
           list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{id}'`
         end
       else
-        if id.nil? then
+        if id.nil?
           list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{web}'`
         else
           list = `svn list #{@options} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
         end
       end
-      unless $?.exitstatus == 0 then
+      unless $?.exitstatus == 0
         return 404
       end
       list = $nori.parse( list )
@@ -68,13 +67,13 @@ module Repo
       if rev.nil?
         rev = 'HEAD'
       end
-      if web.nil? then
+      if web.nil?
         info = `svn info #{@options} -r #{rev} --xml 'svn://localhost/#{repo}/#{id}'`
       else
         info = `svn info #{@options} -r #{rev} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
 
-      unless $?.exitstatus == 0 then
+      unless $?.exitstatus == 0
         return 404
       end
       info = $nori.parse( info )
@@ -91,11 +90,11 @@ module Repo
         mime = `svn propget #{@options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
 
-      unless $?.success? then
+      unless $?.success?
         return 500
       end
       mime = $nori.parse( mime )
-      unless mime[:properties].nil? then
+      unless mime[:properties].nil?
         mime[:properties][:target][:property]
       else
         'application/octet-stream'
@@ -105,7 +104,7 @@ module Repo
     def self.do_update_file( web, path, repo, id , content, message , mime , user)
       status = 500
       `svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
-      if $?.exitstatus == 0 then
+      if $?.exitstatus == 0
         if web.nil?
           filepath = "/tmp/svn/#{repo}/#{id}"
         else
@@ -117,7 +116,7 @@ module Repo
         `svn add #{filepath}`
         `svn propset svn:mime-type #{mime} #{filepath}`
         `svn commit #{@options} -m '#{message}' /tmp/svn/#{repo}`
-        if $?.exitstatus == 0 then
+        if $?.exitstatus == 0
           status = 200
         end
         info = `svn info /tmp/svn/#{repo}`
