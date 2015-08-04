@@ -87,7 +87,7 @@ class Sinatra::Base
 end
 
 module Wire
-
+  VERSION = '0.1.0'
 	module App
 
 		def app( baseURI , type, &block)
