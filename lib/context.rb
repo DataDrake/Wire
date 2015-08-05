@@ -41,7 +41,7 @@ module Wire
       if env['rack.input']
         json = request.env['rack.input'].read
         begin
-          hash[:params] = JSON.parse( json )
+          hash[:params] = JSON.parse_clean( json )
         rescue JSON::ParserError
           hash[:params] = json
         end

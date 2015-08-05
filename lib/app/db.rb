@@ -22,10 +22,10 @@ module DB
       return 404 unless context[:resource]
       model = context[:resource][:model]
       if model
-        file = context[:params]['file']
+        file = context[:params][:file]
         if file
-          if file['mime'].eql? 'text/csv'
-            file['content'].match(/.*base64,(.*)/) do
+          if file[:mime].eql? 'text/csv'
+            file[:content].match(/.*base64,(.*)/) do
               csv = Base64.decode64($1)
               columns = []
               errors = []
