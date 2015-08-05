@@ -9,16 +9,16 @@ module DB
     include Wire::Resource
 
     def self.db( namespace , location )
-      $currentApp[:db_namespace] = namespace
-      $currentApp[:db_location] = location
+      $current_app[:db_namespace] = namespace
+      $current_app[:db_location] = location
       DataMapper.setup( namespace , location )
     end
 
     def self.model( resource, model )
-      $currentApp[:resources][resource] = {model: model}
+      $current_app[:resources][resource] = {model: model}
     end
 
-    def self.do_create( actions , context )
+    def self.do_create( context )
       return 404 unless context[:resource]
       model = context[:resource][:model]
       if model
@@ -82,7 +82,7 @@ module DB
       end
     end
 
-		def self.do_read_all( actions, context )
+		def self.do_read_all( context )
       return 404 unless context[:resource]
 			model = context[:resource][:model]
 			if model
@@ -100,7 +100,7 @@ module DB
 			end
 		end
 
-		def self.do_read( actions , context )
+		def self.do_read( context )
       return 404 unless context[:resource]
 			model = context[:resource][:model]
       if id.eql?('new') or id.eql? 'upload'
@@ -115,7 +115,7 @@ module DB
       404
     end
 
-    def self.do_update( actions , context )
+    def self.do_update( context )
       return 404 unless (context[:resource] != nil )
       model = context[:resource][:model]
       if model
@@ -132,15 +132,15 @@ module DB
     def self.invoke( actions , context )
       case context[:action]
         when :create
-          do_create( actions , context )
+          do_create( context )
         when :read
           if context[:uri][3]
-            do_read( actions , context )
+            do_read( context )
           else
-            do_read_all( actions , context )
+            do_read_all( context )
           end
         when :update
-          do_update( actions , context )
+          do_update( context )
         else
           403
       end

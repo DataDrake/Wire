@@ -8,10 +8,10 @@ module Static
     extend Wire::Resource
 
     def self.local( resource, path )
-      $currentApp[:resources][resource] = {local: path}
+      $current_app[:resources][resource] = {local: path}
     end
 
-		def self.do_read_all( actions , context )
+		def self.do_read_all( context )
 			  return 404 unless context[:resource]
 				path = context[:resource][:local]
 				if path
@@ -26,14 +26,12 @@ module Static
 				end
 		end
 
-		def self.do_read( actions , context )
+		def self.do_read(  context )
       return 404 unless context[:resource]
 			path = context[:resource][:local]
       id = context[:uri][3..context[:uri].length].join('/')
-      ap id
 			if path
 				ext_path = File.join( path , id )
-        ap ext_path
 				return 404 unless File.exists?(ext_path)
 					if File.directory?( ext_path )
 						"#{ap Dir.entries( ext_path ).sort}"
@@ -59,9 +57,9 @@ module Static
       case context[:action]
         when :read
           if context[:uri][3]
-            do_read( actions , context )
+            do_read( context )
           else
-            do_read_all( actions , context )
+            do_read_all( context )
           end
         else
           403

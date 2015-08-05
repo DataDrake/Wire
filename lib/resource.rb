@@ -1,12 +1,10 @@
 module Wire
   module Resource
-
     def resource( uri , &block )
-      $currentApp[:resources][uri] = {}
-      $currentResource = $currentApp[:resources][uri]
-      puts "Starting Resource At: /#{$currentURI + '/' + uri}"
+      $current_app[:resources][uri] = {}
+      $current_resource = $current_app[:resources][uri]
+      puts "Starting Resource At: /#{$current_uri + '/' + uri}"
       Docile.dsl_eval( self , &block )
     end
-
   end
 end
