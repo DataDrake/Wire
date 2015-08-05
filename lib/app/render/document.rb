@@ -4,25 +4,17 @@ module Render
   module Document
     extend Render
 
-    def self.do_create( context , request , response , actions)
-      forward( nil , :create , context , request )
-    end
-
-    def self.do_update( id, context , request , response , actions )
-      forward( id , :update , context , request )
-    end
-
-    def self.do_readAll( context , request , response , actions)
+    def self.do_read_all( actions , context )
       app = context[:uri]
       resource = context[:resource_name]
-      referrer = request.env['HTTP_REFERRER']
+      referrer = context[:request].env['HTTP_REFERRER']
       begin
-        response = forward(nil , :readAll , context , request )
+        response = forward( :readAll , context )
         mime = response.headers[:content_type]
-        renderer = $config[:renderers][mime]
-        if( renderer != nil ) then
-          template = $config[:templates][renderer]
-          template.render( self, {referrer: referrer, app: app, resource: resource, id: '' , mime: mime , response: response.body} )
+        renderer = @config[:renderers][mime]
+        if renderer
+          template = @config[:templates][renderer]
+          template.render( self, {actions: actions, referrer: referrer, app: app, resource: resource, id: '' , mime: mime , response: response.body} )
         else
           response
         end
@@ -31,22 +23,39 @@ module Render
       end
     end
 
-    def self.do_read( id , context , request , response , actions)
+    def self.do_read( actions , context )
       app = context[:uri]
       resource = context[:resource_name]
-      referrer = request.env['HTTP_REFERRER']
+      referrer = context[:request].env['HTTP_REFERRER']
       begin
-        response = forward(id , :read , context , request )
+        response = forward( :read , context )
         mime = response.headers[:content_type]
       rescue RestClient::ResourceNotFound
-        response = $config[:apps][404][:template][:path].render( self, locals = {referrer: referrer, app: app, resource: resource, id: id})
+        response = @config[:apps][404][:template][:path].render( self, locals = {referrer: referrer, app: app, resource: resource, id: id})
       end
-      renderer = $config[:renderers][mime]
-      if( renderer != nil ) then
-        template = $config[:templates][renderer]
-        template.render( self, {referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
+      renderer = @config[:renderers][mime]
+      if renderer
+        template = @config[:templates][renderer]
+        template.render( self, {actions: actions, referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
       else
         response
+      end
+    end
+
+    def self.invoke( actions , context )
+      case context[:action]
+        when :create
+          forward( :create, context )
+        when :read
+          if context[:uri][3]
+            do_read( actions, context )
+          else
+            do_read_all( actions , context )
+          end
+        when :update
+          forward( :update , context )
+        else
+          403
       end
     end
   end
