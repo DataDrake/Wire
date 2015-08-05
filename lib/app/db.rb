@@ -18,10 +18,10 @@ module DB
       $currentApp[:resources][resource] = {model: model}
     end
 
-    def self.do_create( context , request , response , actions)
-      context[:sinatra].pass unless (context[:resource] != nil )
+    def self.do_create( actions , context )
+      return 404 unless context[:resource]
       model = context[:resource][:model]
-      if( model != nil ) then
+      if model
         file = context[:params]['file']
         if file
           if file['mime'].eql? 'text/csv'
@@ -32,22 +32,18 @@ module DB
               csv.split("\n").each_with_index do |v,i|
                 if i == 0
                   columns = v.split(/(?<!\[),(?!=\])/)
-                  columns.map! { |v| v.delete('"').to_sym }
+                  columns.map! { |c| c.delete('"').to_sym }
                 else
                   values = v.split(',')
-                  values.map! do |v|
-                    if v.include? ';'
-                      v.split(';')
-                    else
-                      v
-                    end
+                  values.map! do |c|
+                    c.include? ';' ? c.split(';') : c
                   end
                   hash = {}
-                  columns.each_with_index do |c, i|
-                    if values[i].is_a? String
-                      values[i].delete!('"')
+                  columns.each_with_index do |c, j|
+                    if values[j].is_a? String
+                      values[j].delete!('"')
                     end
-                    hash[c] = values[i]
+                    hash[c] = values[j]
                   end
                   m = model.first_or_create( hash )
                   unless m.saved?
@@ -66,15 +62,15 @@ module DB
             415
           end
         else
-          if model.instance_methods.include?(:updated_by) then
+          if model.instance_methods.include?(:updated_by)
             context[:params][:updated_by] = context[:user]
           end
-          if model.instance_methods.include?(:created_by) then
+          if model.instance_methods.include?(:created_by)
             context[:params][:created_by] = context[:user]
           end
           instance = model.create( context[:params] )
           instance.save
-          if instance.saved? then
+          if instance.saved?
             200
           else
             ap instance.errors
@@ -86,14 +82,14 @@ module DB
       end
     end
 
-		def self.do_readAll( context , request , response , actions )
-      context[:sinatra].pass unless (context[:resource] != nil )
+		def self.do_read_all( actions, context )
+      return 404 unless context[:resource]
 			model = context[:resource][:model]
-			if( model != nil ) then
+			if model
         hash = '[ '
         model.all.each do |e|
           hash << ( e.to_json )
-          if e != model.all.last then
+          if e != model.all.last
             hash << ','
           end
         end
@@ -104,36 +100,49 @@ module DB
 			end
 		end
 
-		def self.do_read( id , context , request , response , actions)
-      context[:sinatra].pass unless (context[:resource] != nil )
+		def self.do_read( actions , context )
+      return 404 unless context[:resource]
 			model = context[:resource][:model]
-      if id.eql?('new') or id.eql? 'upload' then
+      if id.eql?('new') or id.eql? 'upload'
         return '{}'
       end
-			if( model != nil ) then
+			if model
 				object = model.get( id )
-				if( object != nil ) then
+				if object
 					return object.to_json
 				end
       end
       404
     end
 
-    def self.do_update( id, context , request , response , actions)
-      context[:sinatra].pass unless (context[:resource] != nil )
+    def self.do_update( actions , context )
+      return 404 unless (context[:resource] != nil )
       model = context[:resource][:model]
-      if( model != nil ) then
-        if model.respond_to?(:updated_by) then
+      if model
+        if model.respond_to?(:updated_by)
             context[:params][:updated_by] = context[:user]
         end
         instance = model.get(id)
-        if instance.update( context[:params]) then
-          200
-        else
-          500
-        end
+        instance.update( context[:params]) ? 200 : 500
       else
         404
+      end
+    end
+
+    def self.invoke( actions , context )
+      case context[:action]
+        when :create
+          do_create( actions , context )
+        when :read
+          if context[:uri][3]
+            do_read( actions , context )
+          else
+            do_read_all( actions , context )
+          end
+        when :update
+          do_update( actions , context )
+        else
+          403
       end
     end
   end
