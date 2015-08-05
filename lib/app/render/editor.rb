@@ -5,36 +5,39 @@ module Render
   module Editor
     extend Render
 
-    def self.do_create( context , request , response , actions)
-      forward( nil , :create , context , request )
-    end
-
-    def self.do_read( id , context , request , response , actions)
+    def self.do_read( actions, context )
       resource = context[:resource_name]
       query = context[:query]
       begin
-        response = forward( id , :read , context , request )
+        response = forward( :read , context )
         mime = response.headers[:content_type]
       rescue RestClient::ResourceNotFound
-        unless query['type'].nil?
+        if query['type']
           mime = query['type']
           response.body = ''
         else
           return 404
         end
       end
-      template = $config[:editors][mime]
-      if( template != nil ) then
-        template.render( self, {resource: resource, id: id , mime: mime , response: response.body} )
+      template = @config[:editors][mime]
+      if template
+        template.render( self, {actions: actions, resource: resource, id: id , mime: mime , response: response.body} )
       else
         response.body
       end
     end
 
-    def self.do_update( id, context, request , response , actions)
-      response = forward( id , :update , context , request )
-      200
+    def invoke( actions , context )
+      case context[:action]
+        when :create
+          forward( :create , context )
+        when :read
+          do_read( actions ,context )
+        when :update
+          forward( :update, context )
+        else
+          403
+      end
     end
   end
-
 end
