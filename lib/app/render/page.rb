@@ -4,11 +4,11 @@ module Render
   module Page
     extend Render
 
-    def self.renderTemplate( context, template , content , id = nil)
-      if( template[:path] != nil ) then
+    def self.render_template( context, template , content , actions , id = nil )
+      if template[:path]
         app = context[:uri]
         resource = context[:resource_name]
-        hash = {content: content, app: app, resource: resource, id: id}
+        hash = {actions: actions, content: content, app: app, resource: resource, id: id}
         template[:sources].each do |k,s|
           uri = "http://#{context[:app][:remote_host]}/#{s[:uri]}"
           case s[:key]
@@ -27,8 +27,8 @@ module Render
           hash[k] = temp
         end
         message = template[:path].render(self, hash )
-        if template[:use_layout] then
-          message = renderTemplate(context, $config[:apps][:global][:template] ,  message , id)
+        if template[:use_layout]
+          message = render_template(context, $config[:apps][:global][:template] ,  message , id)
         end
       else
         message = 'Invalid Template'
@@ -36,22 +36,40 @@ module Render
       message
     end
 
-    def self.do_create( context, request , response , actions )
-      forward( nil , :create , context , request )
+    def self.do_read_all( actions , context )
+      template = context[:app][:template]
+      resource = context[:resource_name]
+      message = 403
+      headers = {}
+      if resource
+        begin
+          result = forward( :readAll , context )
+          if template
+            message = render_template( context, template , result , actions)
+          else
+            headers['Content-Type'] = result.headers[:content_type]
+            message = [200, headers, [result.to_str]]
+          end
+        rescue RestClient::ResourceNotFound
+          message = 404
+        end
+      end
+      message
     end
 
-    def self.do_readAll( context , request , response , actions )
+    def self.do_read( actions , context )
       template = context[:app][:template]
       resource = context[:resource_name]
       message = 'Resource not specified'
-      if( resource != nil ) then
+      headers = {}
+      if resource
         begin
-          result = forward( nil , :readAll , context , request )
-          if(template != nil) then
-            message = renderTemplate( context, template , result )
+          result = forward( :read , context )
+          if template
+            message = render_template( context, template , result , actions , id )
           else
-            response.headers['Content-Type'] = result.headers[:content_type]
-            message = result.to_str
+            headers['Content-Type'] = result.headers[:content_type]
+            message = [200, headers, [result.to_str]]
           end
         rescue RestClient::ResourceNotFound
           message = 404
@@ -59,29 +77,22 @@ module Render
       end
       message
     end
-    def self.do_read( id , context , request , response , actions )
-      template = context[:app][:template]
-      resource = context[:resource_name]
-      message = 'Resource not specified'
-      if( resource != nil ) then
-        begin
-          result = forward( id , :read , context , request)
-          if(template != nil) then
-            message = renderTemplate( context, template , result , id)
+
+    def self.invoke( actions , context )
+      case context[:action]
+        when :create
+          forward( :create, context )
+        when :read
+          if context[:uri][3]
+            do_read( actions , context )
           else
-            response.headers['Content-Type'] = result.headers[:content_type]
-            message = result.to_str
+            do_read_all( actions , context )
           end
-        rescue RestClient::ResourceNotFound
-          message = 404
-        end
+        when :update
+          forward( :update, context )
+        else
+          403
       end
-      message
-    end
-    def self.do_update( id, context, request , response , actions)
-      forward( id , :update , context , request )
-      200
     end
   end
-
 end

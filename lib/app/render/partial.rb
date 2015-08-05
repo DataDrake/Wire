@@ -64,7 +64,7 @@ module Render
       end
     end
 
-    def self.invoke
+    def self.invoke( actions , context )
       case context[:action]
         when :create
           forward( :create , context )
