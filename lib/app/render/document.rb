@@ -11,9 +11,9 @@ module Render
       begin
         response = forward( :readAll , context )
         mime = response.headers[:content_type]
-        renderer = @config[:renderers][mime]
+        renderer = $renderers[mime]
         if renderer
-          template = @config[:templates][renderer]
+          template = $templates[renderer]
           template.render( self, {actions: actions, referrer: referrer, app: app, resource: resource, id: '' , mime: mime , response: response.body} )
         else
           response
@@ -31,11 +31,11 @@ module Render
         response = forward( :read , context )
         mime = response.headers[:content_type]
       rescue RestClient::ResourceNotFound
-        response = @config[:apps][404][:template][:path].render( self, locals = {referrer: referrer, app: app, resource: resource, id: id})
+        response = $apps[404][:template][:path].render( self, locals = {referrer: referrer, app: app, resource: resource, id: id})
       end
-      renderer = @config[:renderers][mime]
+      renderer = $renderers[mime]
       if renderer
-        template = @config[:templates][renderer]
+        template = $templates[renderer]
         template.render( self, {actions: actions, referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
       else
         response

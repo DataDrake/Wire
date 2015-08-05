@@ -11,9 +11,8 @@ module Wire
 
     def update_session( env  )
       user = env['HTTP_REMOTE_USER']
-      unless user.nil?
-        env['session'][:user] = user
-      end
+      user = user ? user : 'nobody'
+      env['rack.session'][:user] = user
       env
     end
 
@@ -22,9 +21,9 @@ module Wire
       hash = {failure: true}
       hash[:user] = env['rack.session'][:user]
       hash[:action] = VERBS[env['REQUEST_METHOD']]
-      uri = env['REQUEST_URI'].split( '/' )
+      uri = env['REQUEST_URI'].split( '?' )[0].split( '/' )
       hash[:uri] = uri
-      app= @apps[uri[1]]
+      app= $apps[uri[1]]
       if app
         hash[:app] = app
         hash[:resource_name] = uri[2]

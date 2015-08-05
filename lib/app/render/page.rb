@@ -2,9 +2,10 @@ require_relative '../render'
 
 module Render
   module Page
-    extend Render
+    include Render
+    extend self
 
-    def self.render_template( context, template , content , actions , id = nil )
+    def render_template( context, template , content , actions , id = nil )
       if template[:path]
         app = context[:uri]
         resource = context[:resource_name]
@@ -28,7 +29,7 @@ module Render
         end
         message = template[:path].render(self, hash )
         if template[:use_layout]
-          message = render_template(context, $config[:apps][:global][:template] ,  message , id)
+          message = render_template(context, $apps[:global][:template] ,  message , id)
         end
       else
         message = 'Invalid Template'
@@ -36,7 +37,7 @@ module Render
       message
     end
 
-    def self.do_read_all( actions , context )
+    def do_read_all( actions , context )
       template = context[:app][:template]
       resource = context[:resource_name]
       message = 403
@@ -57,7 +58,7 @@ module Render
       message
     end
 
-    def self.do_read( actions , context )
+    def do_read( actions , context )
       template = context[:app][:template]
       resource = context[:resource_name]
       message = 'Resource not specified'

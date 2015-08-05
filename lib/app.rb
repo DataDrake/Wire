@@ -2,8 +2,8 @@ module Wire
   module App
     def app( base_uri , type, &block)
       $current_uri = base_uri
-      @apps[base_uri] = {type: type, resources: {}}
-      $current_app = @apps[base_uri]
+      $apps[base_uri] = {type: type, resources: {}}
+      $current_app = $apps[base_uri]
       puts "Starting App at: /#{base_uri}"
       puts 'Setting up resources...'
       Docile.dsl_eval( type, &block )

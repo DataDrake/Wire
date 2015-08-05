@@ -16,9 +16,9 @@ module Render
         if body
           ## Assume unsupported mime type
           message = 403
-          renderer = @config[:renderers]["#{resource}/#{id}"]
+          renderer = $renderers["#{resource}/#{id}"]
           if renderer
-            template = @config[:templates][renderer]
+            template = $templates[renderer]
             referrer = context[:request].env['HTTP_REFERER']
             result = template.render(self,{ actions: actions, app: app[:name], resource: query[:resource] , mime: "#{query[:resource]}/#{id}" , id: query[:id] , response: body, referrer: referrer} )
             template = context[:app][:template]

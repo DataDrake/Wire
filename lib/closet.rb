@@ -15,10 +15,10 @@ module Wire
     include Wire::Resource
 
     def initialize
-      @apps = {}
-      @editors = {}
-      @renderers = {}
-      @templates =  {}
+      $apps = {}
+      $editors = {}
+      $renderers = {}
+      $templates =  {}
     end
 
     def route( context )
@@ -65,7 +65,7 @@ module Wire
 
     def info
       puts "Apps:\n"
-      @apps.each do |app, config|
+      $apps.each do |app, config|
         puts "\u{2502}"
         puts "\u{251c} Name: #{app}"
         if config[:auth]

@@ -9,11 +9,11 @@ module Wire
 
     def mime( mime )
       if $current_renderer
-        @config[:renderers][mime] = $current_renderer
-        @config[:templates][$current_renderer] = $current_template
+        $renderers[mime] = $current_renderer
+        $templates[$current_renderer] = $current_template
       end
       if $current_editor
-        @config[:editors][mime] = $current_editor
+        $editors[mime] = $current_editor
       end
     end
 

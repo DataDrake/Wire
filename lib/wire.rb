@@ -1,4 +1,4 @@
-$production = {}
+$env = {}
 
 require_relative 'closet'
 require_relative 'app'

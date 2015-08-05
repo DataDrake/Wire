@@ -19,7 +19,7 @@ module Render
           return 404
         end
       end
-      template = @config[:editors][mime]
+      template = $editors[mime]
       if template
         template.render( self, {actions: actions, resource: resource, id: id , mime: mime , response: response.body} )
       else

@@ -14,8 +14,7 @@ require_relative 'render/partial'
 require_relative 'render/style'
 
 module Render
-  extend Wire::App
-  extend Wire::Resource
+  include Wire::Resource
 
   def remote( hostname , uri)
     $current_app[:remote_host] = hostname

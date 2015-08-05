@@ -9,7 +9,7 @@ module Repo
     extend Wire::Resource
     extend Repo
 
-    @options = "--username=#{$production[:repos_user]} --password=#{$production[:repos_password]}"
+    @options = "--username=#{$env[:repos_user]} --password=#{$env[:repos_password]}"
 
     def self.do_create_file( path , repo)
       result = 200
