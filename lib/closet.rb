@@ -3,6 +3,7 @@ require_relative 'app'
 require_relative 'auth'
 require_relative 'context'
 require_relative 'resource'
+require_relative 'renderer'
 
 
 module Wire
@@ -10,6 +11,7 @@ module Wire
     include Wire::App
     include Wire::Auth
     include Wire::Context
+    include Wire::Renderer
     include Wire::Resource
 
     def initialize
