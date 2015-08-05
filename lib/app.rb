@@ -4,8 +4,8 @@ module Wire
 
     def app( baseURI , type, &block)
       $currentURI = baseURI
-      $config[:apps][baseURI] = {type: type, resources: {}}
-      $currentApp = $config[:apps][baseURI]
+      @apps[baseURI] = {type: type, resources: {}}
+      $currentApp = @apps[baseURI]
       puts "Starting App at: /#{baseURI}"
       puts 'Setting up resources...'
       Docile.dsl_eval( type, &block )
@@ -15,7 +15,7 @@ module Wire
       401
     end
 
-    def do_readAll( context , request , response , actions)
+    def do_read_All( context , request , response , actions)
       401
     end
 

@@ -7,10 +7,10 @@ require_relative 'resource'
 
 module Wire
   class Closet
-    extend Wire::App
-    extend Wire::Auth
-    extend Wire::Context
-    extend Wire::Resource
+    include Wire::App
+    include Wire::Auth
+    include Wire::Context
+    include Wire::Resource
 
     def initialize
       @apps = {}
@@ -23,9 +23,9 @@ module Wire
       if context[:failure]
         context[:message]
       else
-        actions = actionsAllowed?( context )
+        actions = actions_allowed( context )
         if actions.include? context[:action]
-          context[:controller].invoke( actions , context )
+          context[:type].invoke( actions , context )
         else
           401
         end
@@ -34,7 +34,22 @@ module Wire
 
     def call(env)
       context = prepare( env )
-      route( context )
+      response = route( context )
+      if response.is_a? Array
+        if response[2]
+          unless response[2].is_a? Array
+            response[2] = [response[2]]
+          end
+        end
+      else
+        if response.is_a? Integer
+          response = [response,{}, []]
+        else
+          response = [200, {}, [response]]
+        end
+      end
+      ap response
+      response
     end
 
     def self.build( &block )

@@ -22,11 +22,11 @@ module History
     referrer = request.env['HTTP_REFERRER']
     web = context[:app][:web]
     list = get_log( web, resource , id )
-    if list == 404 then
+    if list == 404
       return 404
     end
     ap referrer
-    if referrer.nil? then
+    if referrer.nil?
       referrer = request.url
     end
     referrer.sub!(/^.*?\/\/.*?(\/.*)$/, '\1')
@@ -35,7 +35,7 @@ module History
     template.render( self, list: list, resource: resource , id: id, referrer: referrer)
   end
 
-  def do_readAll( context , request , response , actions )
+  def do_read_all( context , request , response , actions )
     do_read( nil , context, request , response , actions)
   end
 end

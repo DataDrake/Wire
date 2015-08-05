@@ -1,24 +1,25 @@
 module Wire
   module Auth
 
-    def actionsAllowed?( context )
-      username = username ? username : 'nobody'
-      authConfig = $config[:apps][app][:auth]
-      level = authConfig[:level]
-      case level
-        when :any
-          [:create,:read,:readAll,:update,:delete]
-        when :app
-          authConfig[:handler].actionsAllowed?( resource , id , username )
-        when :user
-          if ( username == authConfig[:user] )
-            [:create,:read,:readAll,:update,:delete]
-          else
-            []
-          end
-        else
-          []
+    def actions_allowed( context )
+      actions = []
+      app = context[:app]
+      user = context[:user]
+      if app
+        auth = app[:auth]
+        level = auth[:level]
+        case level
+          when :any
+            actions = [:create,:read,:readAll,:update,:delete]
+          when :app
+            actions = auth[:handler].actions_allowed( context )
+          when :user
+            if user == auth[:user]
+              actions = [:create,:read,:readAll,:update,:delete]
+            end
+        end
       end
+      actions
     end
 
     def auth( level , &block)

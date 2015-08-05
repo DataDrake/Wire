@@ -11,13 +11,13 @@ module Static
       $currentApp[:resources][resource] = {local: path}
     end
 
-		def self.do_readAll( context , request , response , actions )
-			context[:sinatra].pass unless (context[:resource] != nil )
+		def self.do_read_all( actions , context )
+			  return 404 unless context[:resource]
 				path = context[:resource][:local]
-				if( path != nil ) then
-					context[:sinatra].pass unless File.exists?(path)
-					if( File.directory?( path ) ) then
-						Dir.entries( path ).sort.to_str
+				if path
+					return 404 unless File.exists?(path)
+					if File.directory? path
+						Dir.entries( path ).sort.to_s
 					else
 						401
 					end
@@ -26,28 +26,46 @@ module Static
 				end
 		end
 
-		def self.do_read( id , context , request , response , actions )
-      context[:sinatra].pass unless (context[:resource] != nil )
+		def self.do_read( actions , context )
+      return 404 unless context[:resource]
 			path = context[:resource][:local]
-			if( path != nil ) then
+      id = context[:uri][3..context[:uri].length].join('/')
+      ap id
+			if path
 				ext_path = File.join( path , id )
-				context[:sinatra].pass unless File.exists?(ext_path)
-					if( File.directory?( ext_path ) ) then
+        ap ext_path
+				return 404 unless File.exists?(ext_path)
+					if File.directory?( ext_path )
 						"#{ap Dir.entries( ext_path ).sort}"
 					else
-						if( ext_path.end_with?( '.wiki' ) || ext_path.end_with?( '.mediawiki' ) ) then
+						if ext_path.end_with?( '.wiki' ) || ext_path.end_with?( '.mediawiki' )
 							mime = 'text/wiki'
 						else
 							mime = `mimetype --brief #{ext_path}`
-						end
-						response.headers['Content-Type'] = mime
-            response.headers['Cache-Control'] = 'public'
-            response.headers['Expires'] = "#{(Time.now + 30000000).utc}"
-						response.body = File.read( ext_path )
+            end
+            headers = {}
+						headers['Content-Type'] = mime
+            headers['Cache-Control'] = 'public'
+            headers['Expires'] = "#{(Time.now + 30000000).utc}"
+						body = File.read( ext_path )
+            [200, headers, body]
 					end
 			else
 				404
 		  end
-	  end
+    end
+
+    def self.invoke( actions, context )
+      case context[:action]
+        when :read
+          if context[:uri][3]
+            do_read( actions , context )
+          else
+            do_read_all( actions , context )
+          end
+        else
+          403
+      end
+    end
   end
 end
