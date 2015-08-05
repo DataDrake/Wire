@@ -13,6 +13,7 @@ end
 
 require_relative 'app/db'
 require_relative 'app/file'
+require_relative 'app/login'
 require_relative 'app/history'
 require_relative 'app/render'
 require_relative 'app/repo'
