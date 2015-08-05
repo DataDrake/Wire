@@ -14,4 +14,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'docile'
   s.add_runtime_dependency 'nori'
   s.add_runtime_dependency 'rack'
+  s.add_runtime_dependency 'tilt'
 end

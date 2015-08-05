@@ -5,19 +5,19 @@ require_relative 'history/svn'
 
 module History
 
-  def self.repos( path )
+  def repos( path )
     $current_app[:repos_path] = path
   end
 
-  def self.log( path )
+  def log( path )
     $current_app[:template] = Tilt.new( path , 1 , {ugly: true})
   end
 
-  def self.web_folder( path )
+  def web_folder( path )
     $current_app[:web] = path
   end
 
-  def self.do_read( context )
+  def do_read( context )
     return 404 unless context[:resource_name]
     resource = context[:resource_name]
     referrer = context[:request].env['HTTP_REFERRER']
@@ -35,7 +35,7 @@ module History
     template.render( self, list: list, resource: resource , id: id, referrer: referrer)
   end
 
-  def self.invoke( actions , context )
+  def invoke( actions , context )
     case context[:action]
       when :read
         do_read( context )
