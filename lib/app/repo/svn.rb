@@ -94,10 +94,10 @@ module Repo
         return 500
       end
       mime = $nori.parse( mime )
-      unless mime[:properties].nil?
-        mime[:properties][:target][:property]
-      else
+      if mime[:properties].nil?
         'application/octet-stream'
+      else
+        mime[:properties][:target][:property]
       end
     end
 
@@ -106,15 +106,15 @@ module Repo
       `svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
       if $?.exitstatus == 0
         if web.nil?
-          filepath = "/tmp/svn/#{repo}/#{id}"
+          file_path = "/tmp/svn/#{repo}/#{id}"
         else
-          filepath = "/tmp/svn/#{repo}/#{web}/#{id}"
+          file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
         end
-        file = File.open( filepath ,'w+')
+        file = File.open( file_path ,'w+')
         file.syswrite( content )
         file.close
-        `svn add #{filepath}`
-        `svn propset svn:mime-type #{mime} #{filepath}`
+        `svn add #{file_path}`
+        `svn propset svn:mime-type #{mime} #{file_path}`
         `svn commit #{@options} -m '#{message}' /tmp/svn/#{repo}`
         if $?.exitstatus == 0
           status = 200
