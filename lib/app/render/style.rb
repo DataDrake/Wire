@@ -5,17 +5,17 @@ module Render
     extend Render
 
     def self.style( resource , path)
-      if $currentApp[:styles].nil? then
-        $currentApp[:styles] = {}
+      unless $current_app[:styles]
+        $current_app[:styles] = {}
       end
-      $currentApp[:styles][resource] = path.nil? ? nil : Tilt.new( path , 1 , {ugly: true}).render
+      $current_app[:styles][resource] = path.nil? ? nil : Tilt.new( path , 1 , {ugly: true}).render
     end
 
-    def self.do_readAll( context , request , response , actions )
+    def self.do_read_all( context )
       begin
         resource = context[:resource_name]
         template = context[:app][:styles][resource]
-        if( template != nil ) then
+        if template
           response.headers['Content-Type'] = 'text/css'
           template
         else
@@ -23,6 +23,15 @@ module Render
         end
       rescue RestClient::ResourceNotFound
         404
+      end
+    end
+
+    def self.invoke( actions , context )
+      case context[:action]
+        when :read
+          do_read_all( context )
+        else
+          403
       end
     end
   end
