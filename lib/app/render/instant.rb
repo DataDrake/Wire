@@ -4,27 +4,25 @@ module Render
   module Instant
     extend Render
 
-    def self.do_update( id , context , request , response , actions )
+    def self.do_update( actions , context )
       app = context[:app]
-      body = request[:data]
+      body = context[:request][:data]
       resource = context[:resource_name]
       query = context[:query]
 
       ## Default to not found
       message = 404
-      if( resource != nil ) then
-        ## Implicit not found
-        message = 'Nothing to Render'
-        if( body != nil ) then
+      if resource
+        if body
           ## Assume unsupported mime type
           message = 403
-          renderer = $config[:renderers]["#{resource}/#{id}"]
-          if( renderer != nil ) then
-            template = $config[:templates][renderer]
-            referrer = request.env['HTTP_REFERER']
-            result = template.render(self,{app: app[:name], resource: query[:resource] , mime: "#{query[:resource]}/#{id}" , id: query[:id] , response: body, referrer: referrer} )
+          renderer = @config[:renderers]["#{resource}/#{id}"]
+          if renderer
+            template = @config[:templates][renderer]
+            referrer = context[:request].env['HTTP_REFERER']
+            result = template.render(self,{ actions: actions, app: app[:name], resource: query[:resource] , mime: "#{query[:resource]}/#{id}" , id: query[:id] , response: body, referrer: referrer} )
             template = context[:app][:template]
-            if template != nil then
+            if template
               message = template[:path].render( self , {content: result})
             else
               message = result
@@ -33,6 +31,14 @@ module Render
         end
       end
       message
+    end
+
+    def invoke( actions , context )
+      if context[:action].eql? :update
+        do_update( actions , context )
+      else
+        401
+      end
     end
   end
 end
