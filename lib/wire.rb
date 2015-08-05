@@ -1,8 +1,8 @@
 $production = {}
 
 require_relative 'closet'
-require_relative 'resource'
 require_relative 'app'
+
 
 require 'docile'
 require 'json'

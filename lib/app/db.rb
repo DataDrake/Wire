@@ -1,6 +1,6 @@
 require 'dm-serializer/to_json'
 require_relative '../app'
-require_relative '../resource'
+require_relative '../closet/resource'
 
 module DB
   include Wire::App
@@ -34,7 +34,7 @@ module DB
               else
                 values = v.split(',')
                 values.map! do |c|
-                  c.include? ';' ? c.split(';') : c
+                  c.include?(';') ? c.split(';') : c
                 end
                 hash = {}
                 columns.each_with_index do |c, j|
