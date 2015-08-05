@@ -15,9 +15,10 @@ module Render
       begin
         resource = context[:resource_name]
         template = context[:app][:styles][resource]
+        headers = {}
         if template
-          response.headers['Content-Type'] = 'text/css'
-          template
+          headers['Content-Type'] = 'text/css'
+          [200, headers, [template]]
         else
           500
         end

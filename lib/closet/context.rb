@@ -34,7 +34,8 @@ module Wire
       end
       request = Rack::Request.new env
       hash[:request] = request
-      hash[:query] = request.params
+      params = request.params
+      hash[:query] = params
       response = Rack::Response.new env
       hash[:response] = response
       if env['rack.input']

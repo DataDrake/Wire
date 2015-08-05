@@ -76,6 +76,8 @@ module Render
         q = "#{q}#{k}=#{v}&"
       end
     end
+    id = context[:uri][3...context[:uri].length].join('/')
+    request = context[:request]
     case(method)
       when :create
         puts "POST: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
@@ -84,10 +86,10 @@ module Render
         puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
         RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}" , request.body
       when :readAll
-        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
+        puts "GET: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
         RestClient.get "http://#{host}/#{path}/#{resource}#{q}" , referrer: referrer
       when :read
-        ##puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
+        puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
         RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}" , referrer: referrer
       when :delete
         puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"

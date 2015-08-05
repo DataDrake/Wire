@@ -22,6 +22,7 @@ module History
     resource = context[:resource_name]
     referrer = context[:request].env['HTTP_REFERRER']
     web = context[:app][:web]
+    id = context[:uri][3...context[:uri].length].join('/')
     list = get_log( web, resource , id )
     if list == 404
       return 404

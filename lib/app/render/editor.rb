@@ -8,6 +8,7 @@ module Render
     def self.do_read( actions, context )
       resource = context[:resource_name]
       query = context[:query]
+      id = context[:uri][3...context[:uri].length].join('/')
       begin
         response = forward( :read , context )
         mime = response.headers[:content_type]
@@ -27,7 +28,7 @@ module Render
       end
     end
 
-    def invoke( actions , context )
+    def self.invoke( actions , context )
       case context[:action]
         when :create
           forward( :create , context )

@@ -9,8 +9,6 @@ module Repo
     extend Wire::Resource
     extend Repo
 
-    @options = "--username=#{$env[:repos_user]} --password=#{$env[:repos_password]}"
-
     def self.do_create_file( path , repo)
       result = 200
       `svnadmin create #{path}/#{repo}`
@@ -26,6 +24,7 @@ module Repo
     end
 
     def self.do_read_file( rev, web, path, repo , id )
+      @options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
       if rev.nil?
         rev = 'HEAD'
       end
@@ -43,6 +42,7 @@ module Repo
     end
 
     def self.do_read_listing( web, path, repo , id = nil)
+      @options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
       if web.nil?
         if id.nil?
           list = `svn list #{@options} --xml 'svn://localhost/#{repo}'`
@@ -64,6 +64,7 @@ module Repo
     end
 
     def self.do_read_info( rev, web, path, repo , id)
+      @options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
       if rev.nil?
         rev = 'HEAD'
       end
@@ -81,6 +82,7 @@ module Repo
     end
 
     def self.do_read_mime( rev, web, path, repo , id)
+      @options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
       if rev.nil?
         rev = 'HEAD'
       end
@@ -102,6 +104,11 @@ module Repo
     end
 
     def self.do_update_file( web, path, repo, id , content, message , mime , user)
+      @options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
+      ap @options
+      ap mime
+      ap message
+      ap user
       status = 500
       `svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
       if $?.exitstatus == 0
@@ -115,12 +122,13 @@ module Repo
         file.close
         `svn add #{file_path}`
         `svn propset svn:mime-type #{mime} #{file_path}`
-        `svn commit #{@options} -m '#{message}' /tmp/svn/#{repo}`
+        `svn commit #{@options} -m "#{message}" /tmp/svn/#{repo}`
         if $?.exitstatus == 0
           status = 200
         end
         info = `svn info /tmp/svn/#{repo}`
         rev = info.match(/Last Changed Rev: (\d+)/)[1]
+        ap rev
         `svn propset --revprop -r #{rev} svn:author '#{user}' /tmp/svn/#{repo}`
       end
       `rm -R /tmp/svn/#{repo}`

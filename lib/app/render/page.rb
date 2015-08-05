@@ -67,6 +67,7 @@ module Render
         begin
           result = forward( :read , context )
           if template
+            id = context[:uri][3...context[:uri].length].join('/')
             message = render_template( context, template , result , actions , id )
           else
             headers['Content-Type'] = result.headers[:content_type]

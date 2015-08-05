@@ -27,6 +27,7 @@ module Render
       app = context[:uri]
       resource = context[:resource_name]
       referrer = context[:request].env['HTTP_REFERRER']
+      id = context[:uri][3...context[:uri].length].join('/')
       begin
         response = forward( :read , context )
         mime = response.headers[:content_type]

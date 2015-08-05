@@ -101,6 +101,7 @@ module DB
   def self.do_read( context )
     return 404 unless context[:resource]
     model = context[:resource][:model]
+    id = context[:uri][3]
     if id.eql?('new') or id.eql? 'upload'
       return '{}'
     end

@@ -18,19 +18,24 @@ module Render
     def self.do_read_all( actions , context )
       resource = context[:resource_name]
       begin
+        mime = ''
+        body = ''
         if context[:resource][:forward]
           response = forward( :readAll , context )
+          mime = response.headers[:content_type]
+          body = response.body
         else
-          401
+          body = 401
         end
-        mime = response.headers[:content_type]
+
         template = context[:resource][:multiple]
-        hash = {actions: actions, resource: resource, mime: mime , response: response.body}
+        hash = {actions: actions, resource: resource, mime: mime , response: body}
         if context[:resource][:sources]
           context[:resource][:sources].each do |k,v|
             hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
           end
         end
+        mime = 'text/html'
         if template
           [200, {'Content-Type' => mime}, [template.render( self, hash )]]
         else
@@ -48,6 +53,7 @@ module Render
         response = forward( :read , context )
         mime = response.headers[:content_type]
         template = context[:resource][:single]
+        id = context[:uri][3...context[:uri].length].join('/')
         hash = {actions: actions, app: app, id: id, resource: resource, mime: mime , response: response.body}
         if context[:resource][:sources]
           context[:resource][:sources].each do |k,v|
@@ -55,9 +61,9 @@ module Render
           end
         end
         if template
-          [200, {'Content-Type' => mime}, [template.render( self, hash )]]
+          [200, {'Content-Type' => 'text/html'}, [template.render( self, hash )]]
         else
-          [200, {'Content-Type' => mime}, [response.body]]
+          [200, {'Content-Type' => 'text/plain'}, [response.body]]
         end
       rescue RestClient::ResourceNotFound
         404

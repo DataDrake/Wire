@@ -64,6 +64,7 @@ module Repo
     repos = context[:app][:repos_path]
     web = context[:app][:web]
     rev = context[:query][:rev]
+    id = context[:uri][3...context[:uri].length].join('/')
     info = do_read_info( rev, web, repos, path , id )
     if info == 404
       return 404
@@ -99,6 +100,7 @@ module Repo
     repos = context[:app][:repos_path]
     web = context[:app][:web]
     content = context[:params]
+    id = context[:uri][3...context[:uri].length].join('/')
     if content[:file]
       file = content[:file][:content].match(/base64,(.*)/)[1]
       file = Base64.decode64( file )

@@ -50,7 +50,6 @@ module Wire
           response = [200, {}, [response]]
         end
       end
-      ap response
       response
     end
 
