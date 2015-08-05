@@ -1,9 +1,9 @@
 require 'rack'
 require_relative 'app'
-require_relative 'auth'
-require_relative 'context'
-require_relative 'resource'
-require_relative 'renderer'
+require_relative 'closet/auth'
+require_relative 'closet/context'
+require_relative 'closet/resource'
+require_relative 'closet/renderer'
 
 
 module Wire
