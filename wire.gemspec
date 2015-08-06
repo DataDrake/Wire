@@ -8,14 +8,16 @@ Gem::Specification.new do |s|
   s.authors     = ['Bryan T. Meyers']
   s.email       = 'bmeyers@datadrake.com'
   s.files       =  Dir.glob('lib/**/*') + %w(LICENSE README.md)
-  puts s.files
   s.homepage    = 'http://rubygems.org/gems/wire'
   s.license     = 'GPL v2'
+  s.add_runtime_dependency 'awesome_print'
+  s.add_runtime_dependency 'cobravsmongoose'
   s.add_runtime_dependency 'data_mapper'
   s.add_runtime_dependency 'docile'
+  s.add_runtime_dependency 'nokogiri'
   s.add_runtime_dependency 'nori'
   s.add_runtime_dependency 'rack'
-  s.add_runtime_dependency 'rest_client'
+  s.add_runtime_dependency 'rest-client'
   s.add_runtime_dependency 'tilt'
   s.add_runtime_dependency 'wiki-this'
 end

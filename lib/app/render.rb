@@ -1,6 +1,5 @@
 require 'nokogiri'
-require 'wiki-this'
-require 'rest_client'
+require 'rest-client'
 require 'awesome_print'
 require 'docile'
 require 'tilt'
