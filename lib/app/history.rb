@@ -17,29 +17,23 @@ module History
     $current_app[:web] = path
   end
 
-  def do_read( context )
+  def do_read( actions, context )
     return 404 unless context[:resource_name]
     resource = context[:resource_name]
-    referrer = context[:request].env['HTTP_REFERRER']
     web = context[:app][:web]
     id = context[:uri][3...context[:uri].length].join('/')
     list = get_log( web, resource , id )
     if list == 404
       return 404
     end
-    if referrer.nil?
-      referrer = request.url
-    end
-    referrer.sub!(/^.*?\/\/.*?(\/.*)$/, '\1')
-    referrer.sub!(/^(.*)\/.*$/, '\1') ## TODO: Fix referral links
     template = context[:app][:template]
-    template.render( self, list: list, resource: resource , id: id, referrer: referrer)
+    template.render( self, actions: actions, context: context, list: list)
   end
 
   def invoke( actions , context )
     case context[:action]
       when :read
-        do_read( context )
+        do_read( actions, context )
       else
         403
     end

@@ -5,11 +5,9 @@ module Render
     include Render
     extend self
 
-    def render_template( context, template , content , actions , id = nil )
+    def render_template( actions , context, template , content )
       if template[:path]
-        app = context[:uri]
-        resource = context[:resource_name]
-        hash = {actions: actions, content: content, app: app, resource: resource, id: id}
+        hash = {actions: actions, context: context, content: content }
         template[:sources].each do |k,s|
           uri = "http://#{context[:app][:remote_host]}/#{s[:uri]}"
           case s[:key]
@@ -17,8 +15,6 @@ module Render
               uri += "/#{context[:user]}"
             when :resource
               uri += "/#{context[:resource_name]}"
-            else
-              #do nothing
           end
           begin
             temp = RestClient.get uri
@@ -29,7 +25,7 @@ module Render
         end
         message = template[:path].render(self, hash )
         if template[:use_layout]
-          message = render_template(context, $apps[:global][:template] ,  message , id)
+          message = render_template( actions , context, $apps[:global][:template] ,  message )
         end
       else
         message = 'Invalid Template'
@@ -37,38 +33,16 @@ module Render
       message
     end
 
-    def do_read_all( actions , context )
-      template = context[:app][:template]
-      resource = context[:resource_name]
-      message = 403
-      headers = {}
-      if resource
-        begin
-          result = forward( :readAll , context )
-          if template
-            message = render_template( context, template , result , actions)
-          else
-            headers['Content-Type'] = result.headers[:content_type]
-            message = [200, headers, [result.to_str]]
-          end
-        rescue RestClient::ResourceNotFound
-          message = 404
-        end
-      end
-      message
-    end
-
-    def do_read( actions , context )
+    def do_read( actions , context ,specific )
       template = context[:app][:template]
       resource = context[:resource_name]
       message = 'Resource not specified'
       headers = {}
       if resource
         begin
-          result = forward( :read , context )
+          result = forward( specific , context )
           if template
-            id = context[:uri][3...context[:uri].length].join('/')
-            message = render_template( context, template , result , actions , id )
+            message = render_template( actions , context, template , result )
           else
             headers['Content-Type'] = result.headers[:content_type]
             message = [200, headers, [result.to_str]]
@@ -86,9 +60,9 @@ module Render
           forward( :create, context )
         when :read
           if context[:uri][3]
-            do_read( actions , context )
+            do_read( actions , context , :read)
           else
-            do_read_all( actions , context )
+            do_read( actions , context , :readAll)
           end
         when :update
           forward( :update, context )

@@ -4,42 +4,19 @@ module Render
   module Document
     extend Render
 
-    def self.do_read_all( actions , context )
-      app = context[:uri]
-      resource = context[:resource_name]
-      referrer = context[:request].env['HTTP_REFERRER']
+    def self.do_read( actions , context , specific )
       begin
-        response = forward( :readAll , context )
+        response = forward( specific , context )
         mime = response.headers[:content_type]
         renderer = $renderers[mime]
         if renderer
           template = $templates[renderer]
-          template.render( self, {actions: actions, referrer: referrer, app: app, resource: resource, id: '' , mime: mime , response: response.body} )
+          template.render( self, {actions: actions, context: context , mime: mime , response: response.body} )
         else
           response
         end
       rescue RestClient::ResourceNotFound
-        404
-      end
-    end
-
-    def self.do_read( actions , context )
-      app = context[:uri]
-      resource = context[:resource_name]
-      referrer = context[:request].env['HTTP_REFERRER']
-      id = context[:uri][3...context[:uri].length].join('/')
-      begin
-        response = forward( :read , context )
-        mime = response.headers[:content_type]
-      rescue RestClient::ResourceNotFound
-        response = $apps[404][:template][:path].render( self, locals = {referrer: referrer, app: app, resource: resource, id: id})
-      end
-      renderer = $renderers[mime]
-      if renderer
-        template = $templates[renderer]
-        template.render( self, {actions: actions, referrer: referrer, app: app, resource: resource, id: id , mime: mime , response: response.body} )
-      else
-        response
+        $apps[404][:template][:path].render( self, locals = {actions: actions, context: context})
       end
     end
 
@@ -49,9 +26,9 @@ module Render
           forward( :create, context )
         when :read
           if context[:uri][3]
-            do_read( actions, context )
+            do_read( actions, context , :read )
           else
-            do_read_all( actions , context )
+            do_read( actions , context , :readAll )
           end
         when :update
           forward( :update , context )
