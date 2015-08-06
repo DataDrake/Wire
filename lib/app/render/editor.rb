@@ -9,20 +9,21 @@ module Render
       resource = context[:resource_name]
       query = context[:query]
       id = context[:uri][3...context[:uri].length].join('/')
+      body = ''
       begin
         response = forward( :read , context )
         mime = response.headers[:content_type]
+        body = response.body
       rescue RestClient::ResourceNotFound
         if query['type']
           mime = query['type']
-          response.body = ''
         else
           return 404
         end
       end
       template = $editors[mime]
       if template
-        template.render( self, {actions: actions, resource: resource, id: id , mime: mime , response: response.body} )
+        template.render( self, {actions: actions, resource: resource, id: id , mime: mime , response: body} )
       else
         response.body
       end
