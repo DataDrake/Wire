@@ -5,7 +5,7 @@ task :build do
 end
 
 task :install => :build do
-  system "sudo gem install wire-#{Wire::VERSION}.gem"
+  system "sudo gem install -N -l wire-#{Wire::VERSION}.gem"
 end
 
 task :release => :build do

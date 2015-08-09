@@ -10,7 +10,6 @@ module Wire
   class Closet
     include Wire::App
     include Wire::Auth
-    include Wire::Context
     include Wire::Renderer
     include Wire::Resource
 
@@ -31,8 +30,12 @@ module Wire
     end
 
     def call(env)
-      context = Wire::Context.new( env )
-      response = route( context )
+      begin
+        context = Wire::Context.new( env )
+        response = route( context )
+      rescue Exception => e
+        [400,{}, e.message]
+      end
       if response.is_a? Array
         if response[2]
           unless response[2].is_a? Array

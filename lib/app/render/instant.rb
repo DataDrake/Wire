@@ -6,6 +6,12 @@ module Render
 
     def self.do_update( actions , context )
       body = context.body
+      if body
+        body = body.split('=')[1]
+        if body
+          body = URI.decode(body)
+        end
+      end
       resource = context.uri[2]
       id = context.uri[3]
       ## Default to not found
@@ -32,7 +38,7 @@ module Render
           end
         end
       end
-      message
+      [200, {} , message]
     end
 
     def self.invoke( actions , context )

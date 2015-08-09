@@ -63,14 +63,9 @@ module Render
     host = context.app[:remote_host]
     path = context.app[:remote_uri]
     resource = context.uri[2]
-    if context.referer
-      referer = context.referer
-      else
+    referer = context.referer.join('/')
 
-      referer = context.uri
-    end
-
-    q = context.query_string
+    q = '?' + context.query_string
     id = context.uri[3...context.uri.length].join('/')
     case(method)
       when :create

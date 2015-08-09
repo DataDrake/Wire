@@ -51,13 +51,13 @@ module Repo
   end
 
   def do_read( context )
-    resource = context.uri[2]
+    path = context.uri[2]
     referrer = context.referer
     repos = context.app[:repos_path]
     web = context.app[:web]
     rev = context.query[:rev]
     id = context.uri[3...context.uri.length].join('/')
-    info = do_read_info( rev, web, repos, resource , id )
+    info = do_read_info( rev, web, repos, path , id )
     if info == 404
       return 404
     end

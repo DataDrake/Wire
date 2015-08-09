@@ -33,7 +33,11 @@ module Wire
       @user = env['rack.session'][:user]
       @verb = HTTP_VERBS[env['REQUEST_METHOD']]
       @action = HTTP_ACTIONS[env['REQUEST_METHOD']]
-      @referer = env['HTTP_REFERER'].split( '?' )[0].split( '/' )
+      if env['HTTP_REFERER']
+        @referer = env['HTTP_REFERER'].split( '/' )
+      else
+        @referer = []
+      end
       @uri = env['REQUEST_URI'].split( '?' )[0].split( '/' )
       app= $apps[@uri[1]]
       if app
@@ -53,7 +57,7 @@ module Wire
         @body = env['rack.input'].read
         begin
           @json = JSON.parse_clean( @body )
-        rescue JSON::ParserError
+        rescue JSON::ParserError => e
           $stderr.puts 'Warning: Failed to parse body as JSON'
         end
       end
