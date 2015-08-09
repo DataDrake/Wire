@@ -9,12 +9,12 @@ module Render
       if template[:path]
         hash = {actions: actions, context: context, content: content }
         template[:sources].each do |k,s|
-          uri = "http://#{context[:app][:remote_host]}/#{s[:uri]}"
+          uri = "http://#{context.app[:remote_host]}/#{s[:uri]}"
           case s[:key]
             when :user
-              uri += "/#{context[:user]}"
+              uri += "/#{context.user}"
             when :resource
-              uri += "/#{context[:resource_name]}"
+              uri += "/#{context.uri[2]}"
           end
           begin
             temp = RestClient.get uri
@@ -34,8 +34,8 @@ module Render
     end
 
     def do_read( actions , context ,specific )
-      template = context[:app][:template]
-      resource = context[:resource_name]
+      template = context.app[:template]
+      resource = context.uri[2]
       message = 'Resource not specified'
       headers = {}
       if resource
@@ -55,11 +55,11 @@ module Render
     end
 
     def self.invoke( actions , context )
-      case context[:action]
+      case context.action
         when :create
           forward( :create, context )
         when :read
-          if context[:uri][3]
+          if context.uri[3]
             do_read( actions , context , :read)
           else
             do_read( actions , context , :readAll)

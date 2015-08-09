@@ -18,9 +18,8 @@ module Repo
   end
 
   def do_create( context )
-    return 404 unless context[:resource_name]
-    path = context[:app][:repos_path]
-    resource = context[:resource_name]
+    path = context.app[:repos_path]
+    resource = context.uri[2]
     if path
       if Dir.exist?("#{path}/#{resource}")
         401
@@ -33,22 +32,16 @@ module Repo
   end
 
   def do_read_all( context )
-    return 404 unless context[:resource_name]
-    resource = context[:resource_name]
-    referrer = context[:request].env['HTTP_REFERRER']
-    repos = context[:app][:repos_path]
-    web = context[:app][:web]
+    resource = context.uri[2]
+    referrer = context.referer
+    repos = context.app[:repos_path]
+    web = context.app[:web]
     mime = 'text/html'
     list = do_read_listing( web, repos, resource )
     if list == 404
       return 404
     end
-    if referrer.nil?
-      referrer = context[:request].url.split('/')[3]
-    else
-      referrer = referrer.split('/')[3]
-    end
-    template = context[:app][:template]
+    template = context.app[:template]
     list = template.render( self, list: list, resource: resource , id: '',  referrer: referrer)
     headers = {}
     headers['Content-Type'] = mime
@@ -58,14 +51,13 @@ module Repo
   end
 
   def do_read( context )
-    return 404 unless context[:resource_name]
-    path = context[:resource_name]
-    referrer = context[:request].env['HTTP_REFERRER']
-    repos = context[:app][:repos_path]
-    web = context[:app][:web]
-    rev = context[:query][:rev]
-    id = context[:uri][3...context[:uri].length].join('/')
-    info = do_read_info( rev, web, repos, path , id )
+    resource = context.uri[2]
+    referrer = context.referer
+    repos = context.app[:repos_path]
+    web = context.app[:web]
+    rev = context.query[:rev]
+    id = context.uri[3...context.uri.length].join('/')
+    info = do_read_info( rev, web, repos, resource , id )
     if info == 404
       return 404
     end
@@ -73,12 +65,7 @@ module Repo
     if type.eql? 'dir'
       mime = 'text/html'
       list = do_read_listing( web, repos, path , id)
-      if referrer.nil?
-        referrer = context[:request].url.split('/')[3]
-      else
-        referrer = referrer.split('/')[3]
-      end
-      template =context[:app][:template]
+      template = context.app[:template]
       body = template.render( self, list: list, resource: path , id: id, referrer: referrer)
     else
       body = do_read_file( rev, web, repos, path , id )
@@ -95,27 +82,32 @@ module Repo
   end
 
   def do_update( context )
-    return 404 unless context[:resource_name]
-    path = context[:resource_name]
-    repos = context[:app][:repos_path]
-    web = context[:app][:web]
-    content = context[:params]
-    id = context[:uri][3...context[:uri].length].join('/')
+    path = context.uri[2]
+    repos = context.app[:repos_path]
+    web = context.app[:web]
+    content = context.json
+    id = context.uri[3...context.uri.length].join('/')
     if content[:file]
       file = content[:file][:content].match(/base64,(.*)/)[1]
       file = Base64.decode64( file )
-      do_update_file( web , repos, path , id , file , content[:message] , content[:file][:mime], context[:user] )
+      if context.query[:type]
+        mime = context.query[:type]
+      else
+        mime = content[:file][:mime]
+      end
+      do_update_file( web , repos, path , id , file , content[:message] , mime, context.user )
     else
-      do_update_file( web , repos, path , id , content[:updated], content[:message] , context[:query]['type'], context[:user] )
+      do_update_file( web , repos, path , id , URI.unescape( content[:updated] ), content[:message] , context.query[:type], context.user )
     end
   end
 
   def invoke( actions , context )
-    case context[:action]
+  return 404 unless context.uri[2]
+    case context.action
       when :create
         do_create( context )
       when :read
-        if context[:uri][3]
+        if context.uri[3]
           do_read( context )
         else
           do_read_all( context )

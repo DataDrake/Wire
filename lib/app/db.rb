@@ -17,10 +17,10 @@ module DB
   end
 
   def self.do_create( context )
-    return 404 unless context[:resource]
-    model = context[:resource][:model]
+    return 404 unless context.resource
+    model = context.resource[:model]
     if model
-      file = context[:params][:file]
+      file = context.json[:file]
       if file
         if file[:mime].eql? 'text/csv'
           file[:content].match(/.*base64,(.*)/) do
@@ -61,12 +61,12 @@ module DB
         end
       else
         if model.instance_methods.include?(:updated_by)
-          context[:params][:updated_by] = context[:user]
+          context.json[:updated_by] = context.user
         end
         if model.instance_methods.include?(:created_by)
-          context[:params][:created_by] = context[:user]
+          context.json[:created_by] = context.user
         end
-        instance = model.create( context[:params] )
+        instance = model.create( context.json )
         instance.save
         if instance.saved?
           200
@@ -81,8 +81,8 @@ module DB
   end
 
   def self.do_read_all( context )
-    return 404 unless context[:resource]
-    model = context[:resource][:model]
+    return 404 unless context.resource
+    model = context.resource[:model]
     if model
       hash = '[ '
       model.all.each do |e|
@@ -99,9 +99,9 @@ module DB
   end
 
   def self.do_read( context )
-    return 404 unless context[:resource]
-    model = context[:resource][:model]
-    id = context[:uri][3]
+    return 404 unless context.resource
+    model = context.resource[:model]
+    id = context.uri[3]
     if id.eql?('new') or id.eql? 'upload'
       return '{}'
     end
@@ -115,25 +115,26 @@ module DB
   end
 
   def self.do_update( context )
-    return 404 unless (context[:resource] != nil )
-    model = context[:resource][:model]
+    return 404 unless context.resource
+    model = context.resource[:model]
+    id = context.uri[3]
     if model
       if model.respond_to?(:updated_by)
-          context[:params][:updated_by] = context[:user]
+          context.json[:updated_by] = context.user
       end
       instance = model.get(id)
-      instance.update( context[:params]) ? 200 : 500
+      instance.update( context.json) ? 200 : 500
     else
       404
     end
   end
 
   def self.invoke( actions , context )
-    case context[:action]
+    case context.action
       when :create
         do_create( context )
       when :read
-        if context[:uri][3]
+        if context.uri[3]
           do_read( context )
         else
           do_read_all( context )

@@ -3,8 +3,8 @@ module Wire
 
     def actions_allowed( context )
       actions = []
-      app = context[:app]
-      user = context[:user]
+      app = context.app
+      user = context.user
       if app
         auth = app[:auth]
         level = auth[:level]

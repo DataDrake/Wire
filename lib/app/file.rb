@@ -10,8 +10,7 @@ module Static
   end
 
   def self.do_read_all( context )
-      return 404 unless context[:resource]
-      path = context[:resource][:local]
+      path = context.resource[:local]
       if path
         return 404 unless File.exists?(path)
         if File.directory? path
@@ -25,9 +24,8 @@ module Static
   end
 
   def self.do_read(  context )
-    return 404 unless context[:resource]
-    path = context[:resource][:local]
-    id = context[:uri][3..context[:uri].length].join('/')
+    path = context.resource[:local]
+    id = context.uri[3..context.uri.length].join('/')
     if path
       ext_path = File.join( path , id )
       return 404 unless File.exists?(ext_path)
@@ -52,9 +50,10 @@ module Static
   end
 
   def self.invoke( actions, context )
-    case context[:action]
+    return 404 unless context.resource
+    case context.action
       when :read
-        if context[:uri][3]
+        if context.uri[3]
           do_read( context )
         else
           do_read_all( context )

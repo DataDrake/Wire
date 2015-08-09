@@ -16,11 +16,11 @@ module Render
     end
 
     def self.do_read_all( actions , context )
-      resource = context[:resource_name]
+      resource = context.uri[2]
       begin
         mime = ''
         body = ''
-        if context[:resource][:forward]
+        if context.resource[:forward]
           response = forward( :readAll , context )
           mime = response.headers[:content_type]
           body = response.body
@@ -28,11 +28,11 @@ module Render
           body = 401
         end
 
-        template = context[:resource][:multiple]
+        template = context.resource[:multiple]
         hash = {actions: actions, resource: resource, mime: mime , response: body}
-        if context[:resource][:sources]
-          context[:resource][:sources].each do |k,v|
-            hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
+        if context.resource[:sources]
+          context.resource[:sources].each do |k,v|
+            hash[k] = RestClient.get( "http://#{context.app[:remote_host]}/#{v}")
           end
         end
         mime = 'text/html'
@@ -47,17 +47,17 @@ module Render
     end
 
     def self.do_read( actions , context )
-      app = context[:app][:uri]
-      resource = context[:resource_name]
+      app = context.app[:uri]
+      resource = context.uri[2]
       begin
         response = forward( :read , context )
         mime = response.headers[:content_type]
-        template = context[:resource][:single]
-        id = context[:uri][3...context[:uri].length].join('/')
+        template = context.resource[:single]
+        id = context.uri[3...context.uri.length].join('/')
         hash = {actions: actions, app: app, id: id, resource: resource, mime: mime , response: response.body}
-        if context[:resource][:sources]
-          context[:resource][:sources].each do |k,v|
-            hash[k] = RestClient.get( "http://#{context[:app][:remote_host]}/#{v}")
+        if context.resource[:sources]
+          context.resource[:sources].each do |k,v|
+            hash[k] = RestClient.get( "http://#{context.app[:remote_host]}/#{v}")
           end
         end
         if template
@@ -71,11 +71,11 @@ module Render
     end
 
     def self.invoke( actions , context )
-      case context[:action]
+      case context.action
         when :create
           forward( :create , context )
         when :read
-          if context[:uri][3]
+          if context.uri[3]
             do_read( actions, context )
           else
             do_read_all( actions, context )

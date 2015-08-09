@@ -60,36 +60,31 @@ module Render
   end
 
   def forward( method , context )
-    host = context[:app][:remote_host]
-    path = context[:app][:remote_uri]
-    resource = context[:resource_name]
-    if context[:request].env['HTTP_REFERRER']
-      referrer = context[:request].env['HTTP_REFERRER']
-    else
-      referrer = context[:request].url
+    host = context.app[:remote_host]
+    path = context.app[:remote_uri]
+    resource = context.uri[2]
+    if context.referer
+      referer = context.referer
+      else
+
+      referer = context.uri
     end
-    query = context[:query]
-    q = '?'
-    query.each do |k,v|
-      unless v.is_a? Hash or v.is_a? Array or k.eql? 'resource' or k.eql? 'app'
-        q = "#{q}#{k}=#{v}&"
-      end
-    end
-    id = context[:uri][3...context[:uri].length].join('/')
-    request = context[:request]
+
+    q = context.query_string
+    id = context.uri[3...context.uri.length].join('/')
     case(method)
       when :create
         puts "POST: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
-        RestClient.post "http://#{host}/#{path}/#{resource}#{q}" , request.body
+        RestClient.post "http://#{host}/#{path}/#{resource}#{q}" , context.body
       when :update
         puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-        RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}" , request.body
+        RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}" , context.body
       when :readAll
         puts "GET: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
-        RestClient.get "http://#{host}/#{path}/#{resource}#{q}" , referrer: referrer
+        RestClient.get "http://#{host}/#{path}/#{resource}#{q}" , referer: referer
       when :read
         puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}" , referrer: referrer
+        RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}" , referer: referer
       when :delete
         puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
         RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}#{q}"

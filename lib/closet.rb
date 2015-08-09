@@ -22,20 +22,16 @@ module Wire
     end
 
     def route( context )
-      if context[:failure]
-        context[:message]
+      actions = actions_allowed( context )
+      if actions.include? context.action
+        context.type.invoke( actions , context )
       else
-        actions = actions_allowed( context )
-        if actions.include? context[:action]
-          context[:type].invoke( actions , context )
-        else
-          401
-        end
+        401
       end
     end
 
     def call(env)
-      context = prepare( env )
+      context = Wire::Context.new( env )
       response = route( context )
       if response.is_a? Array
         if response[2]

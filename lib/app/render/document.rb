@@ -21,11 +21,11 @@ module Render
     end
 
     def self.invoke( actions , context )
-      case context[:action]
+      case context.action
         when :create
           forward( :create, context )
         when :read
-          if context[:uri][3]
+          if context.uri[3]
             do_read( actions, context , :read )
           else
             do_read( actions , context , :readAll )

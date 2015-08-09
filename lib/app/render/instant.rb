@@ -5,11 +5,9 @@ module Render
     extend Render
 
     def self.do_update( actions , context )
-      app = context[:app]
-      body = context[:request][:data]
-      resource = context[:resource_name]
-      query = context[:query]
-      id = context[:uri][3]
+      body = context.body
+      resource = context.uri[2]
+      id = context.uri[3]
       ## Default to not found
       message = 404
       if resource
@@ -19,19 +17,15 @@ module Render
           renderer = $renderers["#{resource}/#{id}"]
           if renderer
             template = $templates[renderer]
-            referrer = context[:request].env['HTTP_REFERER']
             result = template.render(self,
                 { actions: actions,
-                  app: app[:name],
-                  resource: query['resource'] ,
+                  context: context,
                   mime: "#{resource}/#{id}" ,
-                  id: query['id'] ,
                   response: body,
-                  referrer: referrer
                 } )
-            template = context[:app][:template]
+            template = context.app[:template]
             if template
-              message = template[:path].render( self , {content: result})
+              message = template[:path].render( self , {actions:actions, context:context, content: result})
             else
               message = result
             end
@@ -42,7 +36,7 @@ module Render
     end
 
     def self.invoke( actions , context )
-      if context[:action].eql? :update
+      if context.action.eql? :update
         do_update( actions , context )
       else
         401

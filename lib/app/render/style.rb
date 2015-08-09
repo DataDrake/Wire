@@ -13,8 +13,8 @@ module Render
 
     def self.do_read_all( context )
       begin
-        resource = context[:resource_name]
-        template = context[:app][:styles][resource]
+        resource = context.uri[2]
+        template = context.app[:styles][resource]
         headers = {}
         if template
           headers['Content-Type'] = 'text/css'
@@ -28,7 +28,7 @@ module Render
     end
 
     def self.invoke( actions , context )
-      case context[:action]
+      case context.action
         when :read
           do_read_all( context )
         else

@@ -1,13 +1,25 @@
-module Wire
-  module Context
+HTTP_ACTIONS = {
+    'GET' => :read ,
+    'HEAD' => :read ,
+    'POST' => :create,
+    'PUT' => :update,
+    'DELETE' => :delete
+}
 
-    VERBS = {
-      'GET' => :read ,
-      'HEAD' => :read ,
-      'POST' => :create,
-      'PUT' => :update,
-      'DELETE' => :delete
-    }
+HTTP_VERBS = {
+    'GET' => :get ,
+    'HEAD' => :head ,
+    'POST' => :post,
+    'PUT' => :put,
+    'DELETE' => :delete
+}
+
+module Wire
+  class Context
+
+    attr_reader :action, :app, :body, :env, :json, :query ,
+                :query_string, :referer, :resource, :type,
+                :uri , :user, :verb
 
     def update_session( env  )
       user = env['HTTP_REMOTE_USER']
@@ -16,38 +28,35 @@ module Wire
       env
     end
 
-    def prepare( env )
-      env = update_session( env )
-      hash = {failure: true}
-      hash[:user] = env['rack.session'][:user]
-      hash[:action] = VERBS[env['REQUEST_METHOD']]
-      uri = env['REQUEST_URI'].split( '?' )[0].split( '/' )
-      hash[:uri] = uri
-      app= $apps[uri[1]]
+    def initialize( env )
+      @env = update_session( env )
+      @user = env['rack.session'][:user]
+      @verb = HTTP_VERBS[env['REQUEST_METHOD']]
+      @action = HTTP_ACTIONS[env['REQUEST_METHOD']]
+      @referer = env['HTTP_REFERER'].split( '?' )[0].split( '/' )
+      @uri = env['REQUEST_URI'].split( '?' )[0].split( '/' )
+      app= $apps[@uri[1]]
       if app
-        hash[:app] = app
-        hash[:resource_name] = uri[2]
-        hash[:resource] = app[:resources][uri[2]]
-        hash[:type] = app[:type]
+        @app = app
+        @resource = app[:resources][@uri[2]]
+        @type = app[:type]
       else
-        hash[:message] = 'App Undefined'
+        throw Exception.new( "App: #{@uri[1]} is Undefined" )
       end
-      request = Rack::Request.new env
-      hash[:request] = request
-      params = request.params
-      hash[:query] = params
-      response = Rack::Response.new env
-      hash[:response] = response
+      @query = {}
+      env['QUERY_STRING'].split('&').each do |q|
+        param = q.split('=')
+        @query[param[0].to_sym] = param[1]
+      end
+      @query_string = env['QUERY_STRING']
       if env['rack.input']
-        json = request.env['rack.input'].read
+        @body = env['rack.input'].read
         begin
-          hash[:params] = JSON.parse_clean( json )
+          @json = JSON.parse_clean( @body )
         rescue JSON::ParserError
-          hash[:params] = json
+          $stderr.puts 'Warning: Failed to parse body as JSON'
         end
       end
-      hash[:failure] = false
-      hash
     end
   end
 end

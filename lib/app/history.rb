@@ -18,20 +18,20 @@ module History
   end
 
   def do_read( actions, context )
-    return 404 unless context[:resource_name]
-    resource = context[:resource_name]
-    web = context[:app][:web]
-    id = context[:uri][3...context[:uri].length].join('/')
+    resource = context.uri[2]
+    web = context.app[:web]
+    id = context.uri[3...context.uri.length].join('/')
     list = get_log( web, resource , id )
     if list == 404
       return 404
     end
-    template = context[:app][:template]
+    template = context.app[:template]
     template.render( self, actions: actions, context: context, list: list)
   end
 
   def invoke( actions , context )
-    case context[:action]
+    return 404 unless context.uri[2]
+    case context.action
       when :read
         do_read( actions, context )
       else
