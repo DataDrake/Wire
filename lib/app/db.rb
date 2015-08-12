@@ -2,20 +2,33 @@ require 'dm-serializer/to_json'
 require_relative '../app'
 require_relative '../closet/resource'
 
+# DB is a Wire::App for generating REST wrappers for DataMapper
+# @author Bryan T. Meyers
 module DB
 	include Wire::App
 	include Wire::Resource
 
+	# Setup a DB connection
+	# @param [Symbol] namespace namespace used by DataMapper for Repositories
+	# @param [String] location connection string (e.g. mysql://localhost/Foo)
+	# @return [void]
 	def self.db(namespace, location)
 		$current_app[:db_namespace] = namespace
 		$current_app[:db_location]  = location
 		DataMapper.setup(namespace, location)
 	end
 
+	# Map a DataMapper::Model to a sub-URI
+	# @param [String] resource the sub-URI
+	# @param [Class] model the DataMapper model
+	# @return [void]
 	def self.model(resource, model)
 		$current_app[:resources][resource] = { model: model }
 	end
 
+	# Add a new object to the DB table
+	# @param [Hash] context the context for this request
+	# @return [Response] a valid Rack response triplet, or status code
 	def self.do_create(context)
 		return 404 unless context.resource
 		model = context.resource[:model]
@@ -80,6 +93,9 @@ module DB
 		end
 	end
 
+	# Get all objects from the DB table
+	# @param [Hash] context the context for this request
+	# @return [Response] all objects, or status code
 	def self.do_read_all(context)
 		return 404 unless context.resource
 		model = context.resource[:model]
@@ -98,6 +114,9 @@ module DB
 		end
 	end
 
+	# Get a specific object from the DB table
+	# @param [Hash] context the context for this request
+	# @return [Response] an object, or status code
 	def self.do_read(context)
 		return 404 unless context.resource
 		model = context.resource[:model]
@@ -114,6 +133,9 @@ module DB
 		404
 	end
 
+	# Update a specific object in the DB table
+	# @param [Hash] context the context for this request
+	# @return [Response] an object, or status code
 	def self.do_update(context)
 		return 404 unless context.resource
 		model = context.resource[:model]
@@ -129,6 +151,10 @@ module DB
 		end
 	end
 
+	# Proxy method used when routing
+	# @param [Array] actions the allowed actions for this URI
+	# @param [Hash] context the context for this request
+	# @return [Response] a Rack Response triplet, or status code
 	def self.invoke(actions, context)
 		case context.action
 			when :create
