@@ -67,7 +67,7 @@ module Render
         when :update
           forward( :update, context )
         else
-          403
+          405
       end
     end
   end

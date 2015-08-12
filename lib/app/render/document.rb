@@ -16,7 +16,7 @@ module Render
           response
         end
       rescue RestClient::ResourceNotFound
-        $apps[404][:template][:path].render( self, locals = {actions: actions, context: context})
+        [404, {}, $apps[404][:template][:path].render( self, locals = {actions: actions, context: context})]
       end
     end
 
@@ -33,7 +33,7 @@ module Render
         when :update
           forward( :update , context )
         else
-          403
+          405
       end
     end
   end

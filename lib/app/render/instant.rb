@@ -15,11 +15,13 @@ module Render
       resource = context.uri[2]
       id = context.uri[3]
       ## Default to not found
-      message = 404
+      message = ''
+      status = 404
       if resource
         if body
           ## Assume unsupported mime type
-          message = 403
+          status = 415
+          message = 'INSTANT: Unsupported MIME Type'
           renderer = $renderers["#{resource}/#{id}"]
           if renderer
             template = $templates[renderer]
@@ -35,17 +37,18 @@ module Render
             else
               message = result
             end
+            status = 200
           end
         end
       end
-      [200, {} , message]
+      [status, {} , message]
     end
 
     def self.invoke( actions , context )
       if context.action.eql? :update
         do_update( actions , context )
       else
-        401
+        405
       end
     end
   end

@@ -18,7 +18,7 @@ module Render
         if query[:type]
           mime = query[:type]
         else
-          return 404
+          return [404,{}, 'EDITOR: Document type not set for new document']
         end
       end
       template = $editors[mime]
@@ -38,7 +38,7 @@ module Render
         when :update
           forward( :update, context )
         else
-          403
+          405
       end
     end
   end
