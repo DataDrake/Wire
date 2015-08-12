@@ -22,5 +22,6 @@ end
 # Wire is an environment for quickly building REST services
 # @author Bryan T. Meyers
 module Wire
+	# Current version of the Wire Gem
 	VERSION = '0.1.0'
 end
