@@ -1,5 +1,13 @@
 module Wire
+	# App is a DSL function for mapping sub-URI to Wire::App(s)
+	# @author Bryan T. Meyers
 	module App
+
+		# Setup an App
+		# @param [String] base_uri the sub-URI
+		# @param [Module] type the Wire::App
+		# @param [Proc] block for configuring this App
+		# @return [void]
 		def app(base_uri, type, &block)
 			$current_uri    = base_uri
 			$apps[base_uri] = { type: type, resources: {} }
