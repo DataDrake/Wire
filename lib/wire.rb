@@ -8,12 +8,12 @@ require 'json'
 require 'rack'
 
 module JSON
-  def self.parse_clean( source , opts = {})
-    opts[:symbolize_names] = true
-    parse( source , opts )
-  end
+	def self.parse_clean(source, opts = {})
+		opts[:symbolize_names] = true
+		parse(source, opts)
+	end
 end
 
 module Wire
-  VERSION = '0.1.0'
+	VERSION = '0.1.0'
 end

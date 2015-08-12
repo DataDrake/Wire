@@ -1,32 +1,32 @@
 module Wire
-  module Renderer
+	module Renderer
 
-    def renderer( klass , &block)
-      $current_renderer = klass
-      $current_editor = nil
-      Docile.dsl_eval( self , &block )
-    end
+		def renderer(klass, &block)
+			$current_renderer = klass
+			$current_editor   = nil
+			Docile.dsl_eval(self, &block)
+		end
 
-    def mime( mime )
-      if $current_renderer
-        $renderers[mime] = $current_renderer
-        $templates[$current_renderer] = $current_template
-      end
-      if $current_editor
-        $editors[mime] = $current_editor
-      end
-    end
+		def mime(mime)
+			if $current_renderer
+				$renderers[mime]              = $current_renderer
+				$templates[$current_renderer] = $current_template
+			end
+			if $current_editor
+				$editors[mime] = $current_editor
+			end
+		end
 
-    def partial( template )
-      $current_template = Tilt.new( template , 1 , {ugly:true})
-    end
+		def partial(template)
+			$current_template = Tilt.new(template, 1, { ugly: true })
+		end
 
-    def editor( editor , &block)
-      $current_editor = Tilt.new( editor , 1 , {ugly:true})
-      $current_renderer = nil
-      Docile.dsl_eval( self , &block )
-    end
+		def editor(editor, &block)
+			$current_editor   = Tilt.new(editor, 1, { ugly: true })
+			$current_renderer = nil
+			Docile.dsl_eval(self, &block)
+		end
 
-  end
+	end
 
 end
