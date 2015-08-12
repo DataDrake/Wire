@@ -1,7 +1,34 @@
 module Wire
 	# Context is a class containing request information
 	# @author Bryan T. Meyers
+
 	class Context
+		#@!attribute [r] action
+		#		@return [Symbol] the action for the current request
+		#@!attribute [r] app
+		#		@return [Hash] the Wire::App configuration for the current request
+		#@!attribute [r] body
+		#		@return [String] the unparsed body of the current request
+		#@!attribute [r] env
+		#		@return [Hash] the raw Rack environment of the current request
+		#@!attribute [r] json
+		#		@return [Hash] the JSON parsed body of the current request
+		#@!attribute [r] query
+		#		@return [Hash] the parsed query string of the current request
+		#@!attribute [r] query_string
+		#		@return [String] the raw query string of the current request
+		#@!attribute [r] referer
+		#		@return [Array] the referer URI of the current request
+		#@!attribute [r] resource
+		#		@return [Symbol] the Wire::Resource configuration of the current request
+		#@!attribute [r] type
+		#		@return [Module] the Wire::App of the current request
+		#@!attribute [r] uri
+		#		@return [Array] the URI of the current request
+		#@!attribute [r] user
+		#		@return [String] the REMOTE_USER of the current request
+		#@!attribute [r] verb
+		#		@return [Symbol] the HTTP verb of the current request
 
 		attr_reader :action, :app, :body, :env, :json, :query,
 								:query_string, :referer, :resource, :type,
