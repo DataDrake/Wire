@@ -3,20 +3,34 @@ require 'base64'
 require_relative '../wire'
 require_relative 'repo/svn'
 
+# Repo is a Wire::App for accessing versioned content
+# @author Bryan T. Meyers
 module Repo
 
+	# Select the location of the repositories
+	# @param [Symbol] path location of the repositories
+	# @return [void]
 	def repos(path)
 		$current_app[:repos_path] = path
 	end
 
+	# Select the render template for file listings
+	# @param [Symbol] path location of the Tilt compatible template
+	# @return [void]
 	def listing(path)
 		$current_app[:template] = Tilt.new(path, 1, { ugly: true })
 	end
 
+	# Select the sub-directory for web-serveable content
+	# @param [Symbol] path the sub-directory path
+	# @return [void]
 	def web_folder(path)
 		$current_app[:web] = path
 	end
 
+	# Create a new Repo
+	# @param [Hash] context the context for this request
+	# @return [Response] status code
 	def do_create(context)
 		path     = context.app[:repos_path]
 		resource = context.uri[2]
@@ -31,6 +45,9 @@ module Repo
 		end
 	end
 
+	# Get the a root directory listing
+	# @param [Hash] context the context for this request
+	# @return [Response] the listing, or status code
 	def do_read_all(context)
 		resource = context.uri[2]
 		referrer = context.referer
@@ -50,6 +67,9 @@ module Repo
 		[200, headers, [list]]
 	end
 
+	# Get the a single file or directory listing
+	# @param [Hash] context the context for this request
+	# @return [Response] the file, listing, or status code
 	def do_read(context)
 		path     = context.uri[2]
 		referrer = context.referer
@@ -81,6 +101,9 @@ module Repo
 		[200, headers, [body]]
 	end
 
+	# Update the a single file
+	# @param [Hash] context the context for this request
+	# @return [Response] status code
 	def do_update(context)
 		path    = context.uri[2]
 		repos   = context.app[:repos_path]
@@ -101,6 +124,10 @@ module Repo
 		end
 	end
 
+	# Proxy method used when routing
+	# @param [Array] actions the allowed actions for this URI
+	# @param [Hash] context the context for this request
+	# @return [Response] a Rack Response triplet, or status code
 	def invoke(actions, context)
 		return 404 unless context.uri[2]
 		case context.action
