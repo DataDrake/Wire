@@ -7,12 +7,16 @@ require_relative 'closet/renderer'
 
 
 module Wire
+	# A Closet is a configured Wire Environment
+	# @author Bryan T. Meyers
 	class Closet
 		include Wire::App
 		include Wire::Auth
 		include Wire::Renderer
 		include Wire::Resource
 
+		# Create an empty Closet
+		# @return [Wire::Closet] the new closet
 		def initialize
 			$apps      = {}
 			$editors   = {}
@@ -20,6 +24,9 @@ module Wire
 			$templates = {}
 		end
 
+		# Route a Request to the correct Wire::App
+		# @param [Wire::Context] context the context of this Request
+		# @return [Response] a Rack Response triplet, or status code
 		def route(context)
 			actions = actions_allowed(context)
 			if actions.include? context.action
@@ -29,6 +36,9 @@ module Wire
 			end
 		end
 
+		# Fulfill the current request
+		# @param [Hash] env the Rack environment
+		# @return [Response] a Rack Response triplet, or status code
 		def call(env)
 			begin
 				context  = Wire::Context.new(env)
@@ -52,6 +62,9 @@ module Wire
 			response
 		end
 
+		# A factory method for configuring a Closet
+		# @param [Proc] block the configuration routine
+		# @return [Wire::Closet] the configured Closet
 		def self.build(&block)
 			closet = Wire::Closet.new
 			puts 'Starting Up Wire...'
@@ -61,6 +74,8 @@ module Wire
 			closet
 		end
 
+		# Print out a human-readable configuration
+		# @return [void]
 		def info
 			puts "Apps:\n"
 			$apps.each do |app, config|
