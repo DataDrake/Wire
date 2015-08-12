@@ -1,26 +1,33 @@
-HTTP_ACTIONS = {
-		'GET'    => :read,
-		'HEAD'   => :read,
-		'POST'   => :create,
-		'PUT'    => :update,
-		'DELETE' => :delete
-}
-
-HTTP_VERBS = {
-		'GET'    => :get,
-		'HEAD'   => :head,
-		'POST'   => :post,
-		'PUT'    => :put,
-		'DELETE' => :delete
-}
-
 module Wire
+	# Context is a class containing request information
+	# @author Bryan T. Meyers
 	class Context
 
 		attr_reader :action, :app, :body, :env, :json, :query,
 								:query_string, :referer, :resource, :type,
 								:uri, :user, :verb
 
+		# Maps HTTP verbs to actions
+		HTTP_ACTIONS = {
+				'GET'    => :read,
+				'HEAD'   => :read,
+				'POST'   => :create,
+				'PUT'    => :update,
+				'DELETE' => :delete
+		}
+
+		# Maps HTTP verbs to Symbols
+		HTTP_VERBS = {
+				'GET'    => :get,
+				'HEAD'   => :head,
+				'POST'   => :post,
+				'PUT'    => :put,
+				'DELETE' => :delete
+		}
+
+		# Add user info to session
+		# @param [Hash] env the Rack environment
+		# @return [Hash] the updated environment
 		def update_session(env)
 			user                       = env['HTTP_REMOTE_USER']
 			user                       = user ? user : 'nobody'
@@ -28,6 +35,9 @@ module Wire
 			env
 		end
 
+		# Builds a new Context
+		# @param [Hash] env the Rack environment
+		# @return [Context] a new Context
 		def initialize(env)
 			@env    = update_session(env)
 			@user   = env['rack.session'][:user]
@@ -57,7 +67,7 @@ module Wire
 				@body = env['rack.input'].read
 				begin
 					@json = JSON.parse_clean(@body)
-				rescue JSON::ParserError => e
+				rescue JSON::ParserError
 					$stderr.puts 'Warning: Failed to parse body as JSON'
 				end
 			end
