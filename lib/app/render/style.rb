@@ -1,9 +1,15 @@
 require_relative '../render'
 
 module Render
+	# Style uses Tilt to render and serve stylesheets
+	# @author Bryan T. Meyers
 	module Style
 		extend Render
 
+		# DSL method to create a style
+		# @param [String] resource the sub-URI for this style
+		# @param [Hash] path the file location of the stylesheet
+		# @return [void]
 		def self.style(resource, path)
 			unless $current_app[:styles]
 				$current_app[:styles] = {}
@@ -11,6 +17,9 @@ module Render
 			$current_app[:styles][resource] = path.nil? ? nil : Tilt.new(path, 1, { ugly: true }).render
 		end
 
+		# Render a stylesheet to CSS
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read_all(context)
 			begin
 				resource = context.uri[2]
@@ -27,6 +36,10 @@ module Render
 			end
 		end
 
+		# Proxy method used when routing
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
 				when :read
