@@ -1,8 +1,8 @@
 require_relative 'lib/wire'
 Gem::Specification.new do |s|
-  s.name        = 'wire'
+  s.name        = 'wire-framework'
   s.version     = Wire::VERSION
-  s.date        = '2015-08-04'
+  s.date        = '2015-08-13'
   s.summary     = 'Wire Framework'
   s.description = 'Wire is a DSL and Rack interface for quickly building web applications, without the needless complexity of Rails'
   s.authors     = ['Bryan T. Meyers']

@@ -5,9 +5,9 @@ task :build do
 end
 
 task :install => :build do
-  system "sudo gem install -N -l wire-#{Wire::VERSION}.gem"
+  system "sudo gem install -N -l wire-framework-#{Wire::VERSION}.gem"
 end
 
 task :release => :build do
-  system "gem push wire-#{Wire::VERSION}.gem"
+  system "gem push wire-framework-#{Wire::VERSION}.gem"
 end
