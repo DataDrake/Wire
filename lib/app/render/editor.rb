@@ -2,9 +2,15 @@ require_relative '../render'
 
 module Render
 
+	# Editor allows a document to be displayed in an editing form
+	# @author Bryan T. Meyers
 	module Editor
 		extend Render
 
+		# Open an editor for a document
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] the Editor with containing document, or status code
 		def self.do_read(actions, context)
 			resource = context.uri[2]
 			query    = context.query
@@ -29,6 +35,10 @@ module Render
 			end
 		end
 
+		# Proxy method used when routing
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
 				when :create
