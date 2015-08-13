@@ -7,6 +7,7 @@ require 'docile'
 require 'json'
 require 'rack'
 
+# The Ruby-Core JSON module
 module JSON
 
 	# Force JSON.parse to symbolize names
