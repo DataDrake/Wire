@@ -1,13 +1,21 @@
 require_relative '../render'
 
 module Render
+	# Partials are URI mapped renderers which generate only a piece of a document
+	# @author Bryan T.Meyers
 	module Partial
 		extend Render
 
+		# DSL method to enable forwarding to remote
+		# @return [void]
 		def self.use_forward
 			$current_resource[:forward] = true
 		end
 
+		# DSL method to pull in Source like objects
+		# @param [Symbol] name the key for this item
+		# @param [Hash] path the remote sub-URI for this item
+		# @return [void]
 		def self.extra(name, path)
 			unless $current_resource[:sources]
 				$current_resource[:sources] = {}
@@ -15,6 +23,10 @@ module Render
 			$current_resource[:sources][name] = path
 		end
 
+		# Read a listing and render to HTML
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read_all(actions, context)
 			resource = context.uri[2]
 			begin
@@ -39,13 +51,17 @@ module Render
 				if template
 					[200, { 'Content-Type' => mime }, [template.render(self, hash)]]
 				else
-					[200, { 'Content-Type' => mime }, [response.body]]
+					[200, { 'Content-Type' => mime }, [body]]
 				end
 			rescue RestClient::ResourceNotFound
 				404
 			end
 		end
 
+		# Read a Partial and render it to HTML
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read(actions, context)
 			app      = context.app[:uri]
 			resource = context.uri[2]
@@ -70,6 +86,10 @@ module Render
 			end
 		end
 
+		# Proxy method used when routing
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
 				when :create
