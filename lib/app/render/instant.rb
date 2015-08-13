@@ -1,9 +1,15 @@
 require_relative '../render'
 
 module Render
+	# Instant allows for previews of edited documents
+	# @author Bryan T. Meyers
 	module Instant
 		extend Render
 
+		# Render a temporary document to HTML
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.do_update(actions, context)
 			body = context.body
 			if body
@@ -44,6 +50,10 @@ module Render
 			[status, {}, message]
 		end
 
+		# Proxy method used when routing
+		# @param [Array] actions the allowed actions for this URI
+		# @param [Hash] context the context for this request
+		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			if context.action.eql? :update
 				do_update(actions, context)
