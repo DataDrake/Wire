@@ -1,14 +1,21 @@
 require_relative '../repo'
 require 'nori'
 
+# Force Nori to convert tag names to Symbols
 $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
 
 module Repo
+	# Repo::SVN is a connector for svnserve
+	# @author Bryan T. Meyers
 	module SVN
 		extend Wire::App
 		extend Wire::Resource
 		extend Repo
 
+		# Make a new SVN repo
+		# @param [String] path the path to the repositories
+		# @param [String] repo the new repo name
+		# @return [Integer] status code
 		def self.do_create_file(path, repo)
 			result = 200
 			`svnadmin create #{path}/#{repo}`
@@ -23,6 +30,13 @@ module Repo
 			end
 		end
 
+		# Read a single file
+		# @param [String] rev the revision number to access
+		# @param [String] web the subdirectory for web content
+		# @param [String] path the path to the repositories
+		# @param [String] repo the new repo name
+		# @param [String] id the relative path to the file
+		# @return [String] the file
 		def self.do_read_file(rev, web, path, repo, id)
 			@options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
 			if rev.nil?
@@ -41,6 +55,12 @@ module Repo
 			end
 		end
 
+		# Read a directory listing
+		# @param [String] web the subdirectory for web content
+		# @param [String] path the path to the repositories
+		# @param [String] repo the new repo name
+		# @param [String] id the relative path to the file
+		# @return [Array] the directory listing
 		def self.do_read_listing(web, path, repo, id = nil)
 			@options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
 			if web.nil?
@@ -63,6 +83,13 @@ module Repo
 			list[:lists][:list][:entry]
 		end
 
+		# Read Metadata for a single file
+		# @param [String] rev the revision number to access
+		# @param [String] web the subdirectory for web content
+		# @param [String] path the path to the repositories
+		# @param [String] repo the new repo name
+		# @param [String] id the relative path to the file
+		# @return [Hash] the metadata
 		def self.do_read_info(rev, web, path, repo, id)
 			@options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
 			if rev.nil?
@@ -81,6 +108,13 @@ module Repo
 			info[:info][:entry]
 		end
 
+		# Get a file's MIME type
+		# @param [String] rev the revision number to access
+		# @param [String] web the subdirectory for web content
+		# @param [String] path the path to the repositories
+		# @param [String] repo the new repo name
+		# @param [String] id the relative path to the file
+		# @return [String] the MIME type
 		def self.do_read_mime(rev, web, path, repo, id)
 			@options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
 			if rev.nil?
@@ -103,6 +137,16 @@ module Repo
 			end
 		end
 
+		# Update a single file
+		# @param [String] web the subdirectory for web content
+		# @param [String] path the path to the repositories
+		# @param [String] repo the new repo name
+		# @param [String] id the relative path to the file
+		# @param [String] content the updated file
+		# @param [String] message the commit message
+		# @param [String] mime the mime-type to set
+		# @param [String] user the Author of this change
+		# @return [Integer] status code
 		def self.do_update_file(web, path, repo, id, content, message, mime, user)
 			@options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
 			status   = 500
