@@ -8,7 +8,7 @@ module Login
 	# @return [Response] a redirect message returning to the previous page
 	def self.invoke(actions, context)
 		referer = context.referer
-		[301, { 'Location' => referer }, ['Login Redirect']]
+		[307, { 'Location' => referer.join('/') }, ['Login Redirect']]
 	end
 
 end
