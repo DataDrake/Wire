@@ -157,7 +157,6 @@ module Repo
 				if web.nil?
 					file_path = "/tmp/svn/#{repo}/#{id}"
 				else
-
 					file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
 					id = id.split('/')
 					id.pop
