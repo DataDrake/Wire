@@ -39,7 +39,7 @@ module Repo
 		# @param [String] id the relative path to the file
 		# @return [String] the file
 		def self.do_read_file(rev, web, path, repo, id)
-			options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
+			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			if rev.nil?
 				rev = 'HEAD'
 			end
@@ -63,7 +63,7 @@ module Repo
 		# @param [String] id the relative path to the file
 		# @return [Array] the directory listing
 		def self.do_read_listing(web, path, repo, id = nil)
-			options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
+			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			if web.nil?
 				if id.nil?
 					list = `svn list #{options} --xml 'svn://localhost/#{repo}'`
@@ -92,7 +92,7 @@ module Repo
 		# @param [String] id the relative path to the file
 		# @return [Hash] the metadata
 		def self.do_read_info(rev, web, path, repo, id)
-			options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
+			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			if rev.nil?
 				rev = 'HEAD'
 			end
@@ -117,7 +117,7 @@ module Repo
 		# @param [String] id the relative path to the file
 		# @return [String] the MIME type
 		def self.do_read_mime(rev, web, path, repo, id)
-			options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
+			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			if rev.nil?
 				rev = 'HEAD'
 			end
@@ -149,7 +149,7 @@ module Repo
 		# @param [String] user the Author of this change
 		# @return [Integer] status code
 		def self.do_update_file(web, path, repo, id, content, message, mime, user)
-			options = "--username=#{$environment[:repos_user]} --password=#{$environment[:repos_password]}"
+			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			status   = 500
 			`svn checkout #{options} svn://localhost/#{repo} /tmp/svn/#{repo}`
 			if $?.exitstatus == 0
@@ -170,15 +170,15 @@ module Repo
 				file = File.open(file_path, 'w+')
 				file.syswrite(content)
 				file.close
-				`svn add /tmp/svn/#{repo}`
-				`svn propset svn:mime-type #{mime} #{file_path}`
+				`svn add /tmp/svn/#{repo}/*`
+				`svn propset svn:mime-type "#{mime}" #{file_path}`
 				`svn commit #{options} -m "#{message}" /tmp/svn/#{repo}`
 				if $?.exitstatus == 0
 					status = 200
 				end
 				info = `svn info /tmp/svn/#{repo}`
 				rev  = info.match(/Last Changed Rev: (\d+)/)[1]
-				`svn propset --revprop -r #{rev} svn:author '#{user}' /tmp/svn/#{repo}`
+				`svn propset #{options} --revprop -r #{rev} svn:author '#{user}' /tmp/svn/#{repo}`
 			end
 			`rm -R /tmp/svn/#{repo}`
 			status
