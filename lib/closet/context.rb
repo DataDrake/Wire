@@ -56,7 +56,7 @@ module Wire
 		# @param [Hash] env the Rack environment
 		# @return [Hash] the updated environment
 		def update_session(env)
-			user = request.env['HTTP_REMOTE_USER']
+			user = env['HTTP_REMOTE_USER']
 			unless user.nil? or user.eql? 'nobody' or user.eql? '(null)'
 				env['rack.session']['user'] = user
 			end

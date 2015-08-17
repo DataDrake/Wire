@@ -63,7 +63,6 @@ module DB
 							end
 						end
 						if errors.length > 0
-							ap errors
 							[400, nil, errors]
 						else
 							200
@@ -84,8 +83,7 @@ module DB
 				if instance.saved?
 					200
 				else
-					ap instance.errors
-					504
+					[504,{}, instance.errors]
 				end
 			end
 		else

@@ -1,4 +1,5 @@
 require 'rack'
+require 'awesome_print'
 require_relative 'app'
 require_relative 'closet/auth'
 require_relative 'closet/context'
@@ -44,7 +45,8 @@ module Wire
 				context  = Wire::Context.new(env)
 				response = route(context)
 			rescue Exception => e
-				[400, {}, e.message]
+				$stderr.puts e.backtrace
+				response = [400, {}, e.message]
 			end
 			if response.is_a? Array
 				if response[2]

@@ -58,7 +58,7 @@ module Render
 						message = render_template(actions, context, template, result)
 					else
 						headers['Content-Type'] = result.headers[:content_type]
-						message                 = [200, headers, [result.to_str]]
+						message                 = [200, headers, result.to_str]
 					end
 				rescue RestClient::ResourceNotFound
 					message = 404
