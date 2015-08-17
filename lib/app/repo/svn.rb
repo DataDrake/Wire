@@ -157,7 +157,11 @@ module Repo
 				else
 					file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
 				end
-				file = File.open(file_path, 'w+')
+				if File.exist? file_path
+					file = File.open(file_path, 'w+')
+				else
+					file = File.new(file_path, 'w+')
+				end
 				file.syswrite(content)
 				file.close
 				`svn add #{file_path}`
