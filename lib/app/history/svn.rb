@@ -15,13 +15,14 @@ module History
 		# @param [String] id the sub-URI of the item to access
 		# @return [Hash] the history entries
 		def self.get_log(web, repo, id = nil)
+			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			if id.nil?
-				log = `svn log -v --xml 'svn://localhost/#{repo}'`
+				log = `svn log #{options} -v --xml 'svn://localhost/#{repo}'`
 			else
 				if web.nil?
-					log = `svn log -v --xml 'svn://localhost/#{repo}/#{id}'`
+					log = `svn log #{options} -v --xml 'svn://localhost/#{repo}/#{id}'`
 				else
-					log = `svn log -v --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+					log = `svn log #{options} -v --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
 				end
 			end
 			unless $?.exitstatus == 0
