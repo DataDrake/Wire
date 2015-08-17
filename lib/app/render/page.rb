@@ -18,16 +18,21 @@ module Render
 				hash = { actions: actions, context: context, content: content }
 				template[:sources].each do |k, s|
 					uri = "http://#{context.app[:remote_host]}/#{s[:uri]}"
+					go_ahead = true
 					case s[:key]
 						when :user
+							go_ahead = !context.user.nil?
 							uri += "/#{context.user}"
 						when :resource
 							uri += "/#{context.uri[2]}"
 					end
-					begin
-						temp = RestClient.get uri
-					rescue RestClient::ResourceNotFound
-						temp = nil
+					temp = nil
+					if go_ahead
+						begin
+							temp = RestClient.get uri
+						rescue RestClient::ResourceNotFound
+							temp = nil
+						end
 					end
 					hash[k] = temp
 				end
@@ -54,14 +59,16 @@ module Render
 			if resource
 				begin
 					result = forward(specific, context)
-					if template
-						message = render_template(actions, context, template, result)
-					else
-						headers['Content-Type'] = result.headers[:content_type]
-						message                 = [200, headers, result.to_str]
-					end
-				rescue RestClient::ResourceNotFound
-					message = 404
+					status = 200
+				rescue RestClient::ResourceNotFound => e
+					result = e.response
+					status = 404
+				end
+				if template
+					message = [status,{},render_template(actions, context, template, result)]
+				else
+					headers['Content-Type'] = result.headers[:content_type]
+					message                 = [status, headers, result]
 				end
 			end
 			message

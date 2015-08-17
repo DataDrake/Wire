@@ -63,6 +63,7 @@ module DB
 							end
 						end
 						if errors.length > 0
+							ap errors
 							[400, nil, errors]
 						else
 							200
