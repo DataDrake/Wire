@@ -153,14 +153,19 @@ module Repo
 			status   = 500
 			`svn checkout #{@options} svn://localhost/#{repo} /tmp/svn/#{repo}`
 			if $?.exitstatus == 0
+
 				if web.nil?
 					file_path = "/tmp/svn/#{repo}/#{id}"
 				else
-					dir_path = "/tmp/svn/#{repo}/#{web}"
+
+					file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
+					id = id.split('/')
+					id.pop
+					id = id.join('/')
+					dir_path = "/tmp/svn/#{repo}/#{web}/#{id}"
 					unless Dir.exist? dir_path
 						FileUtils.mkdir_p( dir_path )
 					end
-					file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
 				end
 
 				file = File.open(file_path, 'w+')
