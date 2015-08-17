@@ -1,5 +1,6 @@
 require_relative '../repo'
 require 'nori'
+require 'fileutils'
 
 # Force Nori to convert tag names to Symbols
 $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
@@ -155,12 +156,15 @@ module Repo
 				if web.nil?
 					file_path = "/tmp/svn/#{repo}/#{id}"
 				else
+					dir_path = "/tmp/svn/#{repo}/#{web}"
+					unless Dir.exist? dir_path
+						FileUtils.mkdir_p( dir_path )
+					end
 					file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
 				end
+
 				if File.exist? file_path
 					file = File.open(file_path, 'w+')
-				else
-					file = File.new(file_path, 'w+')
 				end
 				file.syswrite(content)
 				file.close
