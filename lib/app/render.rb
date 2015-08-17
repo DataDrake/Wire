@@ -98,22 +98,23 @@ module Render
 
 		q  = '?' + context.query_string
 		id = context.uri[3...context.uri.length].join('/')
+		headers = {referer: referer, remote_user: context.user}
 		case (method)
 			when :create
 				puts "POST: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
-				RestClient.post "http://#{host}/#{path}/#{resource}#{q}", context.body
+				RestClient.post "http://#{host}/#{path}/#{resource}#{q}", context.body, headers
 			when :update
 				puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-				RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}", context.body
+				RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}", context.body , headers
 			when :readAll
 				puts "GET: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
-				RestClient.get "http://#{host}/#{path}/#{resource}#{q}", referer: referer
+				RestClient.get "http://#{host}/#{path}/#{resource}#{q}", headers
 			when :read
 				puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-				RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}", referer: referer
+				RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}", headers
 			when :delete
 				puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-				RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}#{q}"
+				RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}#{q}" , headers
 			else
 				401
 		end
