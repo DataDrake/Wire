@@ -33,6 +33,7 @@ module Wire
 		attr_reader :action, :app, :body, :env, :json, :query,
 								:query_string, :referer, :resource, :type,
 								:uri, :user, :verb
+		attr_writer :referer
 
 		# Maps HTTP verbs to actions
 		HTTP_ACTIONS = {
@@ -71,12 +72,12 @@ module Wire
 			@user   = env['rack.session']['user']
 			@verb   = HTTP_VERBS[env['REQUEST_METHOD']]
 			@action = HTTP_ACTIONS[env['REQUEST_METHOD']]
+			@uri = env['REQUEST_URI'].split('?')[0].split('/')
 			if env['HTTP_REFERER']
 				@referer = env['HTTP_REFERER'].split('/')
 			else
-				@referer = []
+				@referer = @uri
 			end
-			@uri = env['REQUEST_URI'].split('?')[0].split('/')
 			app  = $apps[@uri[1]]
 			if app
 				@app      = app

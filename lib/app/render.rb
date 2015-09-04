@@ -94,8 +94,7 @@ module Render
 		host     = context.app[:remote_host]
 		path     = context.app[:remote_uri]
 		resource = context.uri[2]
-		referer  = context.referer.join('/')
-
+		referer = context.referer.join('/')
 		q  = '?' + context.query_string
 		id = context.uri[3...context.uri.length].join('/')
 		headers = {referer: referer, remote_user: context.user}
