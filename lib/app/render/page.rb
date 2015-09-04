@@ -21,9 +21,10 @@ module Render
 					go_ahead = true
 					case s[:key]
 						when :user
-							go_ahead = !context.user.nil?
+							go_ahead = (context.user and !context.user.empty?)
 							uri += "/#{context.user}"
 						when :resource
+							go_ahead = (context.uri[2] and !context.uri[2].empty?)
 							uri += "/#{context.uri[2]}"
 					end
 					temp = nil

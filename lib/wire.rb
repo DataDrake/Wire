@@ -24,5 +24,5 @@ end
 # @author Bryan T. Meyers
 module Wire
 	# Current version of the Wire Gem
-	VERSION = '0.1.3.4'
+	VERSION = '0.1.3.5'
 end
