@@ -176,9 +176,7 @@ module Repo
 				if $?.exitstatus == 0
 					status = 200
 				end
-				info = `svn info /tmp/svn/#{repo}`
-				rev  = info.match(/Last Changed Rev: (\d+)/)[1]
-				`svn propset #{options} --revprop -r #{rev} svn:author '#{user}' /tmp/svn/#{repo}`
+				`svn propset #{options} --revprop -r HEAD svn:author '#{user}' /tmp/svn/#{repo}`
 			end
 			`rm -R /tmp/svn/#{repo}`
 			status
