@@ -22,8 +22,8 @@ module Render
 				else
 					response
 				end
-			rescue RestClient::ResourceNotFound
-				[404, {}, $apps[404][:template][:path].render(self, locals = { actions: actions, context: context })]
+			rescue RestClient::ResourceNotFound => e
+				[404, {}, [e.response]]
 			end
 		end
 

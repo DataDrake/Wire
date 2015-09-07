@@ -11,12 +11,12 @@ module Render
 			$current_app[:errors][match] = Tilt.new(path, 1, { ugly: true })
 		end
 
-		def self.error_check(context, result)
+		def self.error_check(actions, context, result)
 			errors = context.app[:errors]
 			if errors
 				template = errors[result.first]
 				if template
-					result[2] = template.render(self, locals: {context: context, result: result})
+					result[2] = template.render(self, {actions: actions, context: context, result: result})
 				end
 			end
 			result
@@ -41,12 +41,16 @@ module Render
 				if result.is_a? Fixnum
 					result = [result,{},[]]
 				else
-					result = [result.code,result.headers,[result.to_str]]
+					headers = {}
+					result.headers.each do |k,v|
+						headers[k.to_s.capitalize] = v
+					end
+					result = [result.code,headers,[result.to_s]]
 				end
 			rescue RestClient::ResourceNotFound => e
-				result = [404,{},e.to_str]
+				result = [404,{},e.to_s]
 			end
-			error_check(context, result)
+			error_check(actions, context, result)
 		end
 	end
 end
