@@ -45,9 +45,9 @@ module Wire
 				context  = Wire::Context.new(env)
 				response = route(context)
 			rescue Exception => e
-				$stderr.$stderr.puts e.message
-				$stderr.$stderr.puts e.backtrace
-				response = [400, {}, e.message]
+				$stderr.puts e.message
+				$stderr.puts e.backtrace
+				response = [500, {}, e.message]
 			end
 			if response.is_a? Array
 				if response[2]
