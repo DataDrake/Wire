@@ -45,7 +45,8 @@ module Wire
 				context  = Wire::Context.new(env)
 				response = route(context)
 			rescue Exception => e
-				$stderr.puts e.backtrace
+				$stderr.$stderr.puts e.message
+				$stderr.$stderr.puts e.backtrace
 				response = [400, {}, e.message]
 			end
 			if response.is_a? Array
@@ -69,31 +70,35 @@ module Wire
 		# @return [Wire::Closet] the configured Closet
 		def self.build(&block)
 			closet = Wire::Closet.new
-			puts 'Starting Up Wire...'
-			puts 'Starting Apps...'
+			if ENV['RACK_ENV'].eql? 'development'
+				$stderr.puts 'Starting Up Wire...'
+				$stderr.puts 'Starting Apps...'
+			end
 			Docile.dsl_eval(closet, &block)
-			closet.info
+			if ENV['RACK_ENV'].eql? 'development'
+				closet.info
+			end
 			closet
 		end
 
 		# Print out a human-readable configuration
 		# @return [void]
 		def info
-			puts "Apps:\n"
+			$stderr.puts "Apps:\n"
 			$apps.each do |app, config|
-				puts "\u{2502}"
-				puts "\u{251c} Name: #{app}"
+				$stderr.puts "\u{2502}"
+				$stderr.puts "\u{251c} Name: #{app}"
 				if config[:auth]
-					puts "\u{2502}\t\u{251c} Auth:"
+					$stderr.puts "\u{2502}\t\u{251c} Auth:"
 					if config[:auth][:level] == :app
-						puts "\u{2502}\t\u{2502}\t\u{251c} Level:\t#{config[:auth][:level]}"
-						puts "\u{2502}\t\u{2502}\t\u{2514} Handler:\t#{config[:auth][:handler]}"
+						$stderr.puts "\u{2502}\t\u{2502}\t\u{251c} Level:\t#{config[:auth][:level]}"
+						$stderr.puts "\u{2502}\t\u{2502}\t\u{2514} Handler:\t#{config[:auth][:handler]}"
 					else
-						puts "\u{2502}\t\u{2502}\t\u{2514} Level:\t#{config[:auth][:level]}"
+						$stderr.puts "\u{2502}\t\u{2502}\t\u{2514} Level:\t#{config[:auth][:level]}"
 					end
 				end
 				if config[:type]
-					puts "\u{2502}\t\u{2514} Type: #{config[:type]}"
+					$stderr.puts "\u{2502}\t\u{2514} Type: #{config[:type]}"
 				end
 			end
 		end

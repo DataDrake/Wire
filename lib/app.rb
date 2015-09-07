@@ -12,8 +12,10 @@ module Wire
 			$current_uri    = base_uri
 			$apps[base_uri] = { type: type, resources: {} }
 			$current_app    = $apps[base_uri]
-			puts "Starting App at: /#{base_uri}"
-			puts 'Setting up resources...'
+			if ENV['RACK_ENV'].eql? 'development'
+				$stderr.puts "Starting App at: /#{base_uri}"
+				$stderr.puts 'Setting up resources...'
+			end
 			Docile.dsl_eval(type, &block)
 		end
 	end

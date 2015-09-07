@@ -11,7 +11,9 @@ module Wire
 		def resource(uri, &block)
 			$current_app[:resources][uri] = {}
 			$current_resource             = $current_app[:resources][uri]
-			puts "Starting Resource At: /#{$current_uri + '/' + uri}"
+			if ENV['RACK_ENV'].eql? 'development'
+				$stderr.puts "Starting Resource At: /#{$current_uri + '/' + uri}"
+			end
 			Docile.dsl_eval(self, &block)
 		end
 	end
