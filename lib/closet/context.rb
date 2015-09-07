@@ -76,7 +76,7 @@ module Wire
 			if env['HTTP_REFERER']
 				@referer = env['HTTP_REFERER'].split('/')
 			else
-				@referer = @uri
+				@referer = [ 'http:' , '' , env['HTTP_HOST']].concat(@uri[1...@uri.length])
 			end
 			app  = $apps[@uri[1]]
 			if app
