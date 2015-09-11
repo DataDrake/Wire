@@ -19,6 +19,8 @@ module Wire
 						actions = [:create, :read, :readAll, :update, :delete]
 					when :app
 						actions = auth[:handler].actions_allowed(context)
+					when :read_only
+						actions = [:read,:readAll]
 					when :user
 						if user == auth[:user]
 							actions = [:create, :read, :readAll, :update, :delete]
