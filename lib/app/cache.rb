@@ -1,3 +1,6 @@
+require_relative '../app'
+require_relative '../closet/resource'
+
 module Cache
 	module Memory
 		include Wire::App
