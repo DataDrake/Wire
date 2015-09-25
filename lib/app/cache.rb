@@ -1,5 +1,6 @@
 require_relative '../app'
 require_relative '../closet/resource'
+require_relative '../app/render'
 
 module Cache
 	module Memory
