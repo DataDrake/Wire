@@ -21,6 +21,7 @@ module Wire
 	end
 end
 
+require_relative 'app/cache'
 require_relative 'app/db'
 require_relative 'app/file'
 require_relative 'app/login'
