@@ -55,7 +55,7 @@ module Cache
 
 			# Create Cache if not set up
 			unless $cache[context.app[:remote_uri]]
-				$cache[context.app[:remote_uri]] = LMDB.new("/tmp/cache/#{context.app[:remote_uri]}")
+				$cache[context.app[:remote_uri]] = LMDB.new("/tmp/cache/#{context.app[:remote_uri]}", mapsize: 2^30)
 			end
 
 			begin
