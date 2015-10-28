@@ -66,7 +66,6 @@ module Cache
 					result
 				when :read,:readAll
 					cached = get_cached(context)
-					ap cached
 					unless cached
 						cached = update_cache(context)
 					end
