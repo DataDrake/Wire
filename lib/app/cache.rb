@@ -12,7 +12,7 @@ module Cache
 
 		$cache = {}
 
-		def self.update_cache(context)
+		def self.update_cached(context)
 			uri = context.uri.join('/')
 			all = context.uri[0..3].join('/')
 			env = $cache[context.app[:remote_uri]]
@@ -51,6 +51,21 @@ module Cache
 			result
 		end
 
+		def self.purge_cached(context)
+			uri = context.uri.join('/')
+			env = $cache[context.app[:remote_uri]]
+			db = env.database
+			result = 200
+			env.transaction do
+				begin
+					db.destroy(uri)
+				rescue
+					result = 404
+				end
+			end
+			result
+		end
+
 		def self.invoke(actions,context)
 
 			# Create Cache if not set up
@@ -60,14 +75,16 @@ module Cache
 
 			begin
 			case context.action
-				when :create,:update,:delete
+				when :create,:update
 					result = forward(context.action,context)
-					update_cache(context) # write aware
+					update_cached(context) # write aware
 					result
+				when :delete
+					purge_cached(context)
 				when :read,:readAll
 					cached = get_cached(context)
 					unless cached
-						cached = update_cache(context)
+						cached = update_cached(context)
 					end
 					if cached
 						cached
