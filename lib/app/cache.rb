@@ -31,7 +31,12 @@ module Cache
 					result = forward(:readAll,context)
 				end
 				env.transaction do
-					db[uri] = result
+					if context.action == :delete
+						db.destroy(uri)
+					else
+						db[uri] = result
+					end
+
 				end
 			rescue RestClient::ResourceNotFound
 				# gracefully ignore
@@ -76,14 +81,10 @@ module Cache
 
 			begin
 			case context.action
-				when :create,:update
+				when :create,:update,:delete
 					result = forward(context.action,context)
 					update_cached(context) # write aware
 					result
-				when :delete
-					forward(context.action,context)
-					purge_cached(context)
-					update_cached(context)
 				when :read,:readAll
 					cached = get_cached(context)
 					unless cached
