@@ -42,6 +42,7 @@ module Cache
 
 		def self.get_cached(context)
 			uri = context.uri.join('/')
+
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
 			result = nil
@@ -53,8 +54,13 @@ module Cache
 
 		def self.purge_cached(context)
 			uri = context.uri.join('/')
+			all = context.uri[0..3].join('/')
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
+			result = forward(:readAll,context)
+			env.transaction do
+				db[all] = result
+			end
 			result = 200
 			env.transaction do
 				begin
