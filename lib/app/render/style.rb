@@ -24,7 +24,7 @@ module Render
 			begin
 				resource = context.uri[2]
 				template = context.app[:styles][resource]
-				headers  = {}
+				headers  = {'Cache-Control' => 'public,max-age=3600'}
 				if template
 					headers['Content-Type'] = 'text/css'
 					[200, headers, [template]]

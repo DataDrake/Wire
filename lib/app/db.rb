@@ -150,6 +150,23 @@ module DB
 		end
 	end
 
+	# Remove a specific object from the DB table
+	# @param [Hash] context the context for this request
+	# @return [Response] an object, or status code
+	def self.do_delete(context)
+		return 404 unless context.resource
+		model = context.resource[:model]
+		id    = context.uri[3]
+		if model
+			instance = model.get(id)
+			if instance
+				instance.destroy
+			end
+		else
+			404
+		end
+	end
+
 	# Proxy method used when routing
 	# @param [Array] actions the allowed actions for this URI
 	# @param [Hash] context the context for this request
@@ -166,6 +183,8 @@ module DB
 				end
 			when :update
 				do_update(context)
+			when :delete
+				do_delete(context)
 			else
 				403
 		end

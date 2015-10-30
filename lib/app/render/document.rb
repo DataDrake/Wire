@@ -43,6 +43,8 @@ module Render
 					end
 				when :update
 					forward(:update, context)
+				when :delete
+					forward(:delete, context)
 				else
 					405
 			end
