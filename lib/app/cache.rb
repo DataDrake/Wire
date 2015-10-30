@@ -18,13 +18,7 @@ module Cache
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
 			begin
-				if [:create,:update,:delete].include? context.action
-						result = forward(:readAll,context)
-						env.transaction do
-							db[all] = result
-						end
-						result = nil
-				end
+
 				if context.uri[3]
 					result = forward(:read,context)
 				else
@@ -36,7 +30,13 @@ module Cache
 					else
 						db[uri] = result
 					end
+				end
 
+				if [:create,:update,:delete].include? context.action
+					thing = forward(:readAll,context)
+					env.transaction do
+						db[all] = thing
+					end
 				end
 			rescue RestClient::ResourceNotFound
 				# gracefully ignore
