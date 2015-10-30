@@ -80,6 +80,7 @@ module Cache
 					update_cached(context) # write aware
 					result
 				when :delete
+					forward(context.action,context)
 					purge_cached(context)
 				when :read,:readAll
 					cached = get_cached(context)
