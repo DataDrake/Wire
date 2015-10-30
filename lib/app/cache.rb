@@ -35,7 +35,7 @@ module Cache
 				end
 			rescue RestClient::ResourceNotFound
 				# gracefully ignore
-				result = nil
+				result = 404
 			end
 			result
 		end
@@ -54,13 +54,8 @@ module Cache
 
 		def self.purge_cached(context)
 			uri = context.uri.join('/')
-			all = context.uri[0..3].join('/')
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
-			result = forward(:readAll,context)
-			env.transaction do
-				db[all] = result
-			end
 			result = 200
 			env.transaction do
 				begin
@@ -88,6 +83,7 @@ module Cache
 				when :delete
 					forward(context.action,context)
 					purge_cached(context)
+					update_cached(context)
 				when :read,:readAll
 					cached = get_cached(context)
 					unless cached
