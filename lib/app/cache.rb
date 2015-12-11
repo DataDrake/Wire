@@ -14,7 +14,7 @@ module Cache
 
 		def self.update_cached(context)
 			uri = context.uri.join('/')
-			all = context.uri[0..3].join('/')
+			all = context.uri[0..2].join('/')
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
 			begin
@@ -24,7 +24,7 @@ module Cache
 				else
 					result = forward(:readAll,context)
 				end
-				if result.code == 200
+				if (result != nil) and (result.code == 200)
 					env.transaction do
 						if context.action == :delete
 							db.destroy(uri)
@@ -36,7 +36,7 @@ module Cache
 				if [:create,:update,:delete].include? context.action
 					thing = forward(:readAll,context)
 				end
-				if thing.code == 200
+				if (thing != nil) and (thing.code == 200)
 					env.transaction do
 						db[all] = thing
 					end
