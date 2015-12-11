@@ -24,16 +24,19 @@ module Cache
 				else
 					result = forward(:readAll,context)
 				end
-				env.transaction do
-					if context.action == :delete
-						db.destroy(uri)
-					else
-						db[uri] = result
+				if result.code == 200
+					env.transaction do
+						if context.action == :delete
+							db.destroy(uri)
+						else
+							db[uri] = result
+						end
 					end
 				end
-
 				if [:create,:update,:delete].include? context.action
 					thing = forward(:readAll,context)
+				end
+				if thing.code == 200
 					env.transaction do
 						db[all] = thing
 					end
