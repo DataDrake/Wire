@@ -24,6 +24,9 @@ module Cache
 				else
 					result = forward(:readAll,context)
 				end
+			rescue RestClient::ResourceNotFound
+				result = nil
+			end
 				if (result != nil) and (result.code == 200)
 					env.transaction do
 						if context.action == :delete
@@ -33,6 +36,7 @@ module Cache
 						end
 					end
 				end
+			begin
 				if [:create,:update,:delete].include? context.action
 					thing = forward(:readAll,context)
 				end
