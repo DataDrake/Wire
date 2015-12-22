@@ -16,18 +16,13 @@ module History
 		# @return [Hash] the history entries
 		def self.get_log(web, repo, id = nil)
 			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
-			if id.nil?
-				log = `svn log #{options} -v --xml 'svn://localhost/#{repo}'`
-			else
-				if web.nil?
-					log = `svn log #{options} -v --xml 'svn://localhost/#{repo}/#{id}'`
-				else
-					log = `svn log #{options} -v --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
-				end
+			uri = "svn://localhost/#{repo}"
+			if id
+				uri += "/#{web}" if web
+				uri += "/#{id}"
 			end
-			unless $?.exitstatus == 0
-				return 404
-			end
+			log = `svn log #{options} -v --xml '#{uri}'`
+			return 404 if $?.exitstatus != 0
 			log = CobraVsMongoose.xml_to_hash(log)
 			log['log']['logentry']
 		end

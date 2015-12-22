@@ -29,16 +29,16 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read_all(actions, context)
 			resource = context.uri[2]
-				mime = ''
-				body = ''
-				if context.resource[:forward]
-					response = forward(:readAll, context)
-					mime     = response[1][:content_type]
-					body     = response[2]
-				else
-					body = 401
-				end
-				template = context.resource[:multiple]
+			body = ''
+			mime = ''
+			if context.resource[:forward]
+				response = forward(:readAll, context)
+				return response if response[0] != 200
+				mime     = response[1][:content_type]
+				body     = response[2]
+			end
+			template = context.resource[:multiple]
+			if template
 				hash     = { actions: actions, resource: resource, mime: mime, response: body }
 				if context.resource[:sources]
 					context.resource[:sources].each do |k, v|
@@ -46,11 +46,9 @@ module Render
 					end
 				end
 				mime = 'text/html'
-				if template
-					[200, { 'Content-Type' => mime }, [template.render(self, hash)]]
-				else
-					[200, { 'Content-Type' => mime }, [body]]
-				end
+				body = template.render(self,hash)
+			end
+			[200,{'Content-Type' => mime },body]
 		end
 
 		# Read a Partial and render it to HTML
@@ -58,24 +56,29 @@ module Render
 		# @param [Hash] context the context for this request
 		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read(actions, context)
-			app      = context.app[:uri]
+			app      = context.uri[1]
 			resource = context.uri[2]
-			response = forward(:read, context)
-			return response if response[0] != 200
-			mime     = response[1][:content_type]
-			template = context.resource[:single]
 			id       = context.uri[3...context.uri.length].join('/')
-			hash     = { actions: actions, app: app, id: id, resource: resource, mime: mime, response: response[2] }
-			if context.resource[:sources]
-				context.resource[:sources].each do |k, v|
-					hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
-				end
+			body = ''
+			mime = ''
+			if context.resource[:forward]
+				response = forward(:read, context)
+				return response if response[0] != 200
+				mime     = response[1][:content_type]
+				body     = response[2]
 			end
+			template = context.resource[:single]
 			if template
-				[200, { 'Content-Type' => 'text/html' }, [template.render(self, hash)]]
-			else
-				[200, { 'Content-Type' => 'text/plain' }, [response[2]]]
+				hash     = { actions: actions, app: app, resource: resource, id: id, mime: mime, response: body }
+				if context.resource[:sources]
+					context.resource[:sources].each do |k, v|
+						hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
+					end
+				end
+				mime = 'text/html'
+				body = template.render(self,hash)
 			end
+			[200,{'Content-Type' => mime },body]
 		end
 
 		# Proxy method used when routing

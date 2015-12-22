@@ -16,14 +16,12 @@ module Render
 			query    = context.query
 			id       = context.uri[3...context.uri.length].join('/')
 			response = forward(:read, context)
-			mime     = response[1][:content_type]
+			return response if response[0] != 200
 			body     = response[2]
-			if response[0] == 404
-				if query[:type]
-					mime = query[:type]
-				else
-					return [404, {}, 'EDITOR: Document type not set for new document']
-				end
+			if query[:type]
+				mime = query[:type]
+			else
+				return [404, {}, 'EDITOR: Document type not set for new document']
 			end
 			template = $editors[mime]
 			if template

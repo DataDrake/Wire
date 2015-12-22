@@ -29,13 +29,9 @@ module Render
 					end
 					temp = nil
 					if go_ahead
-						begin
-							temp = RestClient.get uri
-						rescue RestClient::ResourceNotFound
-							temp = nil
-						end
+							temp = RL.request(:get, uri)
 					end
-					hash[k] = temp
+					hash[k] = temp[2]
 				end
 				message = template[:path].render(self, hash)
 				if template[:use_layout]
@@ -53,26 +49,20 @@ module Render
 		# @param [Symbol] specific the kind of read to perform
 		# @return [Response] a Rack Response triplet, or status code
 		def do_read(actions, context, specific)
-			template = context.app[:template]
 			resource = context.uri[2]
-			message  = 'Resource not specified'
-			headers  = {}
 			if resource
-				begin
-					result = forward(specific, context)
-					status = 200
-				rescue RestClient::ResourceNotFound => e
-					result = e.response
-					status = 404
-				end
+				result = forward(specific, context)
+				template = context.app[:template]
 				if template
-					message = [status,{},render_template(actions, context, template, result)]
+					result[1]['Content-Type'] = 'text/html'
+					result[2] = render_template(actions, context, template, result)
 				else
-					headers['Content-Type'] = result.headers[:content_type]
-					message                 = [status, headers, result]
+					result
 				end
+			else
+				result = [401,{},'Resource not specified']
 			end
-			message
+			result
 		end
 
 		# Proxy method used when routing
@@ -81,18 +71,14 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
-				when :create
-					forward(:create, context)
+				when :create,:update,:delete
+					forward(context.action, context)
 				when :read
 					if context.uri[3]
 						do_read(actions, context, :read)
 					else
 						do_read(actions, context, :readAll)
 					end
-				when :update
-					forward(:update, context)
-				when :delete
-					forward(:delete, context)
 				else
 					405
 			end
