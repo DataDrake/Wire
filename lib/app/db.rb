@@ -116,7 +116,7 @@ module DB
 				end
 			end
 			hash << ']'
-			hash
+			[200,{},hash]
 		else
 			404
 		end
@@ -135,10 +135,10 @@ module DB
 		if model
 			object = model.get(id)
 			if object
-				return object.to_json
+				return [200,{},object.to_json]
 			end
 		end
-		404
+		[404,{},[]]
 	end
 
 	# Update a specific object in the DB table

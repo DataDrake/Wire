@@ -85,11 +85,9 @@ module Cache
 					unless cached
 						cached = update_cached(context)
 					end
-					if cached
-						[200,{},cached]
-					else
-						404
-					end
+					cached
+				else
+					403
 			end
 		end
 	end

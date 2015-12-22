@@ -29,9 +29,9 @@ module Render
 					end
 					temp = nil
 					if go_ahead
-							temp = RL.request(:get, uri)[2]
+							temp = RL.request(:get, uri)
 					end
-					hash[k] = temp
+					hash[k] = (temp[0] == 200) ? temp[2] : nil
 				end
 				message = template[:path].render(self, hash)
 				if template[:use_layout]
@@ -55,7 +55,7 @@ module Render
 				template = context.app[:template]
 				if template
 					result[1]['Content-Type'] = 'text/html'
-					result[2] = render_template(actions, context, template, result)
+					result[2] = render_template(actions, context, template, result[2])
 				end
 			else
 				result = [401,{},'Resource not specified']

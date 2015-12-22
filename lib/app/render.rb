@@ -109,7 +109,7 @@ module Render
 		headers = {referer: referer, remote_user: context.user}
 		verb = CONVERT[method]
 		uri = "http://#{host}/#{path}/#{resource}"
-		uri += id if [:update,:get,:delete].include?( method )
+		uri += "/#{id}" if [:update,:read,:delete].include?( method )
 		uri += q
 		body = [:create,:update].include?(method) ? context.body : nil
 		$stderr.puts "#{verb.upcase}: Forward Request to #{uri}"
