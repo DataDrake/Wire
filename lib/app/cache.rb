@@ -17,44 +17,33 @@ module Cache
 			all = context.uri[0..2].join('/')
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
-			begin
-
-				if context.uri[3]
-					result = forward(:read,context)
-				else
-					result = forward(:readAll,context)
-				end
-			rescue RestClient::ResourceNotFound
-				result = nil
+			if context.uri[3]
+				result = forward(:read,context)
+			else
+				result = forward(:readAll,context)
 			end
-				if (result != nil) and (result.code == 200)
-					env.transaction do
-						if context.action == :delete
-							db.destroy(uri)
-						else
-							db[uri] = result
-						end
+			if result[0] == 200
+				env.transaction do
+					if context.action == :delete
+						db.destroy(uri)
+					else
+						db[uri] = result[2]
 					end
 				end
-			begin
-				if [:create,:update,:delete].include? context.action
-					thing = forward(:readAll,context)
-				end
-				if (thing != nil) and (thing.code == 200)
+			end
+			if [:create,:update,:delete].include? context.action
+				thing = forward(:readAll,context)
+				if thing[0] == 200
 					env.transaction do
-						db[all] = thing
+						db[all] = thing[2]
 					end
 				end
-			rescue RestClient::ResourceNotFound
-				# gracefully ignore
-				result = 404
 			end
 			result
 		end
 
 		def self.get_cached(context)
 			uri = context.uri.join('/')
-
 			env = $cache[context.app[:remote_uri]]
 			db = env.database
 			result = nil
@@ -86,7 +75,6 @@ module Cache
 				$cache[context.app[:remote_uri]] = LMDB.new("/tmp/cache/#{context.app[:remote_uri]}", mapsize: 2**30)
 			end
 
-			begin
 			case context.action
 				when :create,:update,:delete
 					result = forward(context.action,context)
@@ -98,13 +86,10 @@ module Cache
 						cached = update_cached(context)
 					end
 					if cached
-						cached
+						[200,{},cached]
 					else
 						404
 					end
-			end
-			rescue RestClient::ResourceNotFound
-				404
 			end
 		end
 	end

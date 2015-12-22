@@ -1,3 +1,4 @@
+require 'data_objects'
 require 'dm-serializer/to_json'
 require_relative '../app'
 require_relative '../closet/resource'
@@ -63,7 +64,6 @@ module DB
 							end
 						end
 						if errors.length > 0
-							ap errors
 							[400, nil, errors]
 						else
 							200
@@ -79,12 +79,21 @@ module DB
 				if model.instance_methods.include?(:created_by)
 					context.json[:created_by] = context.user
 				end
-				instance = model.create(context.json)
-				instance.save
-				if instance.saved?
-					200
-				else
-					[504,{}, instance.errors]
+				begin
+					instance = model.create(context.json)
+					instance.save
+					if instance.saved?
+						200
+					else
+						[504,{}, instance.errors]
+					end
+				rescue => e
+					case e.class
+						when DataObjects::IntegrityError.class
+							[400,{},e.message]
+						else
+							[500,{},e.message]
+					end
 				end
 			end
 		else

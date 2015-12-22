@@ -1,6 +1,6 @@
 require 'nokogiri'
-require 'rest-client'
 require 'awesome_print'
+require 'rest-less'
 require 'docile'
 require 'tilt'
 require 'json'
@@ -87,6 +87,14 @@ module Render
 		single(template)
 	end
 
+	CONVERT = {
+			create: :post,
+			read: :get,
+			readAll: :get,
+			update: :put,
+			delete: :delete
+	}
+
 	# Proxy method used when forwarding requests
 	# @param [Symbol] method the action to use when forwarding
 	# @param [Hash] context the context for this request
@@ -99,24 +107,12 @@ module Render
 		q  = '?' + context.query_string
 		id = context.uri[3...context.uri.length].join('/')
 		headers = {referer: referer, remote_user: context.user}
-		case (method)
-			when :create
-				$stderr.puts "POST: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
-				RestClient.post "http://#{host}/#{path}/#{resource}#{q}", context.body, headers
-			when :update
-				$stderr.puts "PUT: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-				RestClient.put "http://#{host}/#{path}/#{resource}/#{id}#{q}", context.body , headers
-			when :readAll
-				$stderr.puts "GET: Forward Request to https://#{host}/#{path}/#{resource}#{q}"
-				RestClient.get "http://#{host}/#{path}/#{resource}#{q}", headers
-			when :read
-				$stderr.puts "GET: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-				RestClient.get "http://#{host}/#{path}/#{resource}/#{id}#{q}", headers
-			when :delete
-				$stderr.puts "DELETE: Forward Request to https://#{host}/#{path}/#{resource}/#{id}#{q}"
-				RestClient.delete "http://#{host}/#{path}/#{resource}/#{id}#{q}" , headers
-			else
-				401
-		end
+		verb = CONVERT[method]
+		uri = "http://#{host}/#{path}/#{resource}"
+		uri += id if [:update,:get,:delete].include?( method )
+		uri += q
+		body = [:create,:update].include?(method) ? context.body : nil
+		$stderr.puts "#{verb.upcase}: Forward Request to #{uri}"
+		RL.request verb, uri, headers, body
 	end
 end

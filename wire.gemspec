@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'nokogiri'
   s.add_runtime_dependency 'nori'
   s.add_runtime_dependency 'rack'
-  s.add_runtime_dependency 'rest-client'
+  s.add_runtime_dependency 'rest-less'
   s.add_runtime_dependency 'tilt'
   s.add_runtime_dependency 'wiki-this'
 end

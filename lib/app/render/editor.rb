@@ -15,12 +15,10 @@ module Render
 			resource = context.uri[2]
 			query    = context.query
 			id       = context.uri[3...context.uri.length].join('/')
-			body     = ''
-			begin
-				response = forward(:read, context)
-				mime     = response.headers[:content_type]
-				body     = response.body
-			rescue RestClient::ResourceNotFound
+			response = forward(:read, context)
+			mime     = response[1][:content_type]
+			body     = response[2]
+			if response[0] == 404
 				if query[:type]
 					mime = query[:type]
 				else
@@ -41,12 +39,10 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
-				when :create
-					forward(:create, context)
+				when :create,:update
+					forward(context.action, context)
 				when :read
 					do_read(actions, context)
-				when :update
-					forward(:update, context)
 				else
 					405
 			end

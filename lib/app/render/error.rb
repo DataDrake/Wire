@@ -14,7 +14,7 @@ module Render
 		def self.error_check(actions, context, result)
 			errors = context.app[:errors]
 			if errors
-				template = errors[result.first]
+				template = errors[result[0]]
 				if template
 					result[2] = template.render(self, {actions: actions, context: context, result: result})
 				end
@@ -23,32 +23,17 @@ module Render
 		end
 
 		def self.invoke(actions, context)
-			begin
-				case context.action
-					when :create
-						result = forward(:create, context)
-					when :read
-						if context.uri[3]
-							result = forward(:read, context)
-						else
-							result = forward(:readAll, context)
-						end
-					when :update
-						result = forward(:update, context)
+			case context.action
+				when :create,:update
+					result = forward(context.action, context)
+				when :read
+					if context.uri[3]
+						result = forward(:read, context)
 					else
-						result = 405
-				end
-				if result.is_a? Fixnum
-					result = [result,{},[]]
-				else
-					headers = {}
-					result.headers.each do |k,v|
-						headers[k.to_s.capitalize] = v
+						result = forward(:readAll, context)
 					end
-					result = [result.code,headers,[result.to_s]]
-				end
-			rescue RestClient::ResourceNotFound => e
-				result = [404,{},e.to_s]
+				else
+					result = 405
 			end
 			error_check(actions, context, result)
 		end

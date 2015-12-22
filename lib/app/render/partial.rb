@@ -29,22 +29,20 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read_all(actions, context)
 			resource = context.uri[2]
-			begin
 				mime = ''
 				body = ''
 				if context.resource[:forward]
 					response = forward(:readAll, context)
-					mime     = response.headers[:content_type]
-					body     = response.body
+					mime     = response[1][:content_type]
+					body     = response[2]
 				else
 					body = 401
 				end
-
 				template = context.resource[:multiple]
 				hash     = { actions: actions, resource: resource, mime: mime, response: body }
 				if context.resource[:sources]
 					context.resource[:sources].each do |k, v|
-						hash[k] = RestClient.get("http://#{context.app[:remote_host]}/#{v}")
+						hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
 					end
 				end
 				mime = 'text/html'
@@ -53,9 +51,6 @@ module Render
 				else
 					[200, { 'Content-Type' => mime }, [body]]
 				end
-			rescue RestClient::ResourceNotFound
-				404
-			end
 		end
 
 		# Read a Partial and render it to HTML
@@ -65,24 +60,21 @@ module Render
 		def self.do_read(actions, context)
 			app      = context.app[:uri]
 			resource = context.uri[2]
-			begin
-				response = forward(:read, context)
-				mime     = response.headers[:content_type]
-				template = context.resource[:single]
-				id       = context.uri[3...context.uri.length].join('/')
-				hash     = { actions: actions, app: app, id: id, resource: resource, mime: mime, response: response.body }
-				if context.resource[:sources]
-					context.resource[:sources].each do |k, v|
-						hash[k] = RestClient.get("http://#{context.app[:remote_host]}/#{v}")
-					end
+			response = forward(:read, context)
+			return response if response[0] != 200
+			mime     = response[1][:content_type]
+			template = context.resource[:single]
+			id       = context.uri[3...context.uri.length].join('/')
+			hash     = { actions: actions, app: app, id: id, resource: resource, mime: mime, response: response[2] }
+			if context.resource[:sources]
+				context.resource[:sources].each do |k, v|
+					hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
 				end
-				if template
-					[200, { 'Content-Type' => 'text/html' }, [template.render(self, hash)]]
-				else
-					[200, { 'Content-Type' => 'text/plain' }, [response.body]]
-				end
-			rescue RestClient::ResourceNotFound
-				404
+			end
+			if template
+				[200, { 'Content-Type' => 'text/html' }, [template.render(self, hash)]]
+			else
+				[200, { 'Content-Type' => 'text/plain' }, [response[2]]]
 			end
 		end
 
@@ -92,18 +84,14 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
-				when :create
-					forward(:create, context)
+				when :create,:update,:delete
+					forward(context.action, context)
 				when :read
 					if context.uri[3]
 						do_read(actions, context)
 					else
 						do_read_all(actions, context)
 					end
-				when :update
-					forward(:update, context)
-				when :delete
-					forward(:delete, context)
 				else
 					403
 			end

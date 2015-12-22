@@ -12,18 +12,14 @@ module Render
 		# @param [Symbol] specific the type of read to perform
 		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read(actions, context, specific)
-			begin
-				response = forward(specific, context)
-				mime     = response.headers[:content_type]
-				renderer = $renderers[mime]
-				if renderer
-					template = $templates[renderer]
-					template.render(self, { actions: actions, context: context, mime: mime, response: response.body })
-				else
-					response
-				end
-			rescue RestClient::ResourceNotFound => e
-				[404, {}, [e.response]]
+			response = forward(specific, context)
+			mime     = response[1][:content_type]
+			renderer = $renderers[mime]
+			if renderer
+				template = $templates[renderer]
+				template.render(self, { actions: actions, context: context, mime: mime, response: response[2] })
+			else
+				response
 			end
 		end
 
@@ -33,18 +29,14 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.invoke(actions, context)
 			case context.action
-				when :create
-					forward(:create, context)
+				when :create,:update,:delete
+					forward(context.action, context)
 				when :read
 					if context.uri[3]
 						do_read(actions, context, :read)
 					else
 						do_read(actions, context, :readAll)
 					end
-				when :update
-					forward(:update, context)
-				when :delete
-					forward(:delete, context)
 				else
 					405
 			end
