@@ -42,7 +42,10 @@ module Render
 				hash     = { actions: actions, resource: resource, mime: mime, response: body }
 				if context.resource[:sources]
 					context.resource[:sources].each do |k, v|
-						hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
+						hash[k] = RL.request(:get,
+																 "http://#{context.app[:remote_host]}/#{v}",
+																 {remote_user: context.user}
+						)[2]
 					end
 				end
 				mime = 'text/html'

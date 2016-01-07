@@ -27,9 +27,9 @@ module Render
 							go_ahead = (context.uri[2] and !context.uri[2].empty?)
 							uri += "/#{context.uri[2]}"
 					end
-					temp = nil
+					temp = []
 					if go_ahead
-							temp = RL.request(:get, uri)
+							temp = RL.request(:get, uri, {remote_user: context.user})
 					end
 					hash[k] = (temp[0] == 200) ? temp[2] : nil
 				end

@@ -13,7 +13,7 @@ module Render
 		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read(actions, context, specific)
 			response = forward(specific, context)
-			mime     = response[1][:content_type]
+			mime     = response[1]['Content-Type']
 			renderer = $renderers[mime]
 			if renderer
 				template = $templates[renderer]

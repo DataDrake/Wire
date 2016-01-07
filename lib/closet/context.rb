@@ -58,9 +58,10 @@ module Wire
 		# @return [Hash] the updated environment
 		def update_session(env)
 			user = env['HTTP_REMOTE_USER']
-			unless user.nil? or user.eql? 'nobody' or user.eql? '(null)'
+			unless user.nil? or user.empty? or user.eql? 'nobody' or user.eql? '(null)'
 				env['rack.session']['user'] = user
 			end
+			env['REMOTE_USER'] = env['rack.session']['user'] ? env['rack.session']['user'] : nil
 			env
 		end
 
