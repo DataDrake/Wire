@@ -25,7 +25,7 @@ module Cache
 			if result[0] == 200
 				env.transaction do
 					if context.action == :delete
-						db.destroy(uri)
+						db.delete(uri)
 					else
 						db[uri] = result[2]
 					end
@@ -60,7 +60,7 @@ module Cache
 			result = 200
 			env.transaction do
 				begin
-					db.destroy(uri)
+					db.delete(uri)
 				rescue
 					result = 404
 				end
