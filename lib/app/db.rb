@@ -172,6 +172,8 @@ module DB
 			instance = model.get(id)
 			if instance
 				instance.destroy
+			else
+				404
 			end
 		else
 			404
