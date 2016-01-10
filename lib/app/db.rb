@@ -85,7 +85,9 @@ module DB
 					if instance.saved?
 						200
 					else
-						[504,{}, instance.errors]
+						errors = ''
+						instance.errors.each { |e| errors += "#{e.to_s}\n"}
+						[504,{}, errors]
 					end
 				rescue => e
 					case e.class
@@ -153,7 +155,7 @@ module DB
 				context.json[:updated_by] = context.user
 			end
 			instance = model.get(id)
-			instance.update(context.json) ? 200 : 500
+			instance.update(context.json)
 		else
 			404
 		end
