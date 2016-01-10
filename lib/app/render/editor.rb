@@ -16,8 +16,7 @@ module Render
 			query    = context.query
 			id       = context.uri[3...context.uri.length].join('/')
 			response = forward(:read, context)
-			return response if response[0] != 200
-			body     = response[2]
+			body     = (response[0] == 200 ) ? response[2] : ''
 			if query[:type]
 				mime = query[:type]
 			else
