@@ -19,6 +19,8 @@ module Render
 			body     = (response[0] == 200 ) ? response[2] : ''
 			if query[:type]
 				mime = query[:type]
+			elsif response[1]['content-type']
+				mime = response[1]['content-type']
 			else
 				return [404, {}, 'EDITOR: Document type not set for new document']
 			end
