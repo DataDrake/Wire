@@ -171,7 +171,11 @@ module DB
 		if model
 			instance = model.get(id)
 			if instance
-				instance.destroy
+				if instance.destroy
+					200
+				else
+					[500,{},'Failed to delete instance']
+				end
 			else
 				404
 			end
