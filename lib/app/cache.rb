@@ -22,10 +22,12 @@ module Cache
 			else
 				result = forward(:readAll,context)
 			end
-			if (result[0] == 200)
+			if result[0] == 200
 				env.transaction do
 					if context.action == :delete
-						db.delete(uri)
+						if db[uri]
+							db.delete(uri)
+						end
 					else
 						db[uri] = result[2]
 					end
