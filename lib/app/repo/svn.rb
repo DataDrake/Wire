@@ -151,7 +151,7 @@ module Repo
 		def self.do_update_file(web, path, repo, id, content, message, mime, user)
 			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			status   = 500
-			`svn checkout #{options} svn://localhost/#{repo} /tmp/svn/#{repo}`
+			`svn checkout #{options} 'svn://localhost/#{repo}' '/tmp/svn/#{repo}'`
 			id = CGI.unescape(id)
 			if $?.exitstatus == 0
 
@@ -179,7 +179,7 @@ module Repo
 				end
 				`svn propset #{options} --revprop -r HEAD svn:author '#{user}' "/tmp/svn/#{repo}"`
 			end
-			`rm -R /tmp/svn/#{repo}`
+			`rm -R '/tmp/svn/#{repo}'`
 			status
 		end
 	end
