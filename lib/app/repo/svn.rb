@@ -152,6 +152,7 @@ module Repo
 			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			status   = 500
 			`svn checkout #{options} svn://localhost/#{repo} /tmp/svn/#{repo}`
+			id = CGI.unescape(id)
 			if $?.exitstatus == 0
 
 				if web.nil?
@@ -170,13 +171,13 @@ module Repo
 				file = File.open(file_path, 'w+')
 				file.syswrite(content)
 				file.close
-				`svn add --force /tmp/svn/#{repo}/*`
-				`svn propset svn:mime-type "#{mime}" #{file_path}`
-				`svn commit #{options} -m "#{message}" /tmp/svn/#{repo}`
+				`svn add --force "/tmp/svn/#{repo}/*"`
+				`svn propset svn:mime-type "#{mime}" "#{file_path}"`
+				`svn commit #{options} -m "#{message}" "/tmp/svn/#{repo}"`
 				if $?.exitstatus == 0
 					status = 200
 				end
-				`svn propset #{options} --revprop -r HEAD svn:author '#{user}' /tmp/svn/#{repo}`
+				`svn propset #{options} --revprop -r HEAD svn:author '#{user}' "/tmp/svn/#{repo}"`
 			end
 			`rm -R /tmp/svn/#{repo}`
 			status
