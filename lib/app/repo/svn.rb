@@ -151,6 +151,20 @@ module Repo
 		def self.do_update_file(web, path, repo, id, content, message, mime, user)
 			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
 			status   = 500
+
+			if web.nil?
+				repo_path = "/tmp/svn/#{repo}/#{id}"
+			else
+				repo_path = "/tmp/svn/#{repo}/#{web}/#{id}"
+				id = id.split('/')
+				id.pop
+				id = id.join('/')
+				dir_path = "/tmp/svn/#{repo}/#{web}/#{id}"
+				unless Dir.exist? dir_path
+					FileUtils.mkdir_p( dir_path )
+				end
+			end
+
 			`svn checkout #{options} 'svn://localhost/#{repo}' '/tmp/svn/#{repo}'`
 			id = CGI.unescape(id)
 			if $?.exitstatus == 0
