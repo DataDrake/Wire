@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.email       = 'bmeyers@datadrake.com'
   s.files       =  Dir.glob('lib/**/*') + %w(LICENSE README.md)
   s.homepage    = 'http://rubygems.org/gems/wire'
-  s.license     = 'GPL v2'
+  s.license     = 'Apache-2.0'
   s.add_runtime_dependency 'awesome_print'
   s.add_runtime_dependency 'cobravsmongoose'
   s.add_runtime_dependency 'docile'
