@@ -7,8 +7,7 @@ module Login
 	# @param [Hash] context the context for this request
 	# @return [Response] a redirect message returning to the previous page
 	def self.invoke(actions, context)
-		referer = context.referer
-		[307, { 'Location' => referer.join('/') }, ['Login Redirect']]
+		[307, { 'Location': context.referer.join('/') }, ['Login Redirect']]
 	end
 
 end
