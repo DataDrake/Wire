@@ -51,7 +51,7 @@ module Render
 				end
 				message = template[:path].render(self, hash)
 				if template[:use_layout]
-					message = render_template(actions, context, $apps[:global][:template], message)
+					message = render_template(actions, context, $wire_apps[:global][:template], message)
 				end
 			else
 				message = 'Invalid Template'

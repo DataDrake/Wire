@@ -26,8 +26,8 @@ module Wire
 		# @return [void]
 		def app(base_uri, type, &block)
 			$current_uri    = base_uri
-			$apps[base_uri] = { type: type, resources: {} }
-			$current_app    = $apps[base_uri]
+			$wire_apps[base_uri] = {type: type, resources: {} }
+			$current_app    = $wire_apps[base_uri]
 			if ENV['RACK_ENV'].eql? 'development'
 				$stderr.puts "Starting App at: /#{base_uri}"
 				$stderr.puts 'Setting up resources...'

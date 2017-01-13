@@ -44,9 +44,9 @@ module Render
 					## Assume unsupported mime type
 					status   = 415
 					message  = 'INSTANT: Unsupported MIME Type'
-					renderer = $renderers["#{resource}/#{id}"]
+					renderer = $wire_renderers["#{resource}/#{id}"]
 					if renderer
-						template = $templates[renderer]
+						template = $wire_templates[renderer]
 						result   = template.render(self,
 																			 { actions:  actions,
 																				 context:  context,

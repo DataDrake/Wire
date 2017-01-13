@@ -30,9 +30,9 @@ module Render
 		def self.do_read(actions, context, specific)
 			response = forward(specific, context)
 			mime     = response[1]['content-type']
-			renderer = $renderers[mime]
+			renderer = $wire_renderers[mime]
 			if renderer
-				template = $templates[renderer]
+				template = $wire_templates[renderer]
 				template.render(self, { actions: actions, context: context, mime: mime, response: response[2] })
 			else
 				response

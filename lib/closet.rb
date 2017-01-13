@@ -34,10 +34,10 @@ module Wire
 		# Create an empty Closet
 		# @return [Wire::Closet] the new closet
 		def initialize
-			$apps      = {}
-			$editors   = {}
-			$renderers = {}
-			$templates = {}
+			$wire_apps      = {}
+			$wire_editors   = {}
+			$wire_renderers = {}
+			$wire_templates = {}
 		end
 
 		# Route a Request to the correct Wire::App
@@ -100,7 +100,7 @@ module Wire
 		# @return [void]
 		def info
 			$stderr.puts "Apps:\n"
-			$apps.each do |app, config|
+			$wire_apps.each do |app, config|
 				$stderr.puts "\u{2502}"
 				$stderr.puts "\u{251c} Name: #{app}"
 				if config[:auth]

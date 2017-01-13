@@ -40,7 +40,7 @@ module Render
 			else
 				return [404, {}, 'EDITOR: Document type not set for new document']
 			end
-			template = $editors[mime]
+			template = $wire_editors[mime]
 			if template
 				template.render(self, { actions: actions, resource: resource, id: id, mime: mime, response: body })
 			else
