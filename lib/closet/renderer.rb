@@ -22,14 +22,6 @@ module Wire
   # @author Bryan T. Meyers
   module Renderer
 
-    # Callback for handling editors
-    # @param [Hash] conf the raw configuration
-    # @return [Hash] post-processed configuration
-    def self.configure_editor(conf)
-      conf['partial'] = Tilt.new(conf['partial'], 1, { ugly: true })
-      conf
-    end
-
     # Callback for handling partials
     # @param [Hash] conf the raw configuration
     # @return [Hash] post-processed configuration
@@ -38,12 +30,20 @@ module Wire
       conf
     end
 
+    # Callback for handling templates
+    # @param [Hash] conf the raw configuration
+    # @return [Hash] post-processed configuration
+    def self.configure_template(conf)
+      conf['partial'] = Tilt.new(conf['file'], 1, { ugly: true })
+      conf
+    end
+
     # Read all of the configs in './configs/apps'
     # @return [void]
     def self.read_configs
       $wire_editors   = Wire::Config.read_config_dir('config/editors', method(:configure_partial))
       $wire_renderers = Wire::Config.read_config_dir('config/renderers', method(:configure_partial))
-      $wire_templates = Wire::Config.read_config_dir('config/templates', nil)
+      $wire_templates = Wire::Config.read_config_dir('config/templates', method(:configure_template))
     end
   end
 end

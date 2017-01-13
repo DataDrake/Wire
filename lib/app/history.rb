@@ -24,7 +24,7 @@ module History
   # Configure this History with a log template
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
-  def self.configure_editor(conf)
+  def self.configure(conf)
     conf['log'] = Tilt.new(conf['log'], 1, { ugly: true })
     conf
   end
