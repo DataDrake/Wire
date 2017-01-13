@@ -14,21 +14,18 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
-
 module Render
 
   # Editor allows a document to be displayed in an editing form
   # @author Bryan T. Meyers
   module Editor
-    extend Render
 
     # Open an editor for a document
     # @param [Array] actions the allowed actions for this URI
     # @param [Hash] context the context for this request
     # @return [Response] the Editor with containing document, or status code
     def self.do_read(actions, context)
-      response = forward(:read, context)
+      response = context.forward(:read)
       body     = (response[0] == 200) ? response[2] : ''
       if context.query[:type]
         mime = context.query[:type]
@@ -57,7 +54,7 @@ module Render
     def self.invoke(actions, context)
       case context.action
         when :create, :update
-          forward(context.action, context)
+          context.forward(context.action)
         when :read
           do_read(actions, context)
         else

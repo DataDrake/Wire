@@ -15,7 +15,6 @@
 ##
 
 require 'awesome_print'
-require_relative '../wire'
 
 # Static is a Wire::App for serving read-only, static files
 # @author Bryan T. Meyers

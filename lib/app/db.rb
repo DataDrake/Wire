@@ -14,8 +14,8 @@
 #	limitations under the License.
 ##
 
+require 'base64'
 require 'sequel'
-require_relative '../app'
 
 # DB is a Wire::App for generating REST wrappers for DataMapper
 # @author Bryan T. Meyers

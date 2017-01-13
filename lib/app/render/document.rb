@@ -14,13 +14,10 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
-
 module Render
   # Document renders a file to an HTML representation
   # @author Bryan T. Meyers
   module Document
-    extend Render
 
     # Renders a document or listing to HTML
     # @param [Array] actions the actions allowed for this URI
@@ -28,7 +25,7 @@ module Render
     # @param [Symbol] specific the type of read to perform
     # @return [Response] a Rack Response triplet, or status code
     def self.do_read(actions, context, specific)
-      response = forward(specific, context)
+      response = context.forward(specific)
       mime     = response[1]['content-type']
       #TODO: Fix lookup
       renderer = $wire_renderers[mime]
@@ -50,7 +47,7 @@ module Render
     def self.invoke(actions, context)
       case context.action
         when :create, :update, :delete
-          forward(context.action, context)
+          context.forward(context.action)
         when :read
           if context.uri[3]
             do_read(actions, context, :read)

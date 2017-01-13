@@ -14,14 +14,9 @@
 #	limitations under the License.
 ##
 
-$environment = {} unless $environment
-
-require_relative 'closet'
-require_relative 'app'
-
-require 'docile'
 require 'json'
-require 'rack'
+
+$environment = {} unless $environment
 
 # The Ruby-Core JSON module
 module JSON
@@ -42,3 +37,6 @@ module Wire
   # Current version of the Wire Gem
   VERSION = '0.1.5'
 end
+
+require_relative 'app'
+require_relative 'closet'

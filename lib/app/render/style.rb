@@ -14,13 +14,12 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
+require 'tilt'
 
 module Render
 	# Style uses Tilt to render and serve stylesheets
 	# @author Bryan T. Meyers
 	module Style
-		extend Render
 
     # Configure styles
     # @param [Hash] conf the raw configuration

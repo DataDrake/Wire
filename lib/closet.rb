@@ -26,7 +26,6 @@ module Wire
   # A Closet is a configured Wire Environment
   # @author Bryan T. Meyers
   class Closet
-    include Wire::App
     include Wire::Auth
     include Wire::Renderer
 

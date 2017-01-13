@@ -14,9 +14,8 @@
 #	limitations under the License.
 ##
 
-require 'awesome_print'
 require 'base64'
-require_relative '../wire'
+require 'tilt'
 require_relative 'repo/svn'
 
 # Repo is a Wire::App for accessing versioned content

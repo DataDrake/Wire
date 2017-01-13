@@ -14,9 +14,9 @@
 #	limitations under the License.
 ##
 
-require_relative '../repo'
 require 'nori'
 require 'fileutils'
+require_relative '../repo'
 
 # Force Nori to convert tag names to Symbols
 $nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }

@@ -14,6 +14,8 @@
 #	limitations under the License.
 ##
 
+require_relative 'closet/config'
+
 module Wire
   # App is a a REST endpoint for a Wire service
   # @author Bryan T. Meyers

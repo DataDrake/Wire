@@ -14,13 +14,10 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
-
 module Render
   # Page builds the a page that is presented directly to a user
   # @author Bryan T. Meyers
   module Page
-    include Render
 
     # Render a full template, handling the gathering of additional Sources
     # @param [Array] actions the allowed actions for this URI
@@ -71,7 +68,7 @@ module Render
     def do_read(actions, context, specific)
       resource = context.uri[2]
       if resource
-        result   = forward(specific, context)
+        result   = context.forward(specific)
         template = context.app[:template]
         if template
           result[1]['Content-Type'] = 'text/html'
@@ -90,7 +87,7 @@ module Render
     def self.invoke(actions, context)
       case context.action
         when :create, :update, :delete
-          forward(context.action, context)
+          context.forward(context.action)
         when :read
           if context.uri[3]
             do_read(actions, context, :read)

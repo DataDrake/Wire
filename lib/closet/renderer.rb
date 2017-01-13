@@ -14,6 +14,9 @@
 #	limitations under the License.
 ##
 
+require 'tilt'
+require_relative 'config'
+
 module Wire
   # Renderer is a module for mapping mime to rendering templates
   # @author Bryan T. Meyers

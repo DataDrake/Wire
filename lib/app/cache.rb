@@ -14,14 +14,10 @@
 #	limitations under the License.
 ##
 
-require_relative '../app'
-require_relative '../app/render'
-
 require 'lmdb'
 
 module Cache
   module Memory
-    extend Render
 
     $cache = {}
 
@@ -31,9 +27,9 @@ module Cache
       env = $cache[context.app[:remote_uri]]
       db  = env.database
       if context.uri[3]
-        result = forward(:read, context)
+        result = context.forward(:read)
       else
-        result = forward(:readAll, context)
+        result = context.forward(:readAll)
       end
       if result[0] == 200
         env.transaction do
@@ -47,7 +43,7 @@ module Cache
         end
       end
       if [:create, :update, :delete].include? context.action
-        thing = forward(:readAll, context)
+        thing = context.forward(:readAll)
         if thing[0] == 200
           env.transaction do
             db[all] = thing[2]
@@ -92,7 +88,7 @@ module Cache
 
       case context.action
         when :create, :update, :delete
-          result = forward(context.action, context)
+          result = context.forward(context.action)
           update_cached(context) # write aware
           result
         when :read, :readAll

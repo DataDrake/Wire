@@ -14,6 +14,9 @@
 #	limitations under the License.
 ##
 
+require 'json'
+require 'rest-less'
+
 module Wire
   # Context is a class containing request information
   # @author Bryan T. Meyers
@@ -117,6 +120,31 @@ module Wire
           $stderr.puts 'Warning: Failed to parse body as JSON'
         end
       end
+    end
+
+    CONVERT = {
+        create:  :post,
+        read:    :get,
+        readAll: :get,
+        update:  :put,
+        delete:  :delete
+    }
+
+    # Proxy method used when forwarding requests
+    # @param [Symbol] method the action to use when forwarding
+    # @return [Response] a Rack Response triplet, or status code
+    def forward(method)
+      headers = { referer:     @referer.join('/'),
+                  remote_user: @user }
+      verb    = CONVERT[method]
+      uri     = "http://#{@app['remote']}/#{@uri[2]}"
+      if [:update, :read, :delete].include?(method)
+        uri += "/#{@uri[3...@uri.length].join('/')}"
+      end
+      uri  += '?' + @query_string
+      body = [:create, :update].include?(method) ? @body : nil
+      $stderr.puts "#{verb.upcase}: Forward Request to #{uri}"
+      RL.request verb, uri, headers, body
     end
   end
 end

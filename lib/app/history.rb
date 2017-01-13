@@ -14,9 +14,7 @@
 #	limitations under the License.
 ##
 
-require 'awesome_print'
 require 'tilt'
-require_relative '../wire'
 require_relative 'history/svn'
 
 # History is a Wire::App for accessing the history of versioned content

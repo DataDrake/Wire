@@ -28,7 +28,6 @@ Gem::Specification.new do |s|
   s.license     = 'Apache-2.0'
   s.add_runtime_dependency 'awesome_print'
   s.add_runtime_dependency 'cobravsmongoose'
-  s.add_runtime_dependency 'docile'
   s.add_runtime_dependency 'lmdb'
   s.add_runtime_dependency 'nokogiri'
   s.add_runtime_dependency 'nori'

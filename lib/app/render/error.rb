@@ -14,11 +14,10 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
+require 'tilt'
 
 module Render
   module Error
-    extend Render
 
     # Configure error templates
     # @param [Hash] conf the raw configuration
@@ -46,12 +45,12 @@ module Render
     def self.invoke(actions, context)
       case context.action
         when :create, :update
-          result = forward(context.action, context)
+          result = context.forward(context.action)
         when :read
           if context.uri[3]
-            result = forward(:read, context)
+            result = context.forward(:read)
           else
-            result = forward(:readAll, context)
+            result = context.forward(:readAll)
           end
         else
           result = 405

@@ -14,13 +14,13 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
+require 'rest-less'
+require 'tilt'
 
 module Render
   # Partials are URI mapped renderers which generate only a piece of a document
   # @author Bryan T.Meyers
   module Partial
-    extend Render
 
     # Configure repo with listing template
     # @param [Hash] conf the raw configuration
@@ -48,7 +48,7 @@ module Render
       body     = ''
       mime     = ''
       if context.resource['use_forward']
-        response = forward(:readAll, context)
+        response = context.forward(:readAll)
         return response if response[0] != 200
         mime = response[1][:content_type]
         body = response[2]
@@ -84,7 +84,7 @@ module Render
       body     = ''
       mime     = ''
       if context.resource['use_forward']
-        response = forward(:read, context)
+        response = context.forward(:read)
         return response if response[0] != 200
         mime = response[1][:content_type]
         body = response[2]
@@ -115,7 +115,7 @@ module Render
     def self.invoke(actions, context)
       case context.action
         when :create, :update, :delete
-          forward(context.action, context)
+          context.forward(context.action)
         when :read
           if context.uri[3]
             do_read(actions, context)

@@ -14,13 +14,10 @@
 #	limitations under the License.
 ##
 
-require_relative '../render'
-
 module Render
   # Instant allows for previews of edited documents
   # @author Bryan T. Meyers
   module Instant
-    extend Render
 
     # Render a temporary document to HTML
     # @param [Array] actions the allowed actions for this URI

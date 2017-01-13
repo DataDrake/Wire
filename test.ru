@@ -15,7 +15,6 @@
 ##
 
 require_relative 'lib/wire'
-require 'awesome_print'
 
 use Rack::Session::Cookie, key: 'session', secret: 'super_secret_token'
 use Rack::Deflater
