@@ -15,9 +15,9 @@
 ##
 
 module Wire
-	# Renderer is a module for mapping mime to rendering templates
-	# @author Bryan T. Meyers
-	module Renderer
+  # Renderer is a module for mapping mime to rendering templates
+  # @author Bryan T. Meyers
+  module Renderer
 
     # Callback for handling editors
     # @param [Hash] conf the raw configuration
@@ -40,7 +40,7 @@ module Wire
     def self.read_configs
       $wire_editors   = Wire::Config.read_config_dir('config/editors', method(:configure_partial))
       $wire_renderers = Wire::Config.read_config_dir('config/renderers', method(:configure_partial))
-      $wire_templates = Wire::Config.read_config_dir('config/templates',nil)
+      $wire_templates = Wire::Config.read_config_dir('config/templates', nil)
     end
-	end
+  end
 end

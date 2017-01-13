@@ -15,15 +15,15 @@
 ##
 
 module Wire
-	# App is a a REST endpoint for a Wire service
-	# @author Bryan T. Meyers
-	module App
+  # App is a a REST endpoint for a Wire service
+  # @author Bryan T. Meyers
+  module App
 
     # Callback for handling configs
     # @param [Hash] conf the raw configuration
     # @return [Hash] post-processed configuration
     def self.configure(conf)
-      conf['type'] =  Object.const_get(conf['type'])
+      conf['type'] = Object.const_get(conf['type'])
       if conf['type'].respond_to? :configure
         conf = conf['type'].configure(conf)
       end
@@ -35,7 +35,7 @@ module Wire
     def self.read_configs
       $wire_apps = Wire::Config.read_config_dir('config/apps', method(:configure))
     end
-	end
+  end
 end
 
 require_relative 'app/cache'

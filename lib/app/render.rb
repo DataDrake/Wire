@@ -33,31 +33,29 @@ require_relative 'render/style'
 # @author Bryan T. Meyers
 module Render
 
-	CONVERT = {
-			create: :post,
-			read: :get,
-			readAll: :get,
-			update: :put,
-			delete: :delete
-	}
+  CONVERT = {
+      create:  :post,
+      read:    :get,
+      readAll: :get,
+      update:  :put,
+      delete:  :delete
+  }
 
-	# Proxy method used when forwarding requests
-	# @param [Symbol] method the action to use when forwarding
-	# @param [Hash] context the context for this request
-	# @return [Response] a Rack Response triplet, or status code
-	def forward(method, context)
-		remote     = context.app['remote']
-		resource = context.uri[2]
-		referer = context.referer.join('/')
-		q  = '?' + context.query_string
-		id = context.uri[3...context.uri.length].join('/')
-		headers = {referer: referer, remote_user: context.user}
-		verb = CONVERT[method]
-		uri = "http://#{remote}/#{resource}"
-		uri += "/#{id}" if [:update,:read,:delete].include?( method )
-		uri += q
-		body = [:create,:update].include?(method) ? context.body : nil
-		$stderr.puts "#{verb.upcase}: Forward Request to #{uri}"
-		RL.request verb, uri, headers, body
-	end
+  # Proxy method used when forwarding requests
+  # @param [Symbol] method the action to use when forwarding
+  # @param [Hash] context the context for this request
+  # @return [Response] a Rack Response triplet, or status code
+  def forward(method, context)
+    headers = { referer:     context.referer.join('/'),
+                remote_user: context.user }
+    verb    = CONVERT[method]
+    uri     = "http://#{context.app['remote']}/#{context.uri[2]}"
+    if [:update, :read, :delete].include?(method)
+      uri += "/#{context.uri[3...context.uri.length].join('/')}"
+    end
+    uri  += '?' + context.query_string
+    body = [:create, :update].include?(method) ? context.body : nil
+    $stderr.puts "#{verb.upcase}: Forward Request to #{uri}"
+    RL.request verb, uri, headers, body
+  end
 end

@@ -23,13 +23,13 @@ Gem::Specification.new do |s|
   s.description = 'Wire is a DSL and Rack interface for quickly building web applications, without the needless complexity of Rails'
   s.authors     = ['Bryan T. Meyers']
   s.email       = 'bmeyers@datadrake.com'
-  s.files       =  Dir.glob('lib/**/*') + %w(LICENSE README.md)
+  s.files       = Dir.glob('lib/**/*') + %w(LICENSE README.md)
   s.homepage    = 'http://rubygems.org/gems/wire'
   s.license     = 'Apache-2.0'
   s.add_runtime_dependency 'awesome_print'
   s.add_runtime_dependency 'cobravsmongoose'
   s.add_runtime_dependency 'docile'
-	s.add_runtime_dependency 'lmdb'
+  s.add_runtime_dependency 'lmdb'
   s.add_runtime_dependency 'nokogiri'
   s.add_runtime_dependency 'nori'
   s.add_runtime_dependency 'sequel'

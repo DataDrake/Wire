@@ -24,13 +24,14 @@ module History
 		extend History
 
 		# Get the log information for any part of a Repo
+    # @param [String] host the name of the host to connect to
+    # @param [String] repo the name of the repository to access
 		# @param [String] web the web path of the repo
-		# @param [String] repo the name of the repository to access
 		# @param [String] id the sub-URI of the item to access
 		# @return [Hash] the history entries
-		def self.get_log(web, repo, id = nil)
+		def self.get_log(host, repo, web, id = nil)
 			options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
-			uri = "svn://localhost/#{repo}"
+			uri = "svn://#{host}/#{repo}"
 			if id
 				uri += "/#{web}" if web
 				uri += "/#{id}"

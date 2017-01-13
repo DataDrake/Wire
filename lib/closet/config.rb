@@ -20,9 +20,9 @@ module Wire
   module Config
     def self.read_config_dir(dir, callback)
       configs = {}
-      Dir[File.join(dir,'*.yaml')].each do |entry|
-        name = File.basename(entry,'.yaml')
-        config = YAML.load_file(File.join(dir,entry))
+      Dir[File.join(dir, '*.yaml')].each do |entry|
+        name   = File.basename(entry, '.yaml')
+        config = YAML.load_file(File.join(dir, entry))
         if callback
           config = callback.call(config)
         end
