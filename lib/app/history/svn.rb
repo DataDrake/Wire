@@ -21,8 +21,6 @@ module History
 	# History::SVN is a connector for viewing log information in SVN
 	# @author Bryan T. Meyers
 	module SVN
-		extend Wire::App
-		extend Wire::Resource
 		extend History
 
 		# Get the log information for any part of a Repo

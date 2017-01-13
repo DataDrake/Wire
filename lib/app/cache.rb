@@ -15,15 +15,12 @@
 ##
 
 require_relative '../app'
-require_relative '../closet/resource'
 require_relative '../app/render'
 
 require 'lmdb'
 
 module Cache
 	module Memory
-		include Wire::App
-		include Wire::Resource
 		extend Render
 
 		$cache = {}

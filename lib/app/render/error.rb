@@ -20,15 +20,18 @@ module Render
 	module Error
 		extend Render
 
-		def self.error(match, path)
-			unless $current_app[:errors]
-				$current_app[:errors] = {}
-			end
-			$current_app[:errors][match] = Tilt.new(path, 1, { ugly: true })
-		end
+    # Configure error templates
+    # @param [Hash] conf the raw configuration
+    # @return [Hash] post-processed configuration
+    def self.configure(conf)
+      conf['errors'].each do |k,v|
+        conf['errors'][k] = Tilt.new(v, 1, { ugly: true })
+      end
+      conf
+    end
 
 		def self.error_check(actions, context, result)
-			errors = context.app[:errors]
+			errors = context.app['errors']
 			if errors
 				template = errors[result[0]]
 				if template

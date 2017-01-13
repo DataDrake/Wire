@@ -23,32 +23,19 @@ require_relative 'repo/svn'
 # @author Bryan T. Meyers
 module Repo
 
-	# Select the location of the repositories
-	# @param [Symbol] path location of the repositories
-	# @return [void]
-	def repos(path)
-		$current_app[:repos_path] = path
-	end
-
-	# Select the render template for file listings
-	# @param [Symbol] path location of the Tilt compatible template
-	# @return [void]
-	def listing(path)
-		$current_app[:template] = Tilt.new(path, 1, { ugly: true })
-	end
-
-	# Select the sub-directory for web-serveable content
-	# @param [Symbol] path the sub-directory path
-	# @return [void]
-	def web_folder(path)
-		$current_app[:web] = path
-	end
+  # Configure repo with listing template
+  # @param [Hash] conf the raw configuration
+  # @return [Hash] post-processed configuration
+  def self.configure(conf)
+    conf['listing'] = Tilt.new(conf['listing'], 1, { ugly: true })
+    conf
+  end
 
 	# Create a new Repo
 	# @param [Hash] context the context for this request
 	# @return [Response] status code
 	def do_create(context)
-		path     = context.app[:repos_path]
+		path     = context.app['repos']
 		resource = context.uri[2]
 		if path
 			if Dir.exist?("#{path}/#{resource}")
@@ -67,14 +54,14 @@ module Repo
 	def do_read_all(context)
 		resource = context.uri[2]
 		referrer = context.referer
-		repos    = context.app[:repos_path]
-		web      = context.app[:web]
+		repos    = context.app['repos']
+		web      = context.app['web']
 		mime     = 'text/html'
 		list     = do_read_listing(web, repos, resource)
 		if list == 404
 			return 404
 		end
-		template                 = context.app[:template]
+		template                 = context.app['listing']
 		list                     = template.render(self, list: list, resource: resource, id: '', referrer: referrer)
 		headers                  = {}
 		headers['Content-Type']  = mime
@@ -89,8 +76,8 @@ module Repo
 	def do_read(context)
 		path     = context.uri[2]
 		referrer = context.referer
-		repos    = context.app[:repos_path]
-		web      = context.app[:web]
+		repos    = context.app['repos']
+		web      = context.app['web']
 		rev      = context.query[:rev]
 		id       = context.uri[3...context.uri.length].join('/')
 		info     = do_read_info(rev, web, repos, path, id)
@@ -101,7 +88,7 @@ module Repo
 		if type.eql? 'dir'
 			mime     = 'text/html'
 			list     = do_read_listing(web, repos, path, id)
-			template = context.app[:template]
+			template = context.app['listing']
 			body     = template.render(self, list: list, resource: path, id: id, referrer: referrer)
 		else
 			body = do_read_file(rev, web, repos, path, id)
@@ -122,8 +109,8 @@ module Repo
 	# @return [Response] status code
 	def do_update(context)
 		path    = context.uri[2]
-		repos   = context.app[:repos_path]
-		web     = context.app[:web]
+		repos   = context.app['repos']
+		web     = context.app['web']
 		content = context.json
 		id      = context.uri[3...context.uri.length].join('/')
 		if content[:file]

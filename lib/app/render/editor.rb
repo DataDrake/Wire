@@ -39,7 +39,8 @@ module Render
 				mime = response[1]['content-type']
 			else
 				return [404, {}, 'EDITOR: Document type not set for new document']
-			end
+      end
+      #TODO: Fix lookup
 			template = $wire_editors[mime]
 			if template
 				template.render(self, { actions: actions, resource: resource, id: id, mime: mime, response: body })

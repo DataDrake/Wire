@@ -17,8 +17,8 @@
 require 'rack'
 require_relative 'app'
 require_relative 'closet/auth'
+require_relative 'closet/config'
 require_relative 'closet/context'
-require_relative 'closet/resource'
 require_relative 'closet/renderer'
 
 
@@ -29,15 +29,14 @@ module Wire
 		include Wire::App
 		include Wire::Auth
 		include Wire::Renderer
-		include Wire::Resource
 
 		# Create an empty Closet
 		# @return [Wire::Closet] the new closet
 		def initialize
-			$wire_apps      = {}
-			$wire_editors   = {}
-			$wire_renderers = {}
-			$wire_templates = {}
+			$wire_apps         = {}
+			$wire_editors      = {}
+			$wire_renderers    = {}
+			$wire_templates    = {}
 		end
 
 		# Route a Request to the correct Wire::App
@@ -89,7 +88,8 @@ module Wire
 				$stderr.puts 'Starting Up Wire...'
 				$stderr.puts 'Starting Apps...'
 			end
-			Docile.dsl_eval(closet, &block)
+			Wire::App.read_configs
+      Wire::Renderer.read_configs
 			if ENV['RACK_ENV'].eql? 'development'
 				closet.info
 			end
@@ -103,17 +103,16 @@ module Wire
 			$wire_apps.each do |app, config|
 				$stderr.puts "\u{2502}"
 				$stderr.puts "\u{251c} Name: #{app}"
-				if config[:auth]
+				if config['auth_handler']
 					$stderr.puts "\u{2502}\t\u{251c} Auth:"
-					if config[:auth][:level] == :app
-						$stderr.puts "\u{2502}\t\u{2502}\t\u{251c} Level:\t#{config[:auth][:level]}"
-						$stderr.puts "\u{2502}\t\u{2502}\t\u{2514} Handler:\t#{config[:auth][:handler]}"
-					else
-						$stderr.puts "\u{2502}\t\u{2502}\t\u{2514} Level:\t#{config[:auth][:level]}"
-					end
-				end
-				if config[:type]
-					$stderr.puts "\u{2502}\t\u{2514} Type: #{config[:type]}"
+          $stderr.puts "\u{2502}\t\u{2502}\t\u{2514} Handler:\t#{config['auth_handler']}"
+        end
+        if config['auth_read_only']
+          $stderr.puts "\u{2502}\t\u{251c} Auth:"
+          $stderr.puts "\u{2502}\t\u{2502}\t\u{2514} Read Only:\t#{config['auth_read_only']}"
+        end
+				if config['type']
+					$stderr.puts "\u{2502}\t\u{2514} Type: #{config['type']}"
 				end
 			end
 		end

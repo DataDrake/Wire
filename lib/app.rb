@@ -15,25 +15,26 @@
 ##
 
 module Wire
-	# App is a DSL function for mapping sub-URI to Wire::App(s)
+	# App is a a REST endpoint for a Wire service
 	# @author Bryan T. Meyers
 	module App
 
-		# Setup an App
-		# @param [String] base_uri the sub-URI
-		# @param [Module] type the Wire::App
-		# @param [Proc] block for configuring this App
-		# @return [void]
-		def app(base_uri, type, &block)
-			$current_uri    = base_uri
-			$wire_apps[base_uri] = {type: type, resources: {} }
-			$current_app    = $wire_apps[base_uri]
-			if ENV['RACK_ENV'].eql? 'development'
-				$stderr.puts "Starting App at: /#{base_uri}"
-				$stderr.puts 'Setting up resources...'
-			end
-			Docile.dsl_eval(type, &block)
-		end
+    # Callback for handling configs
+    # @param [Hash] conf the raw configuration
+    # @return [Hash] post-processed configuration
+    def self.configure(conf)
+      conf['type'] =  Object.const_get(conf['type'])
+      if conf['type'].respond_to? :configure
+        conf = conf['type'].configure(conf)
+      end
+      conf
+    end
+
+    # Read all of the configs in './configs/apps'
+    # @return [void]
+    def self.read_configs
+      $wire_apps = Wire::Config.read_config_dir('config/apps', method(:configure))
+    end
 	end
 end
 

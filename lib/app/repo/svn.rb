@@ -25,8 +25,6 @@ module Repo
 	# Repo::SVN is a connector for svnserve
 	# @author Bryan T. Meyers
 	module SVN
-		extend Wire::App
-		extend Wire::Resource
 		extend Repo
 
 		# Make a new SVN repo

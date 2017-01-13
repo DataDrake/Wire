@@ -14,41 +14,30 @@
 #	limitations under the License.
 ##
 
-require 'data_objects'
-require 'dm-serializer/to_json'
+require 'sequel'
 require_relative '../app'
-require_relative '../closet/resource'
 
 # DB is a Wire::App for generating REST wrappers for DataMapper
 # @author Bryan T. Meyers
 module DB
-	include Wire::App
-	include Wire::Resource
 
-	# Setup a DB connection
-	# @param [Symbol] namespace namespace used by DataMapper for Repositories
-	# @param [String] location connection string (e.g. mysql://localhost/Foo)
-	# @return [void]
-	def self.db(namespace, location)
-		$current_app[:db_namespace] = namespace
-		$current_app[:db_location]  = location
-		DataMapper.setup(namespace, location)
-	end
-
-	# Map a DataMapper::Model to a sub-URI
-	# @param [String] resource the sub-URI
-	# @param [Class] model the DataMapper model
-	# @return [void]
-	def self.model(resource, model)
-		$current_app[:resources][resource] = { model: model }
-	end
+  # DB-specific configuration
+  # @param [Hash] conf the existing configuration
+  # @return [Hash] post-processed configuration
+  def self.configure(conf)
+    Sequel.connect($environment['db'][conf['db']])
+    conf['models'].each do |m|
+      conf['models'][m] = Object.const_get(m)
+    end
+    conf
+  end
 
 	# Add a new object to the DB table
 	# @param [Hash] context the context for this request
 	# @return [Response] a valid Rack response triplet, or status code
 	def self.do_create(context)
 		return 404 unless context.resource
-		model = context.resource[:model]
+		model = context.app['models'][context.resource]
 		if model
 			file = context.json[:file]
 			if file
@@ -73,7 +62,7 @@ module DB
 									end
 									hash[c] = values[j]
 								end
-								m = model.first_or_create(hash)
+								m = model.find_or_create(hash)
 								unless m.saved?
 									errors << "row: #{i} errors: #{m.errors.delete("\n")}"
 								end

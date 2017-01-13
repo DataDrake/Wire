@@ -21,7 +21,6 @@ module Render
 	# @author Bryan T. Meyers
 	module Page
 		include Render
-		extend self
 
 		# Render a full template, handling the gathering of additional Sources
 		# @param [Array] actions the allowed actions for this URI

@@ -22,22 +22,22 @@ module Render
 	module Partial
 		extend Render
 
-		# DSL method to enable forwarding to remote
-		# @return [void]
-		def self.use_forward
-			$current_resource[:forward] = true
-		end
-
-		# DSL method to pull in Source like objects
-		# @param [Symbol] name the key for this item
-		# @param [Hash] path the remote sub-URI for this item
-		# @return [void]
-		def self.extra(name, path)
-			unless $current_resource[:sources]
-				$current_resource[:sources] = {}
-			end
-			$current_resource[:sources][name] = path
-		end
+    # Configure repo with listing template
+    # @param [Hash] conf the raw configuration
+    # @return [Hash] post-processed configuration
+    def self.configure(conf)
+      conf['resources'].each do |k,v|
+        if v.is_a? Hash
+          conf['resources'][k]['multiple'] = Tilt.new(v['multiple'], 1, { ugly: true })
+          conf['resources'][k]['single'] = Tilt.new(v['single'], 1, { ugly: true })
+        elsif v.is_a? String
+          #TODO: fix needless duplication
+          conf['resources'][k]['multiple'] = Tilt.new(v, 1, { ugly: true })
+          conf['resources'][k]['single'] = Tilt.new(v, 1, { ugly: true })
+        end
+      end
+      conf
+    end
 
 		# Read a listing and render to HTML
 		# @param [Array] actions the allowed actions for this URI
@@ -47,19 +47,19 @@ module Render
 			resource = context.uri[2]
 			body = ''
 			mime = ''
-			if context.resource[:forward]
+			if context.resource['use_forward']
 				response = forward(:readAll, context)
 				return response if response[0] != 200
 				mime     = response[1][:content_type]
 				body     = response[2]
 			end
-			template = context.resource[:multiple]
+			template = context.resource['multiple']
 			if template
 				hash     = { actions: actions, resource: resource, mime: mime, response: body }
-				if context.resource[:sources]
-					context.resource[:sources].each do |k, v|
+				if context.resource['sources']
+					context.resource['sources'].each do |k, v|
 						hash[k] = RL.request(:get,
-																 "http://#{context.app[:remote_host]}/#{v}",
+																 "http://#{context.app['remote']}/#{v}",
 																 {remote_user: context.user}
 						)[2]
 					end
@@ -67,7 +67,7 @@ module Render
 				mime = 'text/html'
 				body = template.render(self,hash)
 			end
-			[200,{'Content-Type' => mime },body]
+			[200,{'Content-Type': mime },body]
 		end
 
 		# Read a Partial and render it to HTML
@@ -80,24 +80,24 @@ module Render
 			id       = context.uri[3...context.uri.length].join('/')
 			body = ''
 			mime = ''
-			if context.resource[:forward]
+			if context.resource['use_forward']
 				response = forward(:read, context)
 				return response if response[0] != 200
 				mime     = response[1][:content_type]
 				body     = response[2]
 			end
-			template = context.resource[:single]
+			template = context.resource['single']
 			if template
 				hash     = { actions: actions, app: app, resource: resource, id: id, mime: mime, response: body }
-				if context.resource[:sources]
-					context.resource[:sources].each do |k, v|
+				if context.resource['sources']
+					context.resource['sources'].each do |k, v|
 						hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
 					end
 				end
 				mime = 'text/html'
 				body = template.render(self,hash)
 			end
-			[200,{'Content-Type' => mime },body]
+			[200,{'Content-Type': mime },body]
 		end
 
 		# Proxy method used when routing

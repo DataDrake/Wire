@@ -22,24 +22,23 @@ module Render
 	module Style
 		extend Render
 
-		# DSL method to create a style
-		# @param [String] resource the sub-URI for this style
-		# @param [Hash] path the file location of the stylesheet
-		# @return [void]
-		def self.style(resource, path)
-			unless $current_app[:styles]
-				$current_app[:styles] = {}
-			end
-			$current_app[:styles][resource] = path.nil? ? nil : Tilt.new(path, 1, { ugly: true }).render
-		end
+    # Configure styles
+    # @param [Hash] conf the raw configuration
+    # @return [Hash] post-processed configuration
+    def self.configure(conf)
+      conf['styles'].each do |k,v|
+        conf['styles'][k] = Tilt.new(v, 1, { ugly: true }).render
+      end
+      conf
+    end
 
 		# Render a stylesheet to CSS
 		# @param [Hash] context the context for this request
 		# @return [Response] a Rack Response triplet, or status code
 		def self.do_read_all(context)
 			resource = context.uri[2]
-			template = context.app[:styles][resource]
-			headers  = {'Cache-Control' => 'public,max-age=3600'}
+			template = context.app['styles'][resource]
+			headers  = {'Cache-Control': 'public,max-age=3600'}
 			if template
 				headers['Content-Type'] = 'text/css'
 				[200, headers, [template]]
