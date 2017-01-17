@@ -165,35 +165,32 @@ module Repo
     def self.do_update_file(web, path, repo, id, content, message, mime, user)
       options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
       status  = 500
-
+      id        = id.split('/')
+      id.pop
+      id       = id.join('/')
       if web.nil?
         repo_path = "/tmp/svn/#{repo}/#{id}"
       else
         repo_path = "/tmp/svn/#{repo}/#{web}/#{id}"
-        id        = id.split('/')
-        id.pop
-        id       = id.join('/')
-        dir_path = "/tmp/svn/#{repo}/#{web}/#{id}"
-        unless Dir.exist? dir_path
-          FileUtils.mkdir_p(dir_path)
-        end
+      end
+      unless Dir.exist? repo_path
+        FileUtils.mkdir_p(repo_path)
       end
 
       `svn checkout #{options} 'svn://localhost/#{repo}' '/tmp/svn/#{repo}'`
       id = CGI.unescape(id)
       if $?.exitstatus == 0
-
+        id        = id.split('/')
+        id.pop
+        id       = id.join('/')
         if web.nil?
           file_path = "/tmp/svn/#{repo}/#{id}"
         else
           file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
-          id        = id.split('/')
-          id.pop
-          id       = id.join('/')
-          dir_path = "/tmp/svn/#{repo}/#{web}/#{id}"
-          unless Dir.exist? dir_path
-            FileUtils.mkdir_p(dir_path)
-          end
+        end
+
+        unless Dir.exist? file_path
+          FileUtils.mkdir_p(file_path)
         end
 
         file = File.open(file_path, 'w+')

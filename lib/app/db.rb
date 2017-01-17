@@ -36,76 +36,68 @@ module DB
   # @param [Hash] context the context for this request
   # @return [Response] a valid Rack response triplet, or status code
   def self.do_create(context)
-    return 404 unless context.resource
-    model = context.app['models'][context.resource]
-    if model
-      file = context.json[:file]
-      if file
-        if file[:mime].eql? 'text/csv'
-          file[:content].match(/.*base64,(.*)/) do
-            csv     = Base64.decode64($1)
-            columns = []
-            errors  = []
-            csv.split("\n").each_with_index do |v, i|
-              if i == 0
-                columns = v.split(/(?<!\[),(?!=\])/)
-                columns.map! { |c| c.delete('"').to_sym }
-              else
-                values = v.split(',')
-                values.map! do |c|
-                  c.include?(';') ? c.split(';') : c
+    model = context.config['models'][context.resource]
+    return 404 unless model
+
+    file = context.json[:file]
+    if file
+      if file[:mime].eql? 'text/csv'
+        file[:content].match(/.*base64,(.*)/) do
+          csv     = Base64.decode64($1)
+          columns = []
+          errors  = []
+          csv.split("\n").each_with_index do |v, i|
+            if i == 0
+              columns = v.split(/(?<!\[),(?!=\])/)
+              columns.map! { |c| c.delete('"').to_sym }
+            else
+              values = v.split(',')
+              values.map! do |c|
+                c.include?(';') ? c.split(';') : c
+              end
+              hash = {}
+              columns.each_with_index do |c, j|
+                if values[j].is_a? String
+                  values[j].delete!('"')
                 end
-                hash = {}
-                columns.each_with_index do |c, j|
-                  if values[j].is_a? String
-                    values[j].delete!('"')
-                  end
-                  hash[c] = values[j]
-                end
-                m = model.find_or_create(hash)
-                unless m.saved?
-                  errors << "row: #{i} errors: #{m.errors.delete("\n")}"
-                end
+                hash[c] = values[j]
+              end
+              m = model.find_or_create(hash)
+              unless m.modified?
+                errors << "row: #{i} errors: #{m.errors.delete("\n")}"
               end
             end
-            if errors.length > 0
-              [400, nil, errors]
-            else
-              200
-            end
           end
-        else
-          415
+          if errors.length > 0
+            [400, nil, errors]
+          else
+            200
+          end
         end
       else
-        #TODO user_id needs to happen in the context
-        if model.respond_to? :updated_by_id
-          context.json[:updated_by_id] = context.user
-        end
-        if model.respond_to? :created_by_id
-          context.json[:created_by_id] = context.user
-        end
-        begin
-          instance = model.create(context.json)
-          instance.save
-          if instance.saved?
-            200
-          else
-            errors = ''
-            instance.errors.each { |e| errors += "#{e.to_s}\n" }
-            [504, {}, errors]
-          end
-        rescue => e
-          case e.class
-            when DataObjects::IntegrityError.class
-              [400, {}, e.message]
-            else
-              [500, {}, e.message]
-          end
-        end
+        415
       end
     else
-      404
+      #TODO user_id needs to happen in the context
+      if model.respond_to? :updated_by_id
+        context.json[:updated_by_id] = context.user
+      end
+      if model.respond_to? :created_by_id
+        context.json[:created_by_id] = context.user
+      end
+      begin
+        instance = model.create(context.json)
+        instance.save
+        if instance.modified?
+          200
+        else
+          errors = ''
+          instance.errors.each { |e| errors += "#{e.to_s}\n" }
+          [504, {}, errors]
+        end
+      rescue => e
+        [500, {}, e.message]
+      end
     end
   end
 
@@ -114,7 +106,7 @@ module DB
   # @return [Response] all objects, or status code
   def self.do_read_all(context)
     return 404 unless context.resource
-    model = context.resource[:model]
+    model = context.config['models'][context.resource]
     if model
       hash = '[ '
       model.each do |e|
@@ -133,9 +125,9 @@ module DB
   # @param [Hash] context the context for this request
   # @return [Response] an object, or status code
   def self.do_read(context)
-    return 404 unless context.resource
-    model = context.resource[:model]
-    id    = context.uri[3]
+    model = context.config['models'][context.resource]
+    return 404 unless model
+    id = context.id
     if id.eql?('new') or id.eql? 'upload'
       return '{}'
     end
@@ -152,9 +144,10 @@ module DB
   # @param [Hash] context the context for this request
   # @return [Response] an object, or status code
   def self.do_update(context)
-    return 404 unless context.resource
-    model = context.resource[:model]
-    id    = context.uri[3]
+    model = context.config['models'][context.resource]
+    return 404 unless model
+
+    id = context.id
     if model
       if model.respond_to?(:updated_by_id)
         context.json[:updated_by_id] = context.user
@@ -170,9 +163,10 @@ module DB
   # @param [Hash] context the context for this request
   # @return [Response] an object, or status code
   def self.do_delete(context)
-    return 404 unless context.resource
-    model = context.resource[:model]
-    id    = context.uri[3]
+    model = context.config['models'][context.resource]
+    return 404 unless model
+
+    id = context.id
     if model
       instance = model[id]
       if instance

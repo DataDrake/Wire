@@ -47,20 +47,20 @@ module Render
       resource = context.uri[2]
       body     = ''
       mime     = ''
-      if context.resource['use_forward']
+      if context.app['use_forward']
         response = context.forward(:readAll)
         return response if response[0] != 200
         mime = response[1][:content_type]
         body = response[2]
       end
-      template = context.resource['multiple']
+      template = context.app['resources'][context.resource]['multiple']
       if template
         hash = { actions:  actions,
                  resource: resource,
                  mime:     mime,
                  response: body }
-        if context.resource['sources']
-          context.resource['sources'].each do |k, v|
+        if ccontext.app['resources'][context.resource]['extras']
+          context.app['resources'][context.resource]['extras'].each do |k, v|
             hash[k] = RL.request(:get,
                                  "http://#{context.app['remote']}/#{v}",
                                  { remote_user: context.user }
@@ -78,27 +78,24 @@ module Render
     # @param [Hash] context the context for this request
     # @return [Response] a Rack Response triplet, or status code
     def self.do_read(actions, context)
-      app      = context.uri[1]
-      resource = context.uri[2]
-      id       = context.uri[3...context.uri.length].join('/')
       body     = ''
       mime     = ''
-      if context.resource['use_forward']
+      if context.app['resources'][context.resource]['use_forward']
         response = context.forward(:read)
         return response if response[0] != 200
         mime = response[1][:content_type]
         body = response[2]
       end
-      template = context.resource['single']
+      template = context.app['resources'][context.resource]['single']
       if template
         hash = { actions:  actions,
-                 app:      app,
-                 resource: resource,
-                 id:       id,
+                 app:      context.app,
+                 resource: context.resource,
+                 id:       context.id,
                  mime:     mime,
                  response: body }
-        if context.resource['sources']
-          context.resource['sources'].each do |k, v|
+        if context.app['resources'][context.resource]['extras']
+          context.app['resources'][context.resource]['extras'].each do |k, v|
             hash[k] = RL.request(:get, "http://#{context.app[:remote_host]}/#{v}")[2]
           end
         end
@@ -117,7 +114,7 @@ module Render
         when :create, :update, :delete
           context.forward(context.action)
         when :read
-          if context.uri[3]
+          if context.id
             do_read(actions, context)
           else
             do_read_all(actions, context)

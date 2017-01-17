@@ -24,7 +24,7 @@ module Static
   # @param [Hash] context the context for this request
   # @return [Response] a listing, or status code
   def self.do_read_all(context)
-    path = context.resource[:local]
+    path = context.config['path']
     if path
       return 404 unless File.exists?(path)
       if File.directory? path
@@ -41,10 +41,9 @@ module Static
   # @param [Hash] context the context for this request
   # @return [Response] a file, listing, or status code
   def self.do_read(context)
-    path = context.app['local']
-    id   = context.uri[2..context.uri.length].join('/')
+    path = context.config['path']
     if path
-      ext_path = File.join(path, id)
+      ext_path = File.join(path, context.resource, context.id)
       return 404 unless File.exists?(ext_path)
       if File.directory?(ext_path)
         "#{ap Dir.entries(ext_path).sort}"
@@ -74,7 +73,7 @@ module Static
     return 404 unless context.resource
     case context.action
       when :read
-        if context.uri[3]
+        if context.id
           do_read(context)
         else
           do_read_all(context)

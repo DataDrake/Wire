@@ -24,12 +24,10 @@ module Render
     # @param [Hash] context the context for this request
     # @return [Response] a Rack Response triplet, or status code
     def self.do_update(actions, context)
-      resource = context.uri[2]
-      id       = context.uri[3]
       ## Default to not found
       message  = ''
       status   = 404
-      if resource
+      if context.resource
         body = context.body
         if body
           #TODO: This looks off...
@@ -40,12 +38,12 @@ module Render
           ## Assume unsupported mime type
           status   = 415
           message  = 'INSTANT: Unsupported MIME Type'
-          renderer = $wire_renderers["#{resource}/#{id}"]
+          renderer = $wire_renderers["#{context.resource}/#{context.id}"]
           if renderer
             template = $wire_templates[renderer]
             result   = template.render(self, { actions:  actions,
                                                context:  context,
-                                               mime:     "#{resource}/#{id}",
+                                               mime:     "#{context.resource}/#{context.id}",
                                                response: body, })
             #TODO: Fix template lookup
             template = context.app[:template]

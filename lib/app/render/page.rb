@@ -40,6 +40,8 @@ module Render
               when 'resource'
                 go_ahead = (context.uri[2] and !context.uri[2].empty?)
                 uri      += "/#{context.uri[2]}"
+              else
+                # do nothing
             end
           else
             uri += s
@@ -48,7 +50,13 @@ module Render
           if go_ahead
             temp = RL.request(:get, uri, { remote_user: context.user })
           end
-          hash[k] = (temp[0] == 200) ? temp[2] : nil
+          if temp[0] == 200
+            begin
+              hash[k] = JSON.parse_clean(temp[2])
+            rescue
+              hash[k] = temp[2]
+            end
+          end
         end
         message = template[:path].render(self, hash)
         if template['use_layout']
@@ -66,9 +74,9 @@ module Render
     # @param [Symbol] specific the kind of read to perform
     # @return [Response] a Rack Response triplet, or status code
     def do_read(actions, context, specific)
-      resource = context.uri[2]
-      if resource
+      if context.resource
         result   = context.forward(specific)
+        #TODO: fix lookup
         template = context.app[:template]
         if template
           result[1]['Content-Type'] = 'text/html'

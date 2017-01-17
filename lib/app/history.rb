@@ -33,14 +33,14 @@ module History
   # @param [Hash] context the context for this request
   # @return [Response] the history, or status code
   def do_read(actions, context)
-    list = get_log(context.app['host'],
-                   context.uri[2],
-                   context.app['web_folder'],
-                   context.uri[3...context.uri.length].join('/'))
+    list = get_log(context.config['host'],
+                   context.resource,
+                   context.config['web_folder'],
+                   context.id)
     if list == 404
       return 404
     end
-    template = context.app['log']
+    template = context.config['log']
     template.render(self, actions: actions, context: context, list: list)
   end
 
@@ -49,7 +49,7 @@ module History
   # @param [Hash] context the context for this request
   # @return [Response] a Rack Response triplet, or status code
   def invoke(actions, context)
-    return 404 unless context.uri[2]
+    return 404 unless context.resource
     case context.action
       when :read
         do_read(actions, context)

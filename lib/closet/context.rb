@@ -18,38 +18,38 @@ require 'json'
 require 'rest-less'
 
 module Wire
-  # Context is a class containing request information
+  # Context is a class containing information related to the current request
   # @author Bryan T. Meyers
 
   class Context
     #@!attribute [r] action
-    #		@return [Symbol] the action for the current request
+    #		@return [Symbol] the action
     #@!attribute [r] app
-    #		@return [Hash] the Wire::App configuration for the current request
+    #		@return [Hash] the name of the Wire::App
     #@!attribute [r] body
-    #		@return [String] the unparsed body of the current request
-    #@!attribute [r] env
-    #		@return [Hash] the raw Rack environment of the current request
+    #		@return [String] the unparsed body
+    #@!attribute [r] config
+    #		@return [Hash] the Wire::App configuration
     #@!attribute [r] json
-    #		@return [Hash] the JSON parsed body of the current request
+    #		@return [Hash] the JSON parsed body
     #@!attribute [r] query
-    #		@return [Hash] the parsed query string of the current request
+    #		@return [Hash] the parsed query string
     #@!attribute [r] query_string
-    #		@return [String] the raw query string of the current request
+    #		@return [String] the raw query string
+    #@!attribute [r] rack_env
+    #		@return [Hash] the raw Rack environment
     #@!attribute [r] referer
-    #		@return [Array] the referer URI of the current request
+    #		@return [Array] the referer URI
     #@!attribute [r] resource
-    #		@return [Symbol] the Wire::Resource configuration of the current request
-    #@!attribute [r] type
-    #		@return [Module] the Wire::App of the current request
+    #		@return [Symbol] the name of the resource
     #@!attribute [r] uri
-    #		@return [Array] the URI of the current request
+    #		@return [Array] the complete URI
     #@!attribute [r] user
-    #		@return [String] the REMOTE_USER of the current request
+    #		@return [String] the REMOTE_USER
     #@!attribute [r] verb
-    #		@return [Symbol] the HTTP verb of the current request
+    #		@return [Symbol] the HTTP verb
 
-    attr_reader :action, :app, :body, :env, :json, :query,
+    attr_reader :action, :app, :body, :rack_env, :json, :query,
                 :query_string, :referer, :resource, :type,
                 :uri, :user, :verb
     attr_writer :referer
@@ -88,21 +88,21 @@ module Wire
     # @param [Hash] env the Rack environment
     # @return [Context] a new Context
     def initialize(env)
-      @env    = update_session(env)
-      @user   = env['rack.session']['user']
-      @verb   = HTTP_VERBS[env['REQUEST_METHOD']]
-      @action = HTTP_ACTIONS[env['REQUEST_METHOD']]
-      @uri    = env['REQUEST_URI'].split('?')[0].split('/')
+      @rack_env = update_session(env)
+      @user     = env['rack.session']['user']
+      @verb     = HTTP_VERBS[env['REQUEST_METHOD']]
+      @action   = HTTP_ACTIONS[env['REQUEST_METHOD']]
+      @uri      = env['REQUEST_URI'].split('?')[0].split('/')
       if env['HTTP_REFERER']
         @referer = env['HTTP_REFERER'].split('/')
       else
         @referer = ['http:', '', env['HTTP_HOST']].concat(@uri[1...@uri.length])
       end
-      app = $apps[@uri[1]]
-      if app
-        @app      = app
-        @resource = app[:resources][@uri[2]]
-        @type     = app[:type]
+      @config = $wire_apps[@uri[1]]
+      if @config
+        @app      = @uri[1]
+        @resource = @uri[2]
+        @id       = context.uri[3...context.uri.length].join('/')
       else
         throw Exception.new("App: #{@uri[1]} is Undefined")
       end

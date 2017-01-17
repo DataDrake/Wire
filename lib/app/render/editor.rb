@@ -38,8 +38,8 @@ module Render
       template = $wire_editors[mime]
       if template
         template.render(self, { actions:  actions,
-                                resource: context.uri[2],
-                                id:       context.uri[3...context.uri.length].join('/'),
+                                resource: context.resource,
+                                id:       context.id,
                                 mime:     mime,
                                 response: body })
       else

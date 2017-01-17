@@ -47,7 +47,7 @@ module Render
         when :create, :update
           result = context.forward(context.action)
         when :read
-          if context.uri[3]
+          if context.id
             result = context.forward(:read)
           else
             result = context.forward(:readAll)

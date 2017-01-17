@@ -23,16 +23,16 @@ module Wire
     # @param [Hash] context the context for this request
     # @return [Array] the allowed actions for this URI
     def actions_allowed(context)
-      if context.app['auth_read_only']
+      if context.config['auth_read_only']
         [:read, :readAll]
-      elsif context.app['auth_user']
-        if context.user == context.app['auth_user']
+      elsif context.config['auth_user']
+        if context.user == context.config['auth_user']
           [:create, :read, :readAll, :update, :delete]
         else
           []
         end
-      elsif context.app['auth_handler']
-        context.app['auth_handler'].actions_allowed(context)
+      elsif context.config['auth_handler']
+        context.config['auth_handler'].actions_allowed(context)
       else
         [:create, :read, :readAll, :update, :delete]
       end

@@ -27,7 +27,6 @@ module Wire
   # @author Bryan T. Meyers
   class Closet
     include Wire::Auth
-    include Wire::Renderer
 
     # Create an empty Closet
     # @return [Wire::Closet] the new closet
@@ -44,7 +43,7 @@ module Wire
     def route(context)
       actions = actions_allowed(context)
       if actions.include? context.action
-        context.type.invoke(actions, context)
+        context.config['type'].invoke(actions, context)
       else
         401
       end
@@ -81,7 +80,7 @@ module Wire
     # A factory method for configuring a Closet
     # @param [Proc] block the configuration routine
     # @return [Wire::Closet] the configured Closet
-    def self.build(&block)
+    def self.build
       closet = Wire::Closet.new
       if ENV['RACK_ENV'].eql? 'development'
         $stderr.puts 'Starting Up Wire...'

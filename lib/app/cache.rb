@@ -24,9 +24,9 @@ module Cache
     def self.update_cached(context)
       uri = context.uri.join('/')
       all = context.uri[0..2].join('/')
-      env = $cache[context.app[:remote_uri]]
+      env = $cache[context.config['remote']]
       db  = env.database
-      if context.uri[3]
+      if context.id
         result = context.forward(:read)
       else
         result = context.forward(:readAll)
@@ -55,7 +55,7 @@ module Cache
 
     def self.get_cached(context)
       uri    = context.uri.join('/')
-      env    = $cache[context.app[:remote_uri]]
+      env    = $cache[context.config['remote']]
       db     = env.database
       result = nil
       env.transaction do
@@ -66,7 +66,7 @@ module Cache
 
     def self.purge_cached(context)
       uri    = context.uri.join('/')
-      env    = $cache[context.app[:remote_uri]]
+      env    = $cache[context.config['remote']]
       db     = env.database
       result = 200
       env.transaction do
@@ -82,8 +82,8 @@ module Cache
     def self.invoke(actions, context)
 
       # Create Cache if not set up
-      unless $cache[context.app[:remote_uri]]
-        $cache[context.app[:remote_uri]] = LMDB.new("/tmp/cache/#{context.app[:remote_uri]}", mapsize: 2**30)
+      unless $cache[context.config['remote']]
+        $cache[context.config['remote']] = LMDB.new("/tmp/cache/#{context.config['remote']}", mapsize: 2**30)
       end
 
       case context.action

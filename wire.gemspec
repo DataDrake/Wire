@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.version     = Wire::VERSION
   s.date        = '2017-01-13'
   s.summary     = 'Wire Framework'
-  s.description = 'Wire is a DSL and Rack interface for quickly building web applications, without the needless complexity of Rails'
+  s.description = 'Wire is a Rack interface for quickly building web applications, without the needless complexity of Rails'
   s.authors     = ['Bryan T. Meyers']
   s.email       = 'bmeyers@datadrake.com'
   s.files       = Dir.glob('lib/**/*') + %w(LICENSE README.md)

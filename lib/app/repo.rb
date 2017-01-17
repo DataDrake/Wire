@@ -34,8 +34,8 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_create(context)
-    path     = context.app['repos']
-    resource = context.uri[2]
+    path     = context.config['repos']
+    resource = context.resource
     if path
       if Dir.exist?("#{path}/#{resource}")
         401
@@ -51,18 +51,17 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the listing, or status code
   def do_read_all(context)
-    resource = context.uri[2]
     mime     = 'text/html'
-    list     = do_read_listing(context.app['web'],
-                               context.app['repos'],
-                               resource)
+    list     = do_read_listing(context.config['web'],
+                               context.config['repos'],
+                               context.resource)
     if list == 404
       return 404
     end
-    template = context.app['listing']
+    template = context.config['listing']
     list     = template.render(self,
                                list:     list,
-                               resource: resource,
+                               resource: context.resource,
                                id:       '',
                                referrer: context.referer)
     headers  = { 'Content-Type':  mime,
@@ -75,12 +74,12 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the file, listing, or status code
   def do_read(context)
-    path     = context.uri[2]
+    path     = context.resource
     referrer = context.referer
-    repos    = context.app['repos']
-    web      = context.app['web']
+    repos    = context.config['repos']
+    web      = context.config['web']
     rev      = context.query[:rev]
-    id       = context.uri[3...context.uri.length].join('/')
+    id       = context.id
     info     = do_read_info(rev, web, repos, path, id)
     if info == 404
       return 404
@@ -89,7 +88,7 @@ module Repo
     if type.eql? 'dir'
       mime     = 'text/html'
       list     = do_read_listing(web, repos, path, id)
-      template = context.app['listing']
+      template = context.config['listing']
       body     = template.render(self,
                                  list:     list,
                                  resource: path,
@@ -112,11 +111,11 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_update(context)
-    path    = context.uri[2]
-    repos   = context.app['repos']
-    web     = context.app['web']
+    path    = context.resource
+    repos   = context.config['repos']
+    web     = context.config['web']
     content = context.json
-    id      = context.uri[3...context.uri.length].join('/')
+    id      = context.id
     if content[:file]
       file = content[:file][:content].match(/base64,(.*)/)[1]
       file = Base64.decode64(file)
@@ -136,12 +135,12 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] a Rack Response triplet, or status code
   def invoke(actions, context)
-    return 404 unless context.uri[2]
+    return 404 unless context.resource
     case context.action
       when :create
         do_create(context)
       when :read
-        if context.uri[3]
+        if context.id
           do_read(context)
         else
           do_read_all(context)

@@ -16,8 +16,6 @@
 
 require 'json'
 
-$environment = {} unless $environment
-
 # The Ruby-Core JSON module
 module JSON
 

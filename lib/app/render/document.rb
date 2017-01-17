@@ -49,7 +49,7 @@ module Render
         when :create, :update, :delete
           context.forward(context.action)
         when :read
-          if context.uri[3]
+          if context.id
             do_read(actions, context, :read)
           else
             do_read(actions, context, :readAll)
