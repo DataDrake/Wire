@@ -102,7 +102,7 @@ module Wire
       if @config
         @app      = @uri[1]
         @resource = @uri[2]
-        @id       = @uri[3...@uri.length].join('/')
+        @id       = @uri.length > 3 ? @uri[3...@uri.length].join('/') : nil
       else
         throw Exception.new("App: #{@uri[1]} is Undefined")
       end
@@ -137,9 +137,9 @@ module Wire
       headers = { referer:     @referer.join('/'),
                   remote_user: @user }
       verb    = CONVERT[method]
-      uri     = "http://#{@app['remote']}/#{@uri[2]}"
+      uri     = "http://#{@config['remote']}/#{@resource}"
       if [:update, :read, :delete].include?(method)
-        uri += "/#{@uri[3...@uri.length].join('/')}"
+        uri += "/#{@id}"
       end
       uri  += '?' + @query_string
       body = [:create, :update].include?(method) ? @body : nil
