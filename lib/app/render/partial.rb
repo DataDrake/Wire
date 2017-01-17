@@ -32,8 +32,10 @@ module Render
           conf['resources'][k]['single']   = Tilt.new(v['single'], 1, { ugly: true })
         elsif v.is_a? String
           #TODO: fix needless duplication
-          conf['resources'][k]['multiple'] = Tilt.new(v, 1, { ugly: true })
-          conf['resources'][k]['single']   = Tilt.new(v, 1, { ugly: true })
+          conf['resources'][k] = {
+              'multiple': Tilt.new(v, 1, { ugly: true }),
+              'single':   Tilt.new(v, 1, { ugly: true })
+          }
         end
       end
       conf

@@ -49,8 +49,8 @@ module Wire
     #@!attribute [r] verb
     #		@return [Symbol] the HTTP verb
 
-    attr_reader :action, :app, :body, :rack_env, :json, :query,
-                :query_string, :referer, :resource, :type,
+    attr_reader :action, :app, :body, :config, :id, :json, :query,
+                :query_string, :rack_env, :referer, :resource,
                 :uri, :user, :verb
     attr_writer :referer
 
@@ -90,8 +90,8 @@ module Wire
     def initialize(env)
       @rack_env = update_session(env)
       @user     = env['rack.session']['user']
-      @verb     = HTTP_VERBS[env['REQUEST_METHOD']]
-      @action   = HTTP_ACTIONS[env['REQUEST_METHOD']]
+      @verb     = HTTP_VERBS[env['REQUEST_METHOD'].to_sym]
+      @action   = HTTP_ACTIONS[env['REQUEST_METHOD'].to_sym]
       @uri      = env['REQUEST_URI'].split('?')[0].split('/')
       if env['HTTP_REFERER']
         @referer = env['HTTP_REFERER'].split('/')
@@ -102,7 +102,7 @@ module Wire
       if @config
         @app      = @uri[1]
         @resource = @uri[2]
-        @id       = context.uri[3...context.uri.length].join('/')
+        @id       = @uri[3...@uri.length].join('/')
       else
         throw Exception.new("App: #{@uri[1]} is Undefined")
       end

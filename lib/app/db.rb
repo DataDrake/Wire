@@ -25,9 +25,8 @@ module DB
   # @param [Hash] conf the existing configuration
   # @return [Hash] post-processed configuration
   def self.configure(conf)
-    Sequel.connect($environment['db'][conf['db']])
-    conf['models'].each do |m|
-      conf['models'][m] = Object.const_get(m)
+    conf['models'].each do |m,k|
+      conf['models'][m] = Object.const_get(k)
     end
     conf
   end

@@ -29,6 +29,9 @@ module Wire
       if conf['type'].respond_to? :configure
         conf = conf['type'].configure(conf)
       end
+      if conf['auth_handler']
+        conf['auth_handler'] = Object.const_get(conf['auth_handler'])
+      end
       conf
     end
 

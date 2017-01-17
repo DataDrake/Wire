@@ -22,7 +22,7 @@ module Wire
       configs = {}
       Dir[File.join(dir, '*.yaml')].each do |entry|
         name   = File.basename(entry, '.yaml')
-        config = YAML.load_file(File.join(dir, entry))
+        config = YAML.load_file(entry)
         if callback
           config = callback.call(config)
         end
