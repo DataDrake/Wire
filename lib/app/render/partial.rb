@@ -64,16 +64,22 @@ module Render
                 response: body}
         if resource['extras']
           resource['extras'].each do |k, v|
-            hash[k] = RL.request(:get,
-                                 "http://#{context.config['remote']}/#{v}",
-                                 {remote_user: context.user}
+            temp = RL.request(:get,
+                                        "http://#{context.config['remote'].split('/')[0]}/#{v}",
+                                        {remote_user: context.user}
             )[2]
+            begin
+              hash[k.to_sym] = JSON.parse_clean(temp)
+            rescue
+              hash[k.to_sym] = temp
+            end
+
           end
         end
         mime = 'text/html'
         body = template.render(self, hash)
       end
-      [200, {'Content-Type': mime}, body]
+      [200, {'Content-Type' => mime}, body]
     end
 
     # Read a Partial and render it to HTML
@@ -105,13 +111,19 @@ module Render
                 response: body}
         if resource['extras']
           resource['extras'].each do |k, v|
-            hash[k] = RL.request(:get, "http://#{context.config[:remote_host]}/#{v}")[2]
+            temp = RL.request(:get, "http://#{context.config['remote'].split('/')[0]}/#{v}")[2]
+            begin
+              hash[k.to_sym] = JSON.parse_clean(temp)
+            rescue
+              hash[k.to_sym] = temp
+            end
+
           end
         end
         mime = 'text/html'
         body = template.render(self, hash)
       end
-      [200, {'Content-Type': mime}, body]
+      [200, {'Content-Type' => mime}, body]
     end
 
     # Proxy method used when routing

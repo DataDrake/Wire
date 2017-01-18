@@ -79,7 +79,6 @@ module DB
     else
       begin
         instance = model.create(context.json)
-        instance.save
         if instance.modified?
           200
         else
