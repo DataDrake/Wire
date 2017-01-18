@@ -25,26 +25,26 @@ module Render
     # @param [Tilt::Template] template a pre-loaded Tilt template to render
     # @param [String] content the content to render into the page
     # @return [Response] a Rack Response triplet, or status code
-    def render_template(actions, context, template, content)
+    def self.render_template(actions, context, template, content)
       if template['file']
         hash = { actions: actions, context: context, content: content }
         template['sources'].each do |k, s|
-          uri      = "http://#{context.app[:remote_host]}"
+          uri      = "http://#{context.config['remote'].split('/')[0]}"
           go_ahead = true
           if s.is_a? Hash
-            uri += "/#{hash['uri']}"
+            uri += "/#{s['uri']}"
             case s['key']
               when 'user'
                 go_ahead = (context.user and !context.user.empty?)
                 uri      += "/#{context.user}"
               when 'resource'
-                go_ahead = (context.uri[2] and !context.uri[2].empty?)
-                uri      += "/#{context.uri[2]}"
+                go_ahead = (context.resource and !context.resource.empty?)
+                uri      += "/#{context.resource}"
               else
                 # do nothing
             end
           else
-            uri += s
+            uri += "#{s}"
           end
           temp = []
           if go_ahead
@@ -52,15 +52,15 @@ module Render
           end
           if temp[0] == 200
             begin
-              hash[k] = JSON.parse_clean(temp[2])
+              hash[k.to_sym] = JSON.parse_clean(temp[2])
             rescue
-              hash[k] = temp[2]
+              hash[k.to_sym] = temp[2]
             end
           end
         end
         message = template[:path].render(self, hash)
         if template['use_layout']
-          message = render_template(actions, context, $wire_apps[:global][:template], message)
+          message = render_template(actions, context, $wire_templates['layout'], message)
         end
       else
         message = 'Invalid Template'
@@ -73,11 +73,12 @@ module Render
     # @param [Hash] context the context for this request
     # @param [Symbol] specific the kind of read to perform
     # @return [Response] a Rack Response triplet, or status code
-    def do_read(actions, context, specific)
+    def self.do_read(actions, context, specific)
       if context.resource
         result   = context.forward(specific)
         #TODO: fix lookup
-        template = context.app[:template]
+        name = context.config['template']
+        template = $wire_templates[name]
         if template
           result[1]['Content-Type'] = 'text/html'
           result[2]                 = render_template(actions, context, template, result[2])
@@ -97,7 +98,7 @@ module Render
         when :create, :update, :delete
           context.forward(context.action)
         when :read
-          if context.uri[3]
+          if context.id
             do_read(actions, context, :read)
           else
             do_read(actions, context, :readAll)

@@ -109,7 +109,7 @@ module DB
     if model
       hash = '[ '
       model.each do |e|
-        hash << JSON.generate(e.values)
+        hash << e.to_json
         hash << ','
       end
       hash = hash[0...-1]
@@ -133,7 +133,7 @@ module DB
     if model
       object = model[id]
       if object
-        return [200, {}, JSON.generate(object.values)]
+        return [200, {}, object.to_json]
       end
     end
     [404, {}, []]

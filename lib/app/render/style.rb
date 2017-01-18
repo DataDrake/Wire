@@ -35,9 +35,8 @@ module Render
     # @param [Hash] context the context for this request
     # @return [Response] a Rack Response triplet, or status code
     def self.do_read_all(context)
-      resource = context.uri[2]
-      template = context.app['styles'][resource]
-      headers  = {'Cache-Control': 'public,max-age=3600'}
+      template = context.config['styles'][context.resource]
+      headers  = {'Cache-Control' => 'public,max-age=3600'}
       if template
         headers['Content-Type'] = 'text/css'
         [200, headers, [template]]
