@@ -77,13 +77,6 @@ module DB
         415
       end
     else
-      #TODO user_id needs to happen in the context
-      if model.respond_to? :updated_by_id
-        context.json[:updated_by_id] = context.user
-      end
-      if model.respond_to? :created_by_id
-        context.json[:created_by_id] = context.user
-      end
       begin
         instance = model.create(context.json)
         instance.save
@@ -104,20 +97,16 @@ module DB
   # @param [Hash] context the context for this request
   # @return [Response] all objects, or status code
   def self.do_read_all(context)
-    return 404 unless context.resource
     model = context.config['models'][context.resource]
-    if model
-      hash = '[ '
-      model.each do |e|
-        hash << e.to_json
-        hash << ','
-      end
-      hash = hash[0...-1]
-      hash << ']'
-      [200, {}, hash]
-    else
-      404
+    return 404 unless model
+    hash = '[ '
+    model.each do |e|
+      hash << e.to_json
+      hash << ','
     end
+    hash = hash[0...-1]
+    hash << ']'
+    [200, {}, hash]
   end
 
   # Get a specific object from the DB table
@@ -130,13 +119,10 @@ module DB
     if id.eql?('new') or id.eql? 'upload'
       return '{}'
     end
-    if model
-      object = model[id]
-      if object
-        return [200, {}, object.to_json]
-      end
+    object = model[id]
+    if object
+      return [200, {}, object.to_json]
     end
-    [404, {}, []]
   end
 
   # Update a specific object in the DB table
@@ -145,17 +131,8 @@ module DB
   def self.do_update(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-
-    id = context.id
-    if model
-      if model.respond_to?(:updated_by_id)
-        context.json[:updated_by_id] = context.user
-      end
-      instance = model[id]
-      instance.update(context.json)
-    else
-      404
-    end
+    instance = model[context.id]
+    instance.update(context.json)
   end
 
   # Remove a specific object from the DB table
@@ -164,18 +141,12 @@ module DB
   def self.do_delete(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-
-    id = context.id
-    if model
-      instance = model[id]
-      if instance
-        if instance.destroy
-          200
-        else
-          [500, {}, 'Failed to delete instance']
-        end
+    instance = model[context.id]
+    if instance
+      if instance.delete
+        200
       else
-        404
+        [500, {}, 'Failed to delete instance']
       end
     else
       404

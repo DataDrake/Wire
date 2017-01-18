@@ -44,7 +44,7 @@ module Render
                 # do nothing
             end
           else
-            uri += "#{s}"
+            uri += "/#{s}"
           end
           temp = []
           if go_ahead
@@ -58,7 +58,7 @@ module Render
             end
           end
         end
-        message = template[:path].render(self, hash)
+        message = template['file'].render(self, hash)
         if template['use_layout']
           message = render_template(actions, context, $wire_templates['layout'], message)
         end
