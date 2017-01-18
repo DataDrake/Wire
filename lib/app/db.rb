@@ -115,14 +115,13 @@ module DB
   def self.do_read(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-    id = context.id
+    id = context.uri[3]
     if id.eql?('new') or id.eql? 'upload'
       return '{}'
     end
     object = model[id]
-    if object
-      return [200, {}, object.to_json]
-    end
+    return 404 unless object
+    [200, {}, object.to_json]
   end
 
   # Update a specific object in the DB table
@@ -131,7 +130,8 @@ module DB
   def self.do_update(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-    instance = model[context.id]
+    instance = model[context.uri[3]]
+    return 404 unless instance
     instance.update(context.json)
   end
 
@@ -141,7 +141,7 @@ module DB
   def self.do_delete(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-    instance = model[context.id]
+    instance = model[context.uri[3]]
     if instance
       if instance.delete
         200

@@ -27,34 +27,36 @@ module Render
     # @return [Response] a Rack Response triplet, or status code
     def self.render_template(actions, context, template, content)
       if template['file']
-        hash = { actions: actions, context: context, content: content }
-        template['sources'].each do |k, s|
-          uri      = "http://#{context.config['remote'].split('/')[0]}"
-          go_ahead = true
-          if s.is_a? Hash
-            uri += "/#{s['uri']}"
-            case s['key']
-              when 'user'
-                go_ahead = (context.user and !context.user.empty?)
-                uri      += "/#{context.user}"
-              when 'resource'
-                go_ahead = (context.resource and !context.resource.empty?)
-                uri      += "/#{context.resource}"
-              else
-                # do nothing
+        hash = {actions: actions, context: context, content: content}
+        if template['sources']
+          template['sources'].each do |k, s|
+            uri      = "http://#{context.config['remote'].split('/')[0]}"
+            go_ahead = true
+            if s.is_a? Hash
+              uri += "/#{s['uri']}"
+              case s['key']
+                when 'user'
+                  go_ahead = (context.user and !context.user.empty?)
+                  uri      += "/#{context.user}"
+                when 'resource'
+                  go_ahead = (context.resource and !context.resource.empty?)
+                  uri      += "/#{context.resource}"
+                else
+                  # do nothing
+              end
+            else
+              uri += "/#{s}"
             end
-          else
-            uri += "/#{s}"
-          end
-          temp = []
-          if go_ahead
-            temp = RL.request(:get, uri, { remote_user: context.user })
-          end
-          if temp[0] == 200
-            begin
-              hash[k.to_sym] = JSON.parse_clean(temp[2])
-            rescue
-              hash[k.to_sym] = temp[2]
+            temp = []
+            if go_ahead
+              temp = RL.request(:get, uri, {remote_user: context.user})
+            end
+            if temp[0] == 200
+              begin
+                hash[k.to_sym] = JSON.parse_clean(temp[2])
+              rescue
+                hash[k.to_sym] = temp[2]
+              end
             end
           end
         end
@@ -77,7 +79,7 @@ module Render
       if context.resource
         result   = context.forward(specific)
         #TODO: fix lookup
-        name = context.config['template']
+        name     = context.config['template']
         template = $wire_templates[name]
         if template
           result[1]['Content-Type'] = 'text/html'
