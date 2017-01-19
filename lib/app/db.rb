@@ -79,7 +79,7 @@ module DB
     else
       begin
         instance = model.create(context.json)
-        if instance.modified?
+        if instance.exists?
           200
         else
           errors = ''
@@ -142,7 +142,7 @@ module DB
     return 404 unless model
     instance = model[context.uri[3]]
     if instance
-      if instance.delete
+      if instance.destroy
         200
       else
         [500, {}, 'Failed to delete instance']

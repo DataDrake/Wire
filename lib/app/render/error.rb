@@ -30,7 +30,7 @@ module Render
     end
 
     def self.error_check(actions, context, result)
-      errors = context.app['errors']
+      errors = context.config['errors']
       if errors
         template = errors[result[0]]
         if template
