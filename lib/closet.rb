@@ -28,7 +28,7 @@ module Wire
   class Closet
     include Wire::Auth
 
-    attr_reader :apps, :editors, :renderers, :templates
+    attr_accessor :apps, :editors, :renderers, :templates
 
     # Create an empty Closet
     # @return [Wire::Closet] the new closet
