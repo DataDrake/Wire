@@ -26,7 +26,7 @@ module Repo
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
   def self.configure(conf)
-    conf['listing'] = Tilt.new(conf['listing'], 1, {ugly: true})
+    conf['listing'] = Tilt.new(conf['listing'], 1, { ugly: true })
     conf
   end
 
@@ -53,6 +53,8 @@ module Repo
   def do_read_all(context)
     mime = 'text/html'
     list = do_read_listing(context.config['web'],
+                           context.config['user'],
+                           context.config['pass'],
                            context.config['repos'],
                            context.resource)
     if list == 404
@@ -64,9 +66,9 @@ module Repo
                                resource: context.resource,
                                id:       '',
                                referrer: context.referer)
-    headers  = {'Content-Type'  => mime,
-                'Cache-Control' => 'public',
-                'Expires'       => "#{(Time.now + 1000).utc}"}
+    headers  = { 'Content-Type'  => mime,
+                 'Cache-Control' => 'public',
+                 'Expires'       => "#{(Time.now + 1000).utc}" }
     [200, headers, [list]]
   end
 
@@ -74,36 +76,38 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the file, listing, or status code
   def do_read(context)
-    path     = context.resource
+    user     = context.config['user']
+    pass     = context.config['pass']
+    repo     = context.resource
     referrer = context.referer
-    repos    = context.config['repos']
+    path     = context.config['repos']
     web      = context.config['web']
     rev      = context.query[:rev]
     id       = context.id
-    info     = do_read_info(rev, web, repos, path, id)
+    info     = do_read_info(rev, web, user, pass, path, repo, id)
     if info == 404
       return 404
     end
     type = info[:@kind]
     if type.eql? 'dir'
       mime     = 'text/html'
-      list     = do_read_listing(web, repos, path, id)
+      list     = do_read_listing(web, user, pass, path, repo, id)
       template = context.config['listing']
       body     = template.render(self,
                                  list:     list,
-                                 resource: path,
+                                 resource: repo,
                                  id:       id,
                                  referrer: referrer)
     else
-      body = do_read_file(rev, web, repos, path, id)
+      body = do_read_file(rev, web, user, pass, path, repo, id)
       if body == 500
         return body
       end
-      mime = do_read_mime(rev, web, repos, path, id)
+      mime = do_read_mime(rev, web, user, pass, path, repo, id)
     end
-    headers = {'Content-Type'  => mime,
-               'Cache-Control' => 'public',
-               'Expires'       => "#{(Time.now + 1000).utc}"}
+    headers = { 'Content-Type'  => mime,
+                'Cache-Control' => 'public',
+                'Expires'       => "#{(Time.now + 1000).utc}" }
     [200, headers, [body]]
   end
 
@@ -111,8 +115,10 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_update(context)
-    path    = context.resource
-    repos   = context.config['repos']
+    user     = context.config['user']
+    pass     = context.config['pass']
+    repo    = context.resource
+    path   = context.config['repos']
     web     = context.config['web']
     content = context.json
     id      = context.id
@@ -124,9 +130,9 @@ module Repo
       else
         mime = content[:file][:mime]
       end
-      do_update_file(web, repos, path, id, file, content[:message], mime, context.user)
+      do_update_file(web, user, pass, path, repo, id, file, content[:message], mime, context.user)
     else
-      do_update_file(web, repos, path, id, URI.unescape(content[:updated]), content[:message], context.query[:type], context.user)
+      do_update_file(web, user, pass, path, repo, id, URI.unescape(content[:updated]), content[:message], context.query[:type], context.user)
     end
   end
 

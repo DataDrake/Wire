@@ -35,6 +35,8 @@ module History
   def do_read(actions, context)
     list = get_log(context.config['host'],
                    context.resource,
+                   context.config['user'],
+                   context.config['pass'],
                    context.config['web_folder'],
                    context.id)
     if list == 404

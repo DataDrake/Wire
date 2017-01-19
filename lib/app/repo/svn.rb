@@ -43,12 +43,14 @@ module Repo
     # Read a single file
     # @param [String] rev the revision number to access
     # @param [String] web the subdirectory for web content
+    # @param [String] user the username for connecting to SVN
+    # @param [String] pass the password for connecting to SVN
     # @param [String] path the path to the repositories
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
     # @return [String] the file
-    def self.do_read_file(rev, web, path, repo, id)
-      options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
+    def self.do_read_file(rev, web, user, pass, path, repo, id)
+      options = "--username #{user} --password #{pass}"
       if rev.nil?
         rev = 'HEAD'
       end
@@ -67,12 +69,14 @@ module Repo
 
     # Read a directory listing
     # @param [String] web the subdirectory for web content
+    # @param [String] user the username for connecting to SVN
+    # @param [String] pass the password for connecting to SVN
     # @param [String] path the path to the repositories
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
     # @return [Array] the directory listing
-    def self.do_read_listing(web, path, repo, id = nil)
-      options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
+    def self.do_read_listing(web, user, pass, path, repo, id = nil)
+      options = "--username #{user} --password #{pass}"
       if web.nil?
         if id.nil?
           list = `svn list #{options} --xml 'svn://localhost/#{repo}'`
@@ -96,12 +100,14 @@ module Repo
     # Read Metadata for a single file
     # @param [String] rev the revision number to access
     # @param [String] web the subdirectory for web content
+    # @param [String] user the username for connecting to SVN
+    # @param [String] pass the password for connecting to SVN
     # @param [String] path the path to the repositories
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
     # @return [Hash] the metadata
-    def self.do_read_info(rev, web, path, repo, id)
-      options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
+    def self.do_read_info(rev, web, user, pass, path, repo, id)
+      options = "--username #{user} --password #{pass}"
       if rev.nil?
         rev = 'HEAD'
       end
@@ -121,12 +127,14 @@ module Repo
     # Get a file's MIME type
     # @param [String] rev the revision number to access
     # @param [String] web the subdirectory for web content
+    # @param [String] user the username for connecting to SVN
+    # @param [String] pass the password for connecting to SVN
     # @param [String] path the path to the repositories
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
     # @return [String] the MIME type
-    def self.do_read_mime(rev, web, path, repo, id)
-      options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
+    def self.do_read_mime(rev, web, user, pass, path, repo, id)
+      options = "--username #{user} --password #{pass}"
       if rev.nil?
         rev = 'HEAD'
       end
@@ -148,16 +156,18 @@ module Repo
 
     # Update a single file
     # @param [String] web the subdirectory for web content
+    # @param [String] user the username for connecting to SVN
+    # @param [String] pass the password for connecting to SVN
     # @param [String] path the path to the repositories
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
     # @param [String] content the updated file
     # @param [String] message the commit message
     # @param [String] mime the mime-type to set
-    # @param [String] user the Author of this change
+    # @param [String] username the Author of this change
     # @return [Integer] status code
-    def self.do_update_file(web, path, repo, id, content, message, mime, user)
-      options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
+    def self.do_update_file(web, user, pass, path, repo, id, content, message, mime, username)
+      options = "--username #{user} --password #{pass}"
       status  = 500
       id      = id.split('/')
       id.pop
@@ -196,7 +206,7 @@ module Repo
         if $?.exitstatus == 0
           status = 200
         end
-        `svn propset #{options} --revprop -r HEAD svn:author '#{user}' "/tmp/svn/#{repo}"`
+        `svn propset #{options} --revprop -r HEAD svn:author '#{username}' "/tmp/svn/#{repo}"`
       end
       `rm -R '/tmp/svn/#{repo}'`
       status
