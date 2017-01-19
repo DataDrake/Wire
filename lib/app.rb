@@ -38,7 +38,7 @@ module Wire
     # Read all of the configs in './configs/apps'
     # @return [void]
     def self.read_configs
-      $wire_apps = Wire::Config.read_config_dir('config/apps', method(:configure))
+      Wire::Config.read_config_dir('config/apps', method(:configure))
     end
   end
 end

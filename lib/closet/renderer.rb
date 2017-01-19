@@ -26,7 +26,7 @@ module Wire
     # @param [Hash] conf the raw configuration
     # @return [Hash] post-processed configuration
     def self.configure_partial(conf)
-      conf['partial'] = Tilt.new(conf['partial'], 1, { ugly: true })
+      conf['partial'] = Tilt.new(conf['partial'], 1, {ugly: true})
       conf
     end
 
@@ -34,16 +34,17 @@ module Wire
     # @param [Hash] conf the raw configuration
     # @return [Hash] post-processed configuration
     def self.configure_template(conf)
-      conf['file'] = Tilt.new(conf['file'], 1, { ugly: true })
+      conf['file'] = Tilt.new(conf['file'], 1, {ugly: true})
       conf
     end
 
     # Read all of the configs in './configs/apps'
     # @return [void]
     def self.read_configs
-      $wire_editors   = Wire::Config.read_config_dir('config/editors', method(:configure_template))
-      $wire_renderers = Wire::Config.read_config_dir('config/renderers', method(:configure_partial))
-      $wire_templates = Wire::Config.read_config_dir('config/templates', method(:configure_template))
+      editors   = Wire::Config.read_config_dir('config/editors', method(:configure_template))
+      renderers = Wire::Config.read_config_dir('config/renderers', method(:configure_partial))
+      templates = Wire::Config.read_config_dir('config/templates', method(:configure_template))
+      [editors, renderers, templates]
     end
   end
 end

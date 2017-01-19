@@ -26,7 +26,7 @@ module Repo
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
   def self.configure(conf)
-    conf['listing'] = Tilt.new(conf['listing'], 1, { ugly: true })
+    conf['listing'] = Tilt.new(conf['listing'], 1, {ugly: true})
     conf
   end
 
@@ -51,10 +51,10 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the listing, or status code
   def do_read_all(context)
-    mime     = 'text/html'
-    list     = do_read_listing(context.config['web'],
-                               context.config['repos'],
-                               context.resource)
+    mime = 'text/html'
+    list = do_read_listing(context.config['web'],
+                           context.config['repos'],
+                           context.resource)
     if list == 404
       return 404
     end
@@ -64,9 +64,9 @@ module Repo
                                resource: context.resource,
                                id:       '',
                                referrer: context.referer)
-    headers  = { 'Content-Type':  mime,
-                 'Cache-Control': 'public',
-                 'Expires':       "#{(Time.now + 1000).utc}" }
+    headers  = {'Content-Type'  => mime,
+                'Cache-Control' => 'public',
+                'Expires'       => "#{(Time.now + 1000).utc}"}
     [200, headers, [list]]
   end
 
@@ -101,9 +101,9 @@ module Repo
       end
       mime = do_read_mime(rev, web, repos, path, id)
     end
-    headers = { 'Content-Type':  mime,
-                'Cache-Control': 'public',
-                'Expires':       "#{(Time.now + 1000).utc}" }
+    headers = {'Content-Type'  => mime,
+               'Cache-Control' => 'public',
+               'Expires'       => "#{(Time.now + 1000).utc}"}
     [200, headers, [body]]
   end
 

@@ -31,7 +31,6 @@ module Render
           conf['resources'][k]['multiple'] = Tilt.new(v['multiple'], 1, {ugly: true})
           conf['resources'][k]['single']   = Tilt.new(v['single'], 1, {ugly: true})
         elsif v.is_a? String
-          #TODO: fix needless duplication
           conf['resources'][k] = {'all' => Tilt.new(v, 1, {ugly: true})}
         end
       end
@@ -65,8 +64,8 @@ module Render
         if resource['extras']
           resource['extras'].each do |k, v|
             temp = RL.request(:get,
-                                        "http://#{context.config['remote'].split('/')[0]}/#{v}",
-                                        {remote_user: context.user}
+                              "http://#{context.config['remote'].split('/')[0]}/#{v}",
+                              {remote_user: context.user}
             )[2]
             begin
               hash[k.to_sym] = JSON.parse_clean(temp)
@@ -117,7 +116,6 @@ module Render
             rescue
               hash[k.to_sym] = temp
             end
-
           end
         end
         mime = 'text/html'

@@ -24,7 +24,7 @@ module Render
     # @return [Hash] post-processed configuration
     def self.configure(conf)
       conf['errors'].each do |k, v|
-        conf['errors'][k] = Tilt.new(v, 1, { ugly: true })
+        conf['errors'][k] = Tilt.new(v, 1, {ugly: true})
       end
       conf
     end
@@ -34,9 +34,9 @@ module Render
       if errors
         template = errors[result[0]]
         if template
-          result[2] = template.render(self, { actions: actions,
-                                              context: context,
-                                              result:  result })
+          result[2] = template.render(self, {actions: actions,
+                                             context: context,
+                                             result:  result})
         end
       end
       result

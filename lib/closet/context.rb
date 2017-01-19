@@ -49,9 +49,9 @@ module Wire
     #@!attribute [r] verb
     #		@return [Symbol] the HTTP verb
 
-    attr_reader :action, :app, :body, :config, :id, :json, :query,
-                :query_string, :rack_env, :referer, :resource,
-                :uri, :user, :verb
+    attr_reader :action, :app, :body, :closet, :config, :id,
+                :json, :query, :query_string, :rack_env,
+                :referer, :resource, :uri, :user, :verb
     attr_writer :referer
 
     # Maps HTTP verbs to actions
@@ -85,9 +85,11 @@ module Wire
     end
 
     # Builds a new Context
+    # @param [Closet] closet the Wire::Closet
     # @param [Hash] env the Rack environment
     # @return [Context] a new Context
-    def initialize(env)
+    def initialize(closet, env)
+      @closet   = closet
       @rack_env = update_session(env)
       @user     = env['rack.session']['user']
       @verb     = HTTP_VERBS[env['REQUEST_METHOD'].to_sym]
@@ -98,7 +100,7 @@ module Wire
       else
         @referer = ['http:', '', env['HTTP_HOST']].concat(@uri[1...@uri.length])
       end
-      @config = $wire_apps[@uri[1]]
+      @config = @closet.apps[@uri[1]]
       if @config
         @app      = @uri[1]
         @resource = @uri[2]
@@ -134,8 +136,8 @@ module Wire
     # @param [Symbol] method the action to use when forwarding
     # @return [Response] a Rack Response triplet, or status code
     def forward(method)
-      headers = { referer:     @referer.join('/'),
-                  remote_user: @user }
+      headers = {referer:     @referer.join('/'),
+                 remote_user: @user}
       verb    = CONVERT[method]
       uri     = "http://#{@config['remote']}/#{@resource}"
       if [:update, :read, :delete].include?(method)

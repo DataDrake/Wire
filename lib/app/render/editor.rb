@@ -35,13 +35,13 @@ module Render
         return [404, {}, 'EDITOR: Document type not set for new document']
       end
       #TODO: Fix lookup
-      template = $wire_editors[mime]
+      template = context.closet.editors[mime]
       if template
-        template.render(self, { actions:  actions,
-                                resource: context.resource,
-                                id:       context.id,
-                                mime:     mime,
-                                response: body })
+        template.render(self, {actions:  actions,
+                               resource: context.resource,
+                               id:       context.id,
+                               mime:     mime,
+                               response: body})
       else
         body
       end

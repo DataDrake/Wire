@@ -62,7 +62,7 @@ module Render
         end
         message = template['file'].render(self, hash)
         if template['use_layout']
-          message = render_template(actions, context, $wire_templates['layout'], message)
+          message = render_template(actions, context, context.closet.templates['layout'], message)
         end
       else
         message = 'Invalid Template'
@@ -78,9 +78,8 @@ module Render
     def self.do_read(actions, context, specific)
       if context.resource
         result   = context.forward(specific)
-        #TODO: fix lookup
         name     = context.config['template']
-        template = $wire_templates[name]
+        template = context.closet.templates[name]
         if template
           result[1]['Content-Type'] = 'text/html'
           result[2]                 = render_template(actions, context, template, result[2])

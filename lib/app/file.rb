@@ -25,8 +25,7 @@ module Static
   # @return [Response] a listing, or status code
   def self.do_read_all(context)
     path = context.config['path']
-    if path
-      return 404 unless File.exists?(path)
+    if path and File.exists?(path)
       if File.directory? path
         Dir.entries(path).sort.to_s
       else

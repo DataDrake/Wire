@@ -18,30 +18,25 @@ require 'nori'
 require 'fileutils'
 require_relative '../repo'
 
-# Force Nori to convert tag names to Symbols
-$nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
-
 module Repo
   # Repo::SVN is a connector for svnserve
   # @author Bryan T. Meyers
   module SVN
     extend Repo
 
+    # Force Nori to convert tag names to Symbols
+    @@nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
+
     # Make a new SVN repo
     # @param [String] path the path to the repositories
     # @param [String] repo the new repo name
     # @return [Integer] status code
     def self.do_create_file(path, repo)
-      result = 200
       `svnadmin create #{path}/#{repo}`
-      if $?.exitstatus != 0
-        return 500
-      end
-
       if $?.exitstatus != 0
         500
       else
-        result
+        200
       end
     end
 
@@ -94,7 +89,7 @@ module Repo
       unless $?.exitstatus == 0
         return 404
       end
-      list = $nori.parse(list)
+      list = @@nori.parse(list)
       list[:lists][:list][:entry]
     end
 
@@ -119,7 +114,7 @@ module Repo
       unless $?.exitstatus == 0
         return 404
       end
-      info = $nori.parse(info)
+      info = @@nori.parse(info)
       info[:info][:entry]
     end
 
@@ -140,11 +135,10 @@ module Repo
       else
         mime = `svn propget #{options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{web}/#{id}'`
       end
-
       unless $?.success?
         return 500
       end
-      mime = $nori.parse(mime)
+      mime = @@nori.parse(mime)
       if mime[:properties].nil?
         'application/octet-stream'
       else
@@ -165,9 +159,9 @@ module Repo
     def self.do_update_file(web, path, repo, id, content, message, mime, user)
       options = "--username #{$environment[:repos_user]} --password #{$environment[:repos_password]}"
       status  = 500
-      id        = id.split('/')
+      id      = id.split('/')
       id.pop
-      id       = id.join('/')
+      id = id.join('/')
       if web.nil?
         repo_path = "/tmp/svn/#{repo}/#{id}"
       else
@@ -180,9 +174,9 @@ module Repo
       `svn checkout #{options} 'svn://localhost/#{repo}' '/tmp/svn/#{repo}'`
       id = CGI.unescape(id)
       if $?.exitstatus == 0
-        id        = id.split('/')
+        id = id.split('/')
         id.pop
-        id       = id.join('/')
+        id = id.join('/')
         if web.nil?
           file_path = "/tmp/svn/#{repo}/#{id}"
         else

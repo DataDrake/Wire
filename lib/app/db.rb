@@ -25,7 +25,7 @@ module DB
   # @param [Hash] conf the existing configuration
   # @return [Hash] post-processed configuration
   def self.configure(conf)
-    conf['models'].each do |m,k|
+    conf['models'].each do |m, k|
       conf['models'][m] = Object.const_get(k)
     end
     conf

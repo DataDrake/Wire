@@ -28,13 +28,15 @@ module Wire
   class Closet
     include Wire::Auth
 
+    attr_reader :apps, :editors, :renderers, :templates
+
     # Create an empty Closet
     # @return [Wire::Closet] the new closet
     def initialize
-      $wire_apps      = {}
-      $wire_editors   = {}
-      $wire_renderers = {}
-      $wire_templates = {}
+      @apps      = {}
+      @editors   = {}
+      @renderers = {}
+      @templates = {}
     end
 
     # Route a Request to the correct Wire::App
@@ -54,7 +56,7 @@ module Wire
     # @return [Response] a Rack Response triplet, or status code
     def call(env)
       begin
-        context  = Wire::Context.new(env)
+        context  = Wire::Context.new(self, env)
         response = route(context)
       rescue Exception => e
         $stderr.puts e.message
@@ -62,10 +64,8 @@ module Wire
         response = [500, {}, e.message]
       end
       if response.is_a? Array
-        if response[2]
-          unless response[2].is_a? Array
-            response[2] = [response[2]]
-          end
+        if response[2] and not response[2].is_a? Array
+          response[2] = [response[2]]
         end
       else
         if response.is_a? Integer
@@ -86,8 +86,8 @@ module Wire
         $stderr.puts 'Starting Up Wire...'
         $stderr.puts 'Starting Apps...'
       end
-      Wire::App.read_configs
-      Wire::Renderer.read_configs
+      @apps                            = Wire::App.read_configs
+      @editors, @renderers, @templates = Wire::Renderer.read_configs
       if ENV['RACK_ENV'].eql? 'development'
         closet.info
       end
@@ -98,7 +98,7 @@ module Wire
     # @return [void]
     def info
       $stderr.puts "Apps:\n"
-      $wire_apps.each do |app, config|
+      @apps.each do |app, config|
         $stderr.puts "\u{2502}"
         $stderr.puts "\u{251c} Name: #{app}"
         if config['auth_handler']
