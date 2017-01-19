@@ -86,8 +86,8 @@ module Wire
         $stderr.puts 'Starting Up Wire...'
         $stderr.puts 'Starting Apps...'
       end
-      @apps                            = Wire::App.read_configs
-      @editors, @renderers, @templates = Wire::Renderer.read_configs
+      closet.apps                                        = Wire::App.read_configs
+      closet.editors, closet.renderers, closet.templates = Wire::Renderer.read_configs
       if ENV['RACK_ENV'].eql? 'development'
         closet.info
       end

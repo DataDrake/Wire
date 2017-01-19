@@ -34,8 +34,13 @@ module Render
       else
         return [404, {}, 'EDITOR: Document type not set for new document']
       end
-      #TODO: Fix lookup
-      template = context.closet.editors[mime]
+      template = nil
+      context.closet.editors.each do |k, v|
+        if v['mimes'].include? mime
+          template = v['file']
+          break
+        end
+      end
       if template
         template.render(self, {actions:  actions,
                                resource: context.resource,
