@@ -38,7 +38,7 @@ module Wire
       conf
     end
 
-    # Read all of the configs in './configs/apps'
+    # Read all of the configs in './config/editors', './config/renderers', '.config/templates'
     # @return [void]
     def self.read_configs
       editors   = Wire::Config.read_config_dir('config/editors', method(:configure_template))

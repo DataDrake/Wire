@@ -29,14 +29,36 @@ module Wire
     include Wire::Auth
 
     attr_accessor :apps, :editors, :renderers, :templates
+    attr_reader :dbs, :env, :repos, :mode
 
     # Create an empty Closet
     # @return [Wire::Closet] the new closet
     def initialize
-      @apps      = {}
-      @editors   = {}
-      @renderers = {}
-      @templates = {}
+      @mode = ENV['RACK_ENV']
+      if @mode.eql? 'development'
+        $stderr.puts 'Starting Up Wire...'
+        $stderr.puts 'Reading Environment Config...'
+      end
+      @env = Wire::Config.read_config_dir('./config/env',nil)[@mode]
+      if @mode.eql? 'development'
+        $stderr.puts 'Reading DB Configs...'
+      end
+      @dbs = Wire::DB.read_configs
+      if @mode.eql? 'development'
+        $stderr.puts 'Reading Repo Configs...'
+      end
+      @repos = Wire::Repo.read_configs
+      if @mode.eql? 'development'
+        $stderr.puts 'Reading App Configs...'
+      end
+      @apps                            = Wire::App.read_configs
+      if @mode.eql? 'development'
+        $stderr.puts 'Reading [Editor|Renderer|Template] Configs...'
+      end
+      @editors, @renderers, @templates = Wire::Renderer.read_configs
+      if @mode.eql? 'development'
+        info
+      end
     end
 
     # Route a Request to the correct Wire::App
@@ -75,23 +97,6 @@ module Wire
         end
       end
       response
-    end
-
-    # A factory method for configuring a Closet
-    # @param [Proc] block the configuration routine
-    # @return [Wire::Closet] the configured Closet
-    def self.build
-      closet = Wire::Closet.new
-      if ENV['RACK_ENV'].eql? 'development'
-        $stderr.puts 'Starting Up Wire...'
-        $stderr.puts 'Starting Apps...'
-      end
-      closet.apps                                        = Wire::App.read_configs
-      closet.editors, closet.renderers, closet.templates = Wire::Renderer.read_configs
-      if ENV['RACK_ENV'].eql? 'development'
-        closet.info
-      end
-      closet
     end
 
     # Print out a human-readable configuration

@@ -24,7 +24,7 @@ module History
   # Configure this History with a log template
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
-  def self.configure(conf)
+  def configure(conf)
     conf['log'] = Tilt.new(conf['log'], 1, { ugly: true })
     conf
   end
@@ -33,11 +33,8 @@ module History
   # @param [Hash] context the context for this request
   # @return [Response] the history, or status code
   def do_read(actions, context)
-    list = get_log(context.config['host'],
+    list = get_log(context.repos[context.config['repo']],
                    context.resource,
-                   context.config['user'],
-                   context.config['pass'],
-                   context.config['web_folder'],
                    context.id)
     if list == 404
       return 404

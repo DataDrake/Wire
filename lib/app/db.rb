@@ -21,7 +21,7 @@ require 'sequel'
 # @author Bryan T. Meyers
 module DB
 
-  # DB-specific configuration
+  # Model-specific configuration
   # @param [Hash] conf the existing configuration
   # @return [Hash] post-processed configuration
   def self.configure(conf)
@@ -29,6 +29,24 @@ module DB
       conf['models'][m] = Object.const_get(k)
     end
     conf
+  end
+
+  # DB-specific configuration
+  # @param [Hash] conf the existing configuration
+  # @return [Hash] post-processed configuration
+  def self.init_db(conf)
+    config = {}
+    conf.each do |k,v|
+      config[k.to_sym] = v
+    end
+    config[:db] = Sequel.connect(config)
+    config
+  end
+
+  # Read all of the configs in './configs/dbs'
+  # @return [void]
+  def self.read_configs
+    Wire::Config.read_config_dir('config/dbs', method(:init_db))
   end
 
   # Add a new object to the DB table

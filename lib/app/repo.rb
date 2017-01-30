@@ -25,7 +25,7 @@ module Repo
   # Configure repo with listing template
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
-  def self.configure(conf)
+  def configure(conf)
     conf['listing'] = Tilt.new(conf['listing'], 1, { ugly: true })
     conf
   end
@@ -34,7 +34,8 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_create(context)
-    path     = context.config['repos']
+    conf     = context.repos[context.config['repo']]
+    path     = conf['repos']
     resource = context.resource
     if path
       if Dir.exist?("#{path}/#{resource}")
@@ -51,12 +52,9 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the listing, or status code
   def do_read_all(context)
+    conf = context.repos[context.config['repo']]
     mime = 'text/html'
-    list = do_read_listing(context.config['web'],
-                           context.config['user'],
-                           context.config['pass'],
-                           context.config['repos'],
-                           context.resource)
+    list = do_read_listing(conf, context.resource)
     if list == 404
       return 404
     end
@@ -76,22 +74,19 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the file, listing, or status code
   def do_read(context)
-    user     = context.config['user']
-    pass     = context.config['pass']
-    repo     = context.resource
+    conf     = context.repos[context.config['repo']]
     referrer = context.referer
-    path     = context.config['repos']
-    web      = context.config['web']
-    rev      = context.query[:rev]
+    repo     = context.resource
     id       = context.id
-    info     = do_read_info(rev, web, user, pass, path, repo, id)
+    rev      = context.query[:rev]
+    info     = do_read_info(conf, repo, id, rev)
     if info == 404
       return 404
     end
     type = info[:@kind]
     if type.eql? 'dir'
       mime     = 'text/html'
-      list     = do_read_listing(web, user, pass, path, repo, id)
+      list     = do_read_listing(conf, repo, id)
       template = context.config['listing']
       body     = template.render(self,
                                  list:     list,
@@ -99,11 +94,11 @@ module Repo
                                  id:       id,
                                  referrer: referrer)
     else
-      body = do_read_file(rev, web, user, pass, path, repo, id)
+      body = do_read_file(conf, repo, id, rev)
       if body == 500
         return body
       end
-      mime = do_read_mime(rev, web, user, pass, path, repo, id)
+      mime = do_read_mime(conf, repo, id, rev)
     end
     headers = { 'Content-Type'  => mime,
                 'Cache-Control' => 'public',
@@ -115,11 +110,8 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_update(context)
-    user     = context.config['user']
-    pass     = context.config['pass']
+    conf    = context.repos[context.config['repo']]
     repo    = context.resource
-    path   = context.config['repos']
-    web     = context.config['web']
     content = context.json
     id      = context.id
     if content[:file]
@@ -130,9 +122,9 @@ module Repo
       else
         mime = content[:file][:mime]
       end
-      do_update_file(web, user, pass, path, repo, id, file, content[:message], mime, context.user)
+      do_update_file(conf, repo, id, file, content[:message], mime, context.user)
     else
-      do_update_file(web, user, pass, path, repo, id, URI.unescape(content[:updated]), content[:message], context.query[:type], context.user)
+      do_update_file(conf, repo, id, URI.unescape(content[:updated]), content[:message], context.query[:type], context.user)
     end
   end
 

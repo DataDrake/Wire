@@ -41,23 +41,20 @@ module Repo
     end
 
     # Read a single file
-    # @param [String] rev the revision number to access
-    # @param [String] web the subdirectory for web content
-    # @param [String] user the username for connecting to SVN
-    # @param [String] pass the password for connecting to SVN
-    # @param [String] path the path to the repositories
+    # @param [String] conf the repo config
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
+    # @param [String] rev the revision number to access
     # @return [String] the file
-    def self.do_read_file(rev, web, user, pass, path, repo, id)
-      options = "--username #{user} --password #{pass}"
+    def self.do_read_file(conf, repo, id, rev)
+      options = "--username #{conf['user']} --password #{conf['password']}"
       if rev.nil?
         rev = 'HEAD'
       end
-      if web.nil?
+      if conf['web_folder'].nil?
         body = `svn cat #{options} -r #{rev} 'svn://localhost/#{repo}/#{id}'`
       else
-        body = `svn cat #{options} -r #{rev} 'svn://localhost/#{repo}/#{web}/#{id}'`
+        body = `svn cat #{options} -r #{rev} 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
       end
 
       if $?.success?
@@ -68,16 +65,13 @@ module Repo
     end
 
     # Read a directory listing
-    # @param [String] web the subdirectory for web content
-    # @param [String] user the username for connecting to SVN
-    # @param [String] pass the password for connecting to SVN
-    # @param [String] path the path to the repositories
-    # @param [String] repo the new repo name
+    # @param [String] conf the repo config
+    # @param [String] repo the repo name
     # @param [String] id the relative path to the file
     # @return [Array] the directory listing
-    def self.do_read_listing(web, user, pass, path, repo, id = nil)
-      options = "--username #{user} --password #{pass}"
-      if web.nil?
+    def self.do_read_listing(conf, repo, id = nil)
+      options = "--username #{conf['user']} --password #{conf['password']}"
+      if conf['web_folder'].nil?
         if id.nil?
           list = `svn list #{options} --xml 'svn://localhost/#{repo}'`
         else
@@ -85,9 +79,9 @@ module Repo
         end
       else
         if id.nil?
-          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{web}'`
+          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{conf['web_folder']}'`
         else
-          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
         end
       end
       unless $?.exitstatus == 0
@@ -98,23 +92,20 @@ module Repo
     end
 
     # Read Metadata for a single file
-    # @param [String] rev the revision number to access
-    # @param [String] web the subdirectory for web content
-    # @param [String] user the username for connecting to SVN
-    # @param [String] pass the password for connecting to SVN
-    # @param [String] path the path to the repositories
+    # @param [String] conf the repo config
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
+    # @param [String] rev the revision number to access
     # @return [Hash] the metadata
-    def self.do_read_info(rev, web, user, pass, path, repo, id)
-      options = "--username #{user} --password #{pass}"
+    def self.do_read_info(conf, repo, id, rev)
+      options = "--username #{conf['user']} --password #{conf['password']}"
       if rev.nil?
         rev = 'HEAD'
       end
-      if web.nil?
+      if conf['web_folder'].nil?
         info = `svn info #{options} -r #{rev} --xml 'svn://localhost/#{repo}/#{id}'`
       else
-        info = `svn info #{options} -r #{rev} --xml 'svn://localhost/#{repo}/#{web}/#{id}'`
+        info = `svn info #{options} -r #{rev} --xml 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
       end
 
       unless $?.exitstatus == 0
@@ -125,23 +116,20 @@ module Repo
     end
 
     # Get a file's MIME type
-    # @param [String] rev the revision number to access
-    # @param [String] web the subdirectory for web content
-    # @param [String] user the username for connecting to SVN
-    # @param [String] pass the password for connecting to SVN
-    # @param [String] path the path to the repositories
+    # @param [String] conf the repo config
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
+    # @param [String] rev the revision number to access
     # @return [String] the MIME type
-    def self.do_read_mime(rev, web, user, pass, path, repo, id)
-      options = "--username #{user} --password #{pass}"
+    def self.do_read_mime(conf, repo, id, rev)
+      options = "--username #{conf['user']} --password #{conf['password']}"
       if rev.nil?
         rev = 'HEAD'
       end
-      if web.nil?
+      if conf['web_folder'].nil?
         mime = `svn propget #{options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
       else
-        mime = `svn propget #{options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{web}/#{id}'`
+        mime = `svn propget #{options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
       end
       unless $?.success?
         return 500
@@ -155,10 +143,7 @@ module Repo
     end
 
     # Update a single file
-    # @param [String] web the subdirectory for web content
-    # @param [String] user the username for connecting to SVN
-    # @param [String] pass the password for connecting to SVN
-    # @param [String] path the path to the repositories
+    # @param [String] conf the repo config
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
     # @param [String] content the updated file
@@ -166,16 +151,16 @@ module Repo
     # @param [String] mime the mime-type to set
     # @param [String] username the Author of this change
     # @return [Integer] status code
-    def self.do_update_file(web, user, pass, path, repo, id, content, message, mime, username)
-      options = "--username #{user} --password #{pass}"
+    def self.do_update_file(conf, repo, id, content, message, mime, username)
+      options = "--username #{conf['user']} --password #{conf['password']}"
       status  = 500
       id      = id.split('/')
       id.pop
       id = id.join('/')
-      if web.nil?
+      if conf['web_folder'].nil?
         repo_path = "/tmp/svn/#{repo}/#{id}"
       else
-        repo_path = "/tmp/svn/#{repo}/#{web}/#{id}"
+        repo_path = "/tmp/svn/#{repo}/#{conf['web_folder']}/#{id}"
       end
       unless Dir.exist? repo_path
         FileUtils.mkdir_p(repo_path)
@@ -187,10 +172,10 @@ module Repo
         id = id.split('/')
         id.pop
         id = id.join('/')
-        if web.nil?
+        if conf['web_folder'].nil?
           file_path = "/tmp/svn/#{repo}/#{id}"
         else
-          file_path = "/tmp/svn/#{repo}/#{web}/#{id}"
+          file_path = "/tmp/svn/#{repo}/#{conf['web_folder']}/#{id}"
         end
 
         unless Dir.exist? file_path

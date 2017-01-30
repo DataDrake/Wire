@@ -24,19 +24,16 @@ module History
     extend History
 
     # Get the log information for any part of a Repo
-    # @param [String] host the name of the host to connect to
+    # @param [Hash] conf the repo config
     # @param [String] repo the name of the repository to access
-    # @param [String] user the username for connecting to SVN
-    # @param [String] pass the password for connecting to SVN
-    # @param [String] web the web path of the repo
     # @param [String] id the sub-URI of the item to access
     # @return [Hash] the history entries
-    def self.get_log(host, repo, user, pass, web, id = nil)
-      options = "--username #{user} --password #{pass}"
-      uri     = "svn://#{host}/#{repo}"
+    def self.get_log(conf, repo, id = nil)
+      options = "--username #{conf['user']} --password #{conf['password']}"
+      uri     = "svn://#{conf['host']}/#{repo}"
       if id
-        if web
-          uri += "/#{web}"
+        if conf['web_folder']
+          uri += "/#{conf['web_folder']}"
         end
         uri += "/#{id}"
       end

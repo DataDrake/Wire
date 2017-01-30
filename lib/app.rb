@@ -35,7 +35,7 @@ module Wire
       conf
     end
 
-    # Read all of the configs in './configs/apps'
+    # Read all of the configs in './config/apps'
     # @return [void]
     def self.read_configs
       Wire::Config.read_config_dir('config/apps', method(:configure))
