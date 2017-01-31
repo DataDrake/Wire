@@ -30,11 +30,17 @@ module Repo
     conf
   end
 
+  # Read all of the configs in './configs/repos'
+  # @return [void]
+  def self.read_configs
+    Wire::Config.read_config_dir('config/repos', nil)
+  end
+
   # Create a new Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_create(context)
-    conf     = context.repos[context.config['repo']]
+    conf     = context.closet.repos[context.config['repo']]
     path     = conf['repos']
     resource = context.resource
     if path
@@ -52,7 +58,7 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the listing, or status code
   def do_read_all(context)
-    conf = context.repos[context.config['repo']]
+    conf = context.closet.repos[context.config['repo']]
     mime = 'text/html'
     list = do_read_listing(conf, context.resource)
     if list == 404
@@ -74,7 +80,7 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] the file, listing, or status code
   def do_read(context)
-    conf     = context.repos[context.config['repo']]
+    conf     = context.closet.repos[context.config['repo']]
     referrer = context.referer
     repo     = context.resource
     id       = context.id
@@ -110,7 +116,7 @@ module Repo
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_update(context)
-    conf    = context.repos[context.config['repo']]
+    conf    = context.closet.repos[context.config['repo']]
     repo    = context.resource
     content = context.json
     id      = context.id

@@ -26,7 +26,7 @@ module Render
     # @return [Hash] post-processed configuration
     def self.configure(conf)
       conf['styles'].each do |k, v|
-        conf['styles'][k] = Tilt.new(v, 1, {ugly: true}).render
+        conf['styles'][k] = Tilt.new(v, 1, { ugly: true }).render
       end
       conf
     end
@@ -36,7 +36,7 @@ module Render
     # @return [Response] a Rack Response triplet, or status code
     def self.do_read_all(context)
       template = context.config['styles'][context.resource]
-      headers  = {'Cache-Control' => 'public,max-age=3600'}
+      headers  = { 'Cache-Control' => 'public,max-age=3600' }
       if template
         headers['Content-Type'] = 'text/css'
         [200, headers, [template]]

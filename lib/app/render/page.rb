@@ -27,7 +27,7 @@ module Render
     # @return [Response] a Rack Response triplet, or status code
     def self.render_template(actions, context, template, content)
       if template['file']
-        hash = {actions: actions, context: context, content: content}
+        hash = { actions: actions, context: context, content: content }
         if template['sources']
           template['sources'].each do |k, s|
             uri      = "http://#{context.config['remote'].split('/')[0]}"
@@ -49,7 +49,7 @@ module Render
             end
             temp = []
             if go_ahead
-              temp = RL.request(:get, uri, {remote_user: context.user})
+              temp = RL.request(:get, uri, { remote_user: context.user })
             end
             if temp[0] == 200
               begin

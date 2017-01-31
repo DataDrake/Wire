@@ -30,10 +30,10 @@ module Render
       renderer = context.closet.renderers[mime]
       if renderer
         template = renderer['partial']
-        template.render(self, {actions:  actions,
-                               context:  context,
-                               mime:     mime,
-                               response: response[2]})
+        template.render(self, { actions:  actions,
+                                context:  context,
+                                mime:     mime,
+                                response: response[2] })
       else
         response
       end

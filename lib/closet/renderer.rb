@@ -26,7 +26,7 @@ module Wire
     # @param [Hash] conf the raw configuration
     # @return [Hash] post-processed configuration
     def self.configure_partial(conf)
-      conf['partial'] = Tilt.new(conf['partial'], 1, {ugly: true})
+      conf['partial'] = Tilt.new(conf['partial'], 1, { ugly: true })
       conf
     end
 
@@ -34,7 +34,7 @@ module Wire
     # @param [Hash] conf the raw configuration
     # @return [Hash] post-processed configuration
     def self.configure_template(conf)
-      conf['file'] = Tilt.new(conf['file'], 1, {ugly: true})
+      conf['file'] = Tilt.new(conf['file'], 1, { ugly: true })
       conf
     end
 

@@ -28,10 +28,10 @@ module Wire
   class Closet
     include Wire::Auth
 
-    attr_accessor :apps, :editors, :renderers, :templates
+    attr_reader :apps, :editors, :renderers, :templates
     attr_reader :dbs, :env, :repos, :mode
 
-    # Create an empty Closet
+    # Create an empty Closet and connect to datasources.
     # @return [Wire::Closet] the new closet
     def initialize
       @mode = ENV['RACK_ENV']
@@ -39,7 +39,7 @@ module Wire
         $stderr.puts 'Starting Up Wire...'
         $stderr.puts 'Reading Environment Config...'
       end
-      @env = Wire::Config.read_config_dir('./config/env',nil)[@mode]
+      @env = Wire::Config.read_config_dir('./config/env', nil)[@mode]
       if @mode.eql? 'development'
         $stderr.puts 'Reading DB Configs...'
       end
@@ -48,10 +48,14 @@ module Wire
         $stderr.puts 'Reading Repo Configs...'
       end
       @repos = Wire::Repo.read_configs
+    end
+
+    # Setup the closet
+    def build
       if @mode.eql? 'development'
         $stderr.puts 'Reading App Configs...'
       end
-      @apps                            = Wire::App.read_configs
+      @apps = Wire::App.read_configs
       if @mode.eql? 'development'
         $stderr.puts 'Reading [Editor|Renderer|Template] Configs...'
       end

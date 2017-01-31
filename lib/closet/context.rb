@@ -136,8 +136,8 @@ module Wire
     # @param [Symbol] method the action to use when forwarding
     # @return [Response] a Rack Response triplet, or status code
     def forward(method)
-      headers = {referer:     @referer.join('/'),
-                 remote_user: @user}
+      headers = { referer:     @referer.join('/'),
+                  remote_user: @user }
       verb    = CONVERT[method]
       uri     = "http://#{@config['remote']}/#{@resource}"
       if [:update, :read, :delete].include?(method)

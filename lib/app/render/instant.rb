@@ -41,16 +41,16 @@ module Render
           renderer = context.closet.renderers["#{context.resource}/#{context.id}"]
           if renderer
             template = context.closet.templates[renderer]
-            result   = template.render(self, {actions:  actions,
-                                              context:  context,
-                                              mime:     "#{context.resource}/#{context.id}",
-                                              response: body, })
+            result   = template.render(self, { actions:  actions,
+                                               context:  context,
+                                               mime:     "#{context.resource}/#{context.id}",
+                                               response: body, })
             name     = context.config['template']
             template = context.closet.templates[name]
             if template
-              message = template['file'].render(self, {actions: actions,
-                                                       context: context,
-                                                       content: result})
+              message = template['file'].render(self, { actions: actions,
+                                                        context: context,
+                                                        content: result })
             else
               message = result
             end

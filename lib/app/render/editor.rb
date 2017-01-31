@@ -42,11 +42,11 @@ module Render
         end
       end
       if template
-        template.render(self, {actions:  actions,
-                               resource: context.resource,
-                               id:       context.id,
-                               mime:     mime,
-                               response: body})
+        template.render(self, { actions:  actions,
+                                resource: context.resource,
+                                id:       context.id,
+                                mime:     mime,
+                                response: body })
       else
         body
       end

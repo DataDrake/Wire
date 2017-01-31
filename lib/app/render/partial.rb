@@ -28,10 +28,10 @@ module Render
     def self.configure(conf)
       conf['resources'].each do |k, v|
         if v.is_a? Hash
-          conf['resources'][k]['multiple'] = Tilt.new(v['multiple'], 1, {ugly: true})
-          conf['resources'][k]['single']   = Tilt.new(v['single'], 1, {ugly: true})
+          conf['resources'][k]['multiple'] = Tilt.new(v['multiple'], 1, { ugly: true })
+          conf['resources'][k]['single']   = Tilt.new(v['single'], 1, { ugly: true })
         elsif v.is_a? String
-          conf['resources'][k] = {'all' => Tilt.new(v, 1, {ugly: true})}
+          conf['resources'][k] = { 'all' => Tilt.new(v, 1, { ugly: true }) }
         end
       end
       conf
@@ -57,15 +57,15 @@ module Render
         template = resource['multiple']
       end
       if template
-        hash = {actions:  actions,
-                resource: resource,
-                mime:     mime,
-                response: body}
+        hash = { actions:  actions,
+                 resource: resource,
+                 mime:     mime,
+                 response: body }
         if resource['extras']
           resource['extras'].each do |k, v|
             temp = RL.request(:get,
                               "http://#{context.config['remote'].split('/')[0]}/#{v}",
-                              {remote_user: context.user}
+                              { remote_user: context.user }
             )[2]
             begin
               hash[k.to_sym] = JSON.parse_clean(temp)
@@ -78,7 +78,7 @@ module Render
         mime = 'text/html'
         body = template.render(self, hash)
       end
-      [200, {'Content-Type' => mime}, body]
+      [200, { 'Content-Type' => mime }, body]
     end
 
     # Read a Partial and render it to HTML
@@ -102,12 +102,12 @@ module Render
         template = resource['single']
       end
       if template
-        hash = {actions:  actions,
-                app:      context.app,
-                resource: context.resource,
-                id:       context.id,
-                mime:     mime,
-                response: body}
+        hash = { actions:  actions,
+                 app:      context.app,
+                 resource: context.resource,
+                 id:       context.id,
+                 mime:     mime,
+                 response: body }
         if resource['extras']
           resource['extras'].each do |k, v|
             temp = RL.request(:get, "http://#{context.config['remote'].split('/')[0]}/#{v}")[2]
@@ -121,7 +121,7 @@ module Render
         mime = 'text/html'
         body = template.render(self, hash)
       end
-      [200, {'Content-Type' => mime}, body]
+      [200, { 'Content-Type' => mime }, body]
     end
 
     # Proxy method used when routing

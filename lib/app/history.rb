@@ -33,7 +33,7 @@ module History
   # @param [Hash] context the context for this request
   # @return [Response] the history, or status code
   def do_read(actions, context)
-    list = get_log(context.repos[context.config['repo']],
+    list = get_log(context.closet.repos[context.config['repo']],
                    context.resource,
                    context.id)
     if list == 404
