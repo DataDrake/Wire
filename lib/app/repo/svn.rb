@@ -176,7 +176,18 @@ module Repo
       status
     end
 
-    self.alias_method :do_create_file, :do_update_file
+    # Create a single file
+    # @param [String] conf the repo config
+    # @param [String] repo the new repo name
+    # @param [String] id the relative path to the file
+    # @param [String] content the updated file
+    # @param [String] message the commit message
+    # @param [String] mime the mime-type to set
+    # @param [String] username the Author of this change
+    # @return [Integer] status code
+    def self.do_create_file(conf, repo, id, content, message, mime, username)
+      do_update_file(conf, repo, id, content, message, mime, username)
+    end
 
   end
 end
