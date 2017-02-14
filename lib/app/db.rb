@@ -39,7 +39,7 @@ module DB
     conf.each do |k,v|
       config[k.to_sym] = v
     end
-    config[:db] = Sequel.connect(config)
+    config['db'] = Sequel.connect(config)
     config
   end
 

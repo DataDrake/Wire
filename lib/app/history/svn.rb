@@ -30,7 +30,7 @@ module History
     # @return [Hash] the history entries
     def self.get_log(conf, repo, id = nil)
       options = "--username #{conf['user']} --password #{conf['password']}"
-      uri     = "svn://#{conf['host']}/#{repo}"
+      uri     = "#{conf['protocol']}://#{conf['host']}/#{repo}"
       if id
         if conf['web_folder']
           uri += "/#{conf['web_folder']}"

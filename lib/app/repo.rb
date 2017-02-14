@@ -36,21 +36,25 @@ module Repo
     Wire::Config.read_config_dir('config/repos', nil)
   end
 
-  # Create a new Repo
+  # Create a new file
   # @param [Hash] context the context for this request
   # @return [Response] status code
   def do_create(context)
-    conf     = context.closet.repos[context.config['repo']]
-    path     = conf['repos']
-    resource = context.resource
-    if path
-      if Dir.exist?("#{path}/#{resource}")
-        401
+    conf    = context.closet.repos[context.config['repo']]
+    repo    = context.resource
+    content = context.json
+    id      = context.id
+    if content[:file]
+      file = content[:file][:content].match(/base64,(.*)/)[1]
+      file = Base64.decode64(file)
+      if context.query[:type]
+        mime = context.query[:type]
       else
-        do_create_file(path, resource)
+        mime = content[:file][:mime]
       end
+      do_create_file(conf, repo, id, file, content[:message], mime, context.user)
     else
-      400
+      do_create_file(conf, repo, id, URI.unescape(content[:updated]), content[:message], context.query[:type], context.user)
     end
   end
 

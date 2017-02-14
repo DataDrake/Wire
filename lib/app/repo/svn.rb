@@ -27,19 +27,6 @@ module Repo
     # Force Nori to convert tag names to Symbols
     @@nori = Nori.new :convert_tags_to => lambda { |tag| tag.snakecase.to_sym }
 
-    # Make a new SVN repo
-    # @param [String] path the path to the repositories
-    # @param [String] repo the new repo name
-    # @return [Integer] status code
-    def self.do_create_file(path, repo)
-      `svnadmin create #{path}/#{repo}`
-      if $?.exitstatus != 0
-        500
-      else
-        200
-      end
-    end
-
     # Read a single file
     # @param [String] conf the repo config
     # @param [String] repo the new repo name
@@ -52,9 +39,9 @@ module Repo
         rev = 'HEAD'
       end
       if conf['web_folder'].nil?
-        body = `svn cat #{options} -r #{rev} 'svn://localhost/#{repo}/#{id}'`
+        body = `svn cat #{options} -r #{rev} '#{conf['protocol']}://#{conf['host']}/#{repo}/#{id}'`
       else
-        body = `svn cat #{options} -r #{rev} 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
+        body = `svn cat #{options} -r #{rev} '#{conf['protocol']}://#{conf['host']}/#{repo}/#{conf['web_folder']}/#{id}'`
       end
 
       if $?.success?
@@ -73,15 +60,15 @@ module Repo
       options = "--username #{conf['user']} --password #{conf['password']}"
       if conf['web_folder'].nil?
         if id.nil?
-          list = `svn list #{options} --xml 'svn://localhost/#{repo}'`
+          list = `svn list #{options} --xml '#{conf['protocol']}://#{conf['host']}/#{repo}'`
         else
-          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{id}'`
+          list = `svn list #{options} --xml '#{conf['protocol']}://#{conf['host']}/#{repo}/#{id}'`
         end
       else
         if id.nil?
-          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{conf['web_folder']}'`
+          list = `svn list #{options} --xml '#{conf['protocol']}://#{conf['host']}/#{repo}/#{conf['web_folder']}'`
         else
-          list = `svn list #{options} --xml 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
+          list = `svn list #{options} --xml '#{conf['protocol']}://#{conf['host']}/#{repo}/#{conf['web_folder']}/#{id}'`
         end
       end
       unless $?.exitstatus == 0
@@ -103,9 +90,9 @@ module Repo
         rev = 'HEAD'
       end
       if conf['web_folder'].nil?
-        info = `svn info #{options} -r #{rev} --xml 'svn://localhost/#{repo}/#{id}'`
+        info = `svn info #{options} -r #{rev} --xml '#{conf['protocol']}://#{conf['host']}/#{repo}/#{id}'`
       else
-        info = `svn info #{options} -r #{rev} --xml 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
+        info = `svn info #{options} -r #{rev} --xml '#{conf['protocol']}://#{conf['host']}/#{repo}/#{conf['web_folder']}/#{id}'`
       end
 
       unless $?.exitstatus == 0
@@ -127,9 +114,9 @@ module Repo
         rev = 'HEAD'
       end
       if conf['web_folder'].nil?
-        mime = `svn propget #{options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{id}'`
+        mime = `svn propget #{options} -r #{rev} --xml svn:mime-type '#{conf['protocol']}://#{conf['host']}/#{repo}/#{id}'`
       else
-        mime = `svn propget #{options} -r #{rev} --xml svn:mime-type 'svn://localhost/#{repo}/#{conf['web_folder']}/#{id}'`
+        mime = `svn propget #{options} -r #{rev} --xml svn:mime-type '#{conf['protocol']}://#{conf['host']}/#{repo}/#{conf['web_folder']}/#{id}'`
       end
       unless $?.success?
         return 500
@@ -142,7 +129,7 @@ module Repo
       end
     end
 
-    # Update a single file
+    # Update or create a single file
     # @param [String] conf the repo config
     # @param [String] repo the new repo name
     # @param [String] id the relative path to the file
@@ -152,49 +139,44 @@ module Repo
     # @param [String] username the Author of this change
     # @return [Integer] status code
     def self.do_update_file(conf, repo, id, content, message, mime, username)
-      options = "--username #{conf['user']} --password #{conf['password']}"
+      options = "--depth empty --username #{conf['user']} --password #{conf['password']}"
       status  = 500
-      id      = id.split('/')
-      id.pop
-      id = id.join('/')
-      if conf['web_folder'].nil?
-        repo_path = "/tmp/svn/#{repo}/#{id}"
-      else
-        repo_path = "/tmp/svn/#{repo}/#{conf['web_folder']}/#{id}"
-      end
+      repo_path = "/tmp/#{username}/#{repo}"
       unless Dir.exist? repo_path
         FileUtils.mkdir_p(repo_path)
       end
 
-      `svn checkout #{options} 'svn://localhost/#{repo}' '/tmp/svn/#{repo}'`
-      id = CGI.unescape(id)
-      if $?.exitstatus == 0
-        id = id.split('/')
-        id.pop
-        id = id.join('/')
-        if conf['web_folder'].nil?
-          file_path = "/tmp/svn/#{repo}/#{id}"
-        else
-          file_path = "/tmp/svn/#{repo}/#{conf['web_folder']}/#{id}"
-        end
+      `svn checkout #{options} '#{conf['protocol']}://#{conf['host']}/#{repo}' '#{repo_path}'`
 
-        unless Dir.exist? file_path
-          FileUtils.mkdir_p(file_path)
+      if $?.exitstatus == 0
+        file_path = CGI.unescape(id)
+        if conf['web_folder']
+          file_path = "#{conf['web_folder']}/#{file_path}"
+        end
+        folder_path = file_path.split('/')
+        folder_path.pop
+        folder_path = folder_path.join('/')
+
+        unless Dir.exist? folder_path
+          FileUtils.mkdir_p(folder_path)
         end
 
         file = File.open(file_path, 'w+')
         file.syswrite(content)
         file.close
-        `svn add --force "/tmp/svn/#{repo}/*"`
+        `svn add --force "#{repo_path}/*"`
         `svn propset svn:mime-type "#{mime}" "#{file_path}"`
-        `svn commit #{options} -m "#{message}" "/tmp/svn/#{repo}"`
+        `svn commit #{options} -m "#{message}" "#{repo_path}"`
         if $?.exitstatus == 0
           status = 200
         end
-        `svn propset #{options} --revprop -r HEAD svn:author '#{username}' "/tmp/svn/#{repo}"`
+        `svn propset #{options} --revprop -r HEAD svn:author '#{username}' "#{repo_path}"`
       end
-      `rm -R '/tmp/svn/#{repo}'`
+      `rm -R '#{repo_path}'`
       status
     end
+
+    self.alias_method :do_create_file, :do_update_file
+
   end
 end
