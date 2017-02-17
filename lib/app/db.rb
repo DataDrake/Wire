@@ -39,11 +39,10 @@ module DB
     conf.each do |k,v|
       config[k.to_sym] = v
     end
-    config['db'] = Sequel.connect(config)
-    config
+    Sequel.connect(config)
   end
 
-  # Read all of the configs in './configs/dbs'
+  # Read all of the configs in './config/dbs'
   # @return [void]
   def self.read_configs
     Wire::Config.read_config_dir('config/dbs', method(:init_db))
@@ -132,7 +131,7 @@ module DB
   def self.do_read(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-    id = context.uri[3]
+    id = context.id
     if id.eql?('new') or id.eql? 'upload'
       return '{}'
     end
@@ -147,7 +146,7 @@ module DB
   def self.do_update(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-    instance = model[context.uri[3]]
+    instance = model[context.id]
     return 404 unless instance
     instance.update(context.json)
   end
@@ -160,7 +159,8 @@ module DB
     return 404 unless model
     instance = model[context.uri[3]]
     if instance
-      if instance.destroy
+      instance = instance.destroy
+      if instance.errors.length == 0
         200
       else
         [500, {}, 'Failed to delete instance']

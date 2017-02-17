@@ -43,11 +43,11 @@ module Wire
       if @mode.eql? 'development'
         $stderr.puts 'Reading DB Configs...'
       end
-      @dbs = Wire::DB.read_configs
+      @dbs = DB.read_configs
       if @mode.eql? 'development'
         $stderr.puts 'Reading Repo Configs...'
       end
-      @repos = Wire::Repo.read_configs
+      @repos = Repo.read_configs
     end
 
     # Setup the closet

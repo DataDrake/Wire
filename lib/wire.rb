@@ -33,7 +33,7 @@ end
 # @author Bryan T. Meyers
 module Wire
   # Current version of the Wire Gem
-  VERSION = '0.1.5.9'
+  VERSION = '0.1.6.0'
 end
 
 require_relative 'app'
