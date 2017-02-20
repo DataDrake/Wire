@@ -58,7 +58,7 @@ module Render
       end
       if template
         hash = { actions:  actions,
-                 context: context,
+                 context:  context,
                  resource: resource,
                  mime:     mime,
                  response: body }
@@ -105,9 +105,7 @@ module Render
       if template
         hash = { actions:  actions,
                  context:  context,
-                 app:      context.app,
-                 resource: context.resource,
-                 id:       context.id,
+                 resource: resource,
                  mime:     mime,
                  response: body }
         if resource['extras']
