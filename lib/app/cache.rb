@@ -17,10 +17,25 @@
 require 'lmdb'
 
 module Cache
-  module Memory
+  # Cache::LMDB is a Wire::App for cache arbitrary HTTP responses in an LMDB
+  # @author Bryan T. Meyers
+  module LMDB
 
     @@cache = {}
 
+    # Cache-specific configuration
+    # @param [Hash] conf the existing configuration
+    # @return [Hash] post-processed configuration
+    def self.configure(conf)
+      unless @@cache[conf['remote']]
+        @@cache[conf['remote']] = LMDB.new("#{conf['cache']}/#{conf['remote']}", mapsize: 2**30)
+      end
+      conf
+    end
+
+    # Add or Update a cached response
+    # @param [Hash] context the context for this request
+    # @return [Response] a valid Rack response triplet, or status code
     def self.update_cached(context)
       uri = context.uri.join('/')
       all = context.uri[0..2].join('/')
@@ -53,6 +68,9 @@ module Cache
       result
     end
 
+    # Read a cached response
+    # @param [Hash] context the context for this request
+    # @return [Response] a valid Rack response triplet, or status code
     def self.get_cached(context)
       uri    = context.uri.join('/')
       env    = @@cache[context.config['remote']]
@@ -64,6 +82,9 @@ module Cache
       result
     end
 
+    # Remove a cached response
+    # @param [Hash] context the context for this request
+    # @return [Response] a valid Rack response triplet, or status code
     def self.purge_cached(context)
       uri    = context.uri.join('/')
       env    = @@cache[context.config['remote']]
@@ -79,13 +100,11 @@ module Cache
       result
     end
 
+    # Proxy method used when routing
+    # @param [Array] actions the allowed actions for this URI
+    # @param [Hash] context the context for this request
+    # @return [Response] a Rack Response triplet, or status code
     def self.invoke(actions, context)
-
-      # Create Cache if not set up
-      unless @@cache[context.config['remote']]
-        @@cache[context.config['remote']] = LMDB.new("/tmp/cache/#{context.config['remote']}", mapsize: 2**30)
-      end
-
       case context.action
         when :create, :update, :delete
           result = context.forward(context.action)
