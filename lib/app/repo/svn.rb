@@ -139,42 +139,51 @@ module Repo
     # @param [String] username the Author of this change
     # @return [Integer] status code
     def self.do_update_file(conf, repo, id, content, message, mime, username)
-      options = "--depth empty --username #{conf['user']} --password #{conf['password']}"
-      status  = 500
+      options   = "--username #{conf['user']} --password #{conf['password']}"
+      status    = 500
       repo_path = "/tmp/#{username}/#{repo}"
       unless Dir.exist? repo_path
         FileUtils.mkdir_p(repo_path)
       end
 
-      `svn checkout #{options} '#{conf['protocol']}://#{conf['host']}/#{repo}' '#{repo_path}'`
+      `svn checkout --depth empty #{options} '#{conf['protocol']}://#{conf['host']}/#{repo}' '#{repo_path}'`
 
       if $?.exitstatus == 0
-        file_path = CGI.unescape(id)
-        if conf['web_folder']
-          file_path = "#{conf['web_folder']}/#{file_path}"
+        Dir.chdir(repo_path) do
+          file_path = CGI.unescape(id)
+          if conf['web_folder']
+            file_path = "#{conf['web_folder']}/#{file_path}"
+          end
+          folder_path = file_path.split('/')
+          folder_path.pop
+          folder_path = folder_path.join('/')
+          `svn update --parents #{options} #{file_path}`
+          unless Dir.exist? folder_path
+            FileUtils.mkdir_p(folder_path)
+          end
+          file = File.open(file_path, 'w')
+          file.syswrite(content)
+          file.close
+          `svn add --force *`
+          $stderr.puts `svn status`
+          `svn propset svn:mime-type '#{mime ? mime : 'application/octet-stream'}' #{file_path}`
+          if $?.exitstatus != 0
+            break
+          end
+          `svn commit #{options} -m "#{message}"`
+          if $?.exitstatus != 0
+            break
+          end
+          `svn propset #{options} --revprop -r HEAD svn:author '#{username}'`
         end
-        folder_path = file_path.split('/')
-        folder_path.pop
-        folder_path = folder_path.join('/')
-
-        unless Dir.exist? folder_path
-          FileUtils.mkdir_p(folder_path)
-        end
-
-        file = File.open(file_path, 'w+')
-        file.syswrite(content)
-        file.close
-        `svn add --force "#{repo_path}/*"`
-        `svn propset svn:mime-type "#{mime}" "#{file_path}"`
-        `svn commit #{options} -m "#{message}" "#{repo_path}"`
-        if $?.exitstatus == 0
-          status = 200
-        end
-        `svn propset #{options} --revprop -r HEAD svn:author '#{username}' "#{repo_path}"`
       end
       `rm -R '#{repo_path}'`
+      if $?.exitstatus == 0
+        status = 200
+      end
       status
     end
+
 
     # Create a single file
     # @param [String] conf the repo config
