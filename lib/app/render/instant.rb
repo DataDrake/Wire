@@ -30,7 +30,6 @@ module Render
       if context.resource
         body = context.body
         if body
-          #TODO: This looks off...
           body = body.split('=')[1]
           if body
             body = URI.decode(body)
@@ -38,12 +37,18 @@ module Render
           ## Assume unsupported mime type
           status   = 415
           message  = 'INSTANT: Unsupported MIME Type'
-          renderer = context.closet.renderers["#{context.resource}/#{context.id}"]
+          mime     = "#{context.resource}/#{context.id}"
+          renderer = nil
+          context.closet.renderers.each do |k, v|
+            if v['mimes'].include? mime
+              renderer = v['partial']
+              break
+            end
+          end
           if renderer
-            template = context.closet.templates[renderer]
-            result   = template.render(self, { actions:  actions,
+            result   = renderer.render(self, { actions:  actions,
                                                context:  context,
-                                               mime:     "#{context.resource}/#{context.id}",
+                                               mime:     mime,
                                                response: body, })
             name     = context.config['template']
             template = context.closet.templates[name]
