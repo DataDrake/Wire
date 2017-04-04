@@ -27,7 +27,12 @@ module Render
     def self.do_read(actions, context, specific)
       response = context.forward(specific)
       mime     = response[1]['content-type']
-      renderer = context.closet.renderers[mime]
+      renderer = nil
+      context.closet.renderers.each do |k,c|
+        if c['mimes'].include? mime
+          renderer = c
+	end
+      end
       if renderer
         template = renderer['partial']
         template.render(self, { actions:  actions,

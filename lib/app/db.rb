@@ -157,7 +157,7 @@ module DB
   def self.do_delete(context)
     model = context.config['models'][context.resource]
     return 404 unless model
-    instance = model[context.uri[3]]
+    instance = model[context.id]
     if instance
       instance = instance.destroy
       if instance.errors.length == 0
