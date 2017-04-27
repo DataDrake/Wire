@@ -119,7 +119,9 @@ module Wire
         begin
           @json = JSON.parse_clean(@body)
         rescue JSON::ParserError
-          $stderr.puts 'Warning: Failed to parse body as JSON'
+          if closet.mode.eql? 'development'
+            $stderr.puts 'Warning: Failed to parse body as JSON'
+          end
         end
       end
     end
