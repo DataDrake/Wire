@@ -28,10 +28,10 @@ module Render
     def self.configure(conf)
       conf['resources'].each do |k, v|
         if v.is_a? Hash
-          conf['resources'][k]['multiple'] = Tilt.new(v['multiple'], 1, { ugly: true })
-          conf['resources'][k]['single']   = Tilt.new(v['single'], 1, { ugly: true })
+          conf['resources'][k]['multiple'] = Tilt.new(v['multiple'], 1)
+          conf['resources'][k]['single']   = Tilt.new(v['single'], 1)
         elsif v.is_a? String
-          conf['resources'][k] = { 'all' => Tilt.new(v, 1, { ugly: true }) }
+          conf['resources'][k] = { 'all' => Tilt.new(v, 1) }
         end
       end
       conf

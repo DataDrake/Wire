@@ -26,7 +26,7 @@ module Repo
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
   def configure(conf)
-    conf['listing'] = Tilt.new(conf['listing'], 1, { ugly: true })
+    conf['listing'] = Tilt.new(conf['listing'], 1)
     conf
   end
 

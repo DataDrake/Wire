@@ -24,7 +24,7 @@ module Render
     # @return [Hash] post-processed configuration
     def self.configure(conf)
       conf['errors'].each do |k, v|
-        conf['errors'][k] = Tilt.new(v, 1, { ugly: true })
+        conf['errors'][k] = Tilt.new(v, 1)
       end
       conf
     end

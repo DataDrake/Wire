@@ -25,7 +25,7 @@ module History
   # @param [Hash] conf the raw configuration
   # @return [Hash] post-processed configuration
   def configure(conf)
-    conf['log'] = Tilt.new(conf['log'], 1, { ugly: true })
+    conf['log'] = Tilt.new(conf['log'], 1)
     conf
   end
 
