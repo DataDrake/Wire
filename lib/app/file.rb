@@ -29,7 +29,7 @@ module Static
       if File.directory? path
         Dir.entries(path).sort.to_s
       else
-        401
+        403
       end
     else
       404

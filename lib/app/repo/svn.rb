@@ -157,7 +157,7 @@ module Repo
           folder_path = file_path.split('/')
           folder_path.pop
           folder_path = folder_path.join('/')
-          `svn update --parents #{options} #{file_path}`
+          `svn update --parents #{options} '#{file_path}'`
           unless Dir.exist? folder_path
             FileUtils.mkdir_p(folder_path)
           end
@@ -166,7 +166,7 @@ module Repo
           file.close
           `svn add --force *`
           $stderr.puts `svn status`
-          `svn propset svn:mime-type '#{mime ? mime : 'application/octet-stream'}' #{file_path}`
+          `svn propset svn:mime-type '#{mime ? mime : 'application/octet-stream'}' '#{file_path}'`
           if $?.exitstatus != 0
             break
           end

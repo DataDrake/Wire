@@ -85,7 +85,7 @@ module Render
           result[2]                 = render_template(actions, context, template, result[2])
         end
       else
-        result = [401, {}, 'Resource not specified']
+        result = [403, {}, 'Resource not specified']
       end
       result
     end

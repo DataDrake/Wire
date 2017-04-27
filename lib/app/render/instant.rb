@@ -38,6 +38,7 @@ module Render
           status   = 415
           message  = 'INSTANT: Unsupported MIME Type'
           mime     = "#{context.resource}/#{context.id}"
+          $stderr.puts mime
           renderer = nil
           context.closet.renderers.each do |k, v|
             if v['mimes'].include? mime
@@ -46,12 +47,16 @@ module Render
             end
           end
           if renderer
+            context.uri = ['http:','','host'] + context.query[:id].split('/')
             result   = renderer.render(self, { actions:  actions,
                                                context:  context,
                                                mime:     mime,
                                                response: body, })
             name     = context.config['template']
             template = context.closet.templates[name]
+            context.resource = context.query[:resource]
+            context.uri = ['http:','','host','','instant', context.resource] + context.query[:id].split('/')
+	    context.id = context.uri.last
             if template
               message = template['file'].render(self, { actions: actions,
                                                         context: context,

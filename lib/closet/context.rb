@@ -103,8 +103,8 @@ module Wire
       @config = @closet.apps[@uri[1]]
       if @config
         @app      = @uri[1]
-        @resource = @uri[2]
-        @id       = @uri.length > 3 ? @uri[3...@uri.length].join('/') : nil
+        @resource = URI.unescape(@uri[2])
+        @id       = @uri.length > 3 ? URI.unescape(@uri[3...@uri.length].join('/')) : nil
       else
         throw Exception.new("App: #{@uri[1]} is Undefined")
       end

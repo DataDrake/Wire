@@ -28,10 +28,10 @@ module Render
       response = context.forward(specific)
       mime     = response[1]['content-type']
       renderer = nil
-      context.closet.renderers.each do |k,c|
+      context.closet.renderers.each do |k, c|
         if c['mimes'].include? mime
           renderer = c
-	end
+        end
       end
       if renderer
         template = renderer['partial']
