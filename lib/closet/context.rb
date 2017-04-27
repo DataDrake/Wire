@@ -52,7 +52,7 @@ module Wire
     attr_reader :action, :app, :body, :closet, :config, :id,
                 :json, :query, :query_string, :rack_env,
                 :referer, :resource, :uri, :user, :verb
-    attr_writer :referer
+    attr_writer id:, :referer, :resource, :uri
 
     # Maps HTTP verbs to actions
     HTTP_ACTIONS = {
