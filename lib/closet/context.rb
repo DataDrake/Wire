@@ -146,7 +146,7 @@ module Wire
       uri  += '?' + @query_string
       body = [:create, :update].include?(method) ? @body : nil
       $stderr.puts "#{verb.upcase}: Forward Request to #{uri}"
-      RL.request verb, uri, headers, body
+      RL.request verb, URI.escape(uri), headers, body
     end
   end
 end
