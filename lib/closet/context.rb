@@ -109,11 +109,13 @@ module Wire
         throw Exception.new("App: #{@uri[1]} is Undefined")
       end
       @query = {}
-      env['QUERY_STRING'].split('&').each do |q|
-        param                   = q.split('=')
-        @query[param[0].to_sym] = param[1]
+      if env['QUERY_STRING']
+        env['QUERY_STRING'].split('&').each do |q|
+          param                   = q.split('=')
+          @query[param[0].to_sym] = param[1]
+        end
       end
-      @query_string = env['QUERY_STRING']
+      @query_string = env['QUERY_STRING'] ? env['QUERY_STRING'] : ""
       if env['rack.input']
         @body = env['rack.input'].read
         begin

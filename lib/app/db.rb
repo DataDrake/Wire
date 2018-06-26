@@ -45,7 +45,7 @@ module DB
   # Read all of the configs in './config/dbs'
   # @return [void]
   def self.read_configs
-    Wire::Config.read_config_dir('config/dbs', method(:init_db))
+    Wire::Config.read_config_dir('./config/dbs', method(:init_db))
   end
 
   # Add a new object to the DB table

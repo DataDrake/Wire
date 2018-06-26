@@ -35,11 +35,15 @@ module Wire
     # @return [Wire::Closet] the new closet
     def initialize
       @mode = ENV['RACK_ENV']
+      if @mode.nil? or @mode.empty?
+        @mode = 'production'
+      end
       if @mode.eql? 'development'
         $stderr.puts 'Starting Up Wire...'
         $stderr.puts 'Reading Environment Config...'
       end
-      @env = Wire::Config.read_config_dir('./config/env', nil)[@mode]
+      configs = Wire::Config.read_config_dir('./config/env', nil)
+      @env = configs[@mode]
       if @mode.eql? 'development'
         $stderr.puts 'Reading DB Configs...'
       end
@@ -81,13 +85,15 @@ module Wire
     # @param [Hash] env the Rack environment
     # @return [Response] a Rack Response triplet, or status code
     def call(env)
+      headers = {}
       begin
         context  = Wire::Context.new(self, env)
         response = route(context)
       rescue Exception => e
         $stderr.puts e.message
         $stderr.puts e.backtrace
-        response = [500, {}, e.message]
+        $stderr.flush
+        response = [500, headers, e.message + "\n" + e.backtrace]
       end
       if response.is_a? Array
         if response[2] and not response[2].is_a? Array
@@ -95,9 +101,9 @@ module Wire
         end
       else
         if response.is_a? Integer
-          response = [response, {}, []]
+          response = [response, headers, []]
         else
-          response = [200, {}, [response]]
+          response = [200, headers, [response]]
         end
       end
       response
