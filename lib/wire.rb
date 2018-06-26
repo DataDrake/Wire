@@ -1,5 +1,5 @@
 ##
-# Copyright 2017 Bryan T. Meyers
+# Copyright 2017-2018 Bryan T. Meyers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ end
 # @author Bryan T. Meyers
 module Wire
   # Current version of the Wire Gem
-  VERSION = '0.1.6.3'
+  VERSION = '0.1.6.4'
 end
 
 require_relative 'app'

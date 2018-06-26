@@ -1,5 +1,5 @@
 ##
-# Copyright 2017 Bryan T. Meyers
+# Copyright 2017-2018 Bryan T. Meyers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ require_relative 'lib/wire'
 Gem::Specification.new do |s|
   s.name        = 'wire-framework'
   s.version     = Wire::VERSION
-  s.date        = '2017-01-31'
+  s.date        = '2018-06-26'
   s.summary     = 'Wire Framework'
   s.description = 'Wire is a Rack interface for quickly building web applications, without the needless complexity of Rails'
   s.authors     = ['Bryan T. Meyers']
