@@ -48,7 +48,7 @@ module Render
                                 mime:     mime,
                                 response: body })
       else
-        body
+        return [404, {}, 'EDITOR: Editing of this file type is not supported']
       end
     end
 

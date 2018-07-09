@@ -52,6 +52,7 @@ module Static
         else
           mime = `mimetype --brief #{ext_path}`
         end
+        mime.strip!
         headers                  = {}
         headers['Content-Type']  = mime
         headers['Cache-Control'] = 'public'

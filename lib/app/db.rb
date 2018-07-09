@@ -39,7 +39,10 @@ module DB
     conf.each do |k,v|
       config[k.to_sym] = v
     end
-    Sequel.connect(config)
+    db = Sequel.connect(config)
+    db.extension(:connection_validator)
+    db.pool.connection_validation_timeout = 30
+    db
   end
 
   # Read all of the configs in './config/dbs'
@@ -149,6 +152,7 @@ module DB
     instance = model[context.id]
     return 404 unless instance
     instance.update(context.json)
+    [200, {}, object.to_json]
   end
 
   # Remove a specific object from the DB table
