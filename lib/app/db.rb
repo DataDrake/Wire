@@ -152,7 +152,7 @@ module DB
     instance = model[context.id]
     return 404 unless instance
     instance.update(context.json)
-    [200, {}, object.to_json]
+    [200, {}, instance.to_json]
   end
 
   # Remove a specific object from the DB table

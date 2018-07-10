@@ -93,10 +93,10 @@ module Wire
         $stderr.puts e.message
         $stderr.puts e.backtrace
         $stderr.flush
-        response = [500, headers, e.message + "\n" + e.backtrace]
+        response = [500, headers, "#{e.message}<br>#{e.backtrace.join('<br>')}"]
       end
       if response.is_a? Array
-        if response[2] and not response[2].is_a? Array
+        if response[2] and not response[2].is_a?(Array)
           response[2] = [response[2]]
         end
       else
