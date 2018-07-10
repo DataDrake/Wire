@@ -31,12 +31,13 @@ module History
     def self.get_log(conf, repo, id = nil)
       options = "--username #{conf['user']} --password #{conf['password']}"
       uri     = "#{conf['protocol']}://#{conf['host']}/#{repo}"
-      if id
-        if conf['web_folder']
-          uri += "/#{conf['web_folder']}"
-        end
-        uri += "/#{id}"
+      if id.nil? or id.empty?
+        return 404
       end
+      if conf['web_folder']
+        uri += "/#{conf['web_folder']}"
+      end
+      uri += "/#{id}"
       log = `svn log #{options} -v --xml '#{uri}'`
       if $?.exitstatus != 0
         return 404

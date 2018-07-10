@@ -37,7 +37,7 @@ module History
                    context.resource,
                    context.id)
     if list == 404
-      return 404
+      return [404, {}, "File Not Found"]
     end
     template = context.config['log']
     template.render(self, actions: actions, context: context, list: list)
